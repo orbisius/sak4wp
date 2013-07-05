@@ -224,10 +224,10 @@ class Orbisius_WP_SAK_Controller_Module_Stats extends Orbisius_WP_SAK_Controller
         $htaccess_file = ABSPATH . '/.htaccess';
 
         if (file_exists($htaccess_file)) {
-            $buff .= "<br/><strong>.htaccess Info</strong>\n";
-            $buff .= '<pre>';
+            $buff .= "<br/><strong>.htaccess Info (Read Only)</strong>\n";
+            $buff .= '<br/><textarea class="app-code-textarea" readonly="readonly">';
             $buff .= file_get_contents($htaccess_file);
-            $buff .= '</pre>';
+            $buff .= '</textarea>';
         }
 
         return $buff;
@@ -429,10 +429,10 @@ BUFF_EOF;
             case 'help':
                 $descr = <<<BUFF_EOF
 <h4>Support</h4>
-<p>We provide support via our <a href="#" target="_blank">support forums</a>.</p>
+<p>We provide support via <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a>.</p>
 
 <h4>Issues</h4>
-<p>If you've found a bug or have a suggestion file a ticket at <a href="#" target="_blank">support forums</a>.</p>
+<p>If you've found a bug or have a suggestion submit a ticket at <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">support forums</a>.</p>
 
 BUFF_EOF;
 
@@ -850,6 +850,12 @@ BUFF_EOF;
       ul.nav li.right {
           float:right;
       }
+
+
+.app-code-textarea {
+    width:100%;
+    min-height: 250px;
+}
 
 .app-table {
     border:1px solid #999;
