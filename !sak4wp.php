@@ -109,7 +109,7 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
             $status['status'] = 1;
         } else {
             $status['message'] = 'IP address: [' . esc_attr($ip) . '] not found.';
-            $status['data'] = $lockouts;
+            //$status['data'] = $lockouts; // let's not send the data.
         }
 
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, json_encode($status));
@@ -313,7 +313,6 @@ class Orbisius_WP_SAK_Controller {
      */
 	public function doExit() {
         unset($this->params);
-        unset(self::$_instance);
         exit;
     }
 
@@ -634,16 +633,16 @@ BUFF_EOF;
                 // unblock IP ajax
                 $('.mod_limit_login_attempts_blocked_ip').click(function() {
                     var ip = $(this).data('ip');
-                    var link = $(this);
+                    var link_container = $(this).closest('td');
                 
                     if (!confirm('Are you sure you want to unblock : ' + ip + '?', '')) {
                         return false;
                     }
 
-                    var parent_container = $(this).closest('tr');
+                    //var parent_container = $(this).closest('tr'); // in case we want to remove the unblocked row
 
                     $('.app-ajax-message').remove();
-                    $(link).closest('td').append("<span class='app-ajax-message app-alert-notice'>loading ...</span>");
+                    $(link_container).append("<span class='app-ajax-message app-alert-notice'>loading ...</span>");
 
                     $.ajax({
                         type : "post",
@@ -654,9 +653,10 @@ BUFF_EOF;
                            $('.app-ajax-message').remove();
                 
                            if (json.status) {
-                              $(parent_container).slideUp('slow').remove();
+                              //$(parent_container).slideUp('slow').remove();
+                              $(link_container).append("<span class='app-ajax-message app-alert-success'>Unblocked!</span>");
                            } else {
-                              $(link).closest('td').append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
+                              $(link_container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
                                   + json.message + "</span>");
                            }
                         },
@@ -908,23 +908,26 @@ ul.nav li.right {
     background: #D54E21;
     border: 1px solid #eee;
     color: white;
-    padding: 5px;
+    padding: 3px;
     text-align: center;
+    margin:2px 5px;
 }
 
 .app-alert-success {
     background: green;
     border: 1px solid #eee;
     color: white;
-    padding: 5px;
+    padding: 3px;
     text-align: center;
+    margin:2px 5px;
 }
 
 .app-alert-notice {
     background: #FFEC8B;
     border: 1px solid #eee;
-    padding: 5px;
+    padding: 3px;
     text-align: center;
+    margin:2px 5px;
 }
                 
 /* Common MSG simple classes */
