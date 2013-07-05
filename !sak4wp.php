@@ -313,6 +313,7 @@ class Orbisius_WP_SAK_Controller {
      */
 	public function doExit() {
         unset($this->params);
+        unset(self::$_instance);
         exit;
     }
 
@@ -362,10 +363,19 @@ class Orbisius_WP_SAK_Controller {
             $img_buff = base64_decode($img_buff);
             $this->sendHeader(self::HEADER_IMAGE_PNG, $img_buff);
         } elseif (isset($params['destroy'])) {
-            rename(__FILE__, __FILE__ . '.0000');
+            rename(__FILE__, __FILE__ . '.' . time());
+            $this->redirect(ORBISIUS_WP_SAK_APP_SCRIPT); // this should be a test.
         }
     }
     
+    /**
+     * Executes tasks that require WP to loaded
+     */
+	public function redirect($url, $status = 302) {
+        header('Location: ' . $url);
+        $this->doExit();
+    }
+
     /**
      * Executes tasks that require WP to loaded
      */
@@ -555,8 +565,12 @@ BUFF_EOF;
             <li class="active"><a href="$script">Dashboard</a></li>
             <li class="active">Modules: [<a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>] </li>
 
-            <li class='right'><span><a href='$script?destroy' class='app-module-self-destroy-button'
-                onclick="return confirm('This will remove this script.Are you sure?', '');">Self Destroy</span></a></li>
+            <li class='right'><a href='$script?destroy' class='app-module-self-destroy-button' title='This will remove this script. If you see the same script that means the self destruction didn't happen. Please remove the file manually by connecting using an FTP client.'
+                onclick="return confirm('This will remove this script. If you see the same script that means the self destruction didn\'t happen. Please confirm self destroy operation.', '');">Self Destroy</a>
+
+                <a href='#' class='app-question-box' title='The script will attempt to remove itself. After than it will try to redirect to itself. So if you see the same script that means the self destruction didn't finish successfully.In that case remove the file manually by using an FTP client.'
+                ">?</a>
+            </li>
             <li class='right'><a href="$script?page=about">About</a></li>
             <li class='right'><a href="$script?page=donate">Donate</a></li>
             <li class='right'><a href="$script?page=help">Help</a></li>
@@ -875,6 +889,13 @@ ul.nav li.right {
    padding:3px;
    font-weight:bold;
    color:white;
+}
+
+.app-question-box {
+   padding:3px;
+   font-weight:bold;
+   border: 1px solid #777;
+   background:#B6CEDB;color:#111;
 }
 
 /* Common MSG classes */
