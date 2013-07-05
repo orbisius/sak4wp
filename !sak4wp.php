@@ -363,8 +363,8 @@ class Orbisius_WP_SAK_Controller {
             $img_buff = base64_decode($img_buff);
             $this->sendHeader(self::HEADER_IMAGE_PNG, $img_buff);
         } elseif (isset($params['destroy'])) {
-            if (1||!unlink(__FILE__)) {
-                die('Cannot self destroy. Please delete ' . ORBISIUS_WP_SAK_APP_SCRIPT . ' manually.');
+            if (!unlink(__FILE__)) {
+                die('Cannot self destroy. Please delete <strong>' . __FILE__ . '</strong> manually.');
             }
 
             // This should be a test. If the user is seeing the script
