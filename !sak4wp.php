@@ -361,6 +361,8 @@ class Orbisius_WP_SAK_Controller {
                     : self::bootstrap_glyphicons_halflings;
             $img_buff = base64_decode($img_buff);
             $this->sendHeader(self::HEADER_IMAGE_PNG, $img_buff);
+        } elseif (isset($params['destroy'])) {
+            rename(__FILE__, __FILE__ . '.0000');
         }
     }
     
@@ -425,7 +427,7 @@ class Orbisius_WP_SAK_Controller {
 BUFF_EOF;
 
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker();
-                $my_ip = $_SERVER['REMOTE_ADDR'];
+                $my_ip = $mod_obj->getIP();
 
                 if ($mod_obj->isBlocked($my_ip)) {
                     $descr .= "<div class='app-alert-error'>Your IP [$my_ip] address is blocked.
@@ -510,11 +512,12 @@ BUFF_EOF;
 	}
 	
 	public function displayHeader() {
-        $script = basename(__FILE__);
+        $script = ORBISIUS_WP_SAK_APP_SCRIPT;
 		$app_name = ORBISIUS_WP_SAK_APP_NAME;
 		$app_url = ORBISIUS_WP_SAK_APP_URL;
         $year = date('Y');
-        $ver = "<strong>Always remove this file when the work is complete!</strong> | Powered by <a href='$app_url' target='_blank'>$app_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
+        $ver = "<strong>Always remove this file when the work is complete!</strong>
+                | Powered by <a href='$app_url' target='_blank'>$app_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
 
         $page_content = $this->getPageContent();
 
@@ -552,6 +555,8 @@ BUFF_EOF;
             <li class="active"><a href="$script">Dashboard</a></li>
             <li class="active">Modules: [<a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>] </li>
 
+            <li class='right'><span><a href='$script?destroy' class='app-module-self-destroy-button'
+                onclick="return confirm('This will remove this script.Are you sure?', '');">Self Destroy</span></a></li>
             <li class='right'><a href="$script?page=about">About</a></li>
             <li class='right'><a href="$script?page=donate">Donate</a></li>
             <li class='right'><a href="$script?page=help">Help</a></li>
@@ -828,10 +833,9 @@ ul.nav li:last-child {
     border-right:0;
 }
 
-      ul.nav li.right {
-          float:right;
-      }
-
+ul.nav li.right {
+    float:right;
+}
 
 .app-code-textarea {
     width:100%;
@@ -865,7 +869,14 @@ ul.nav li:last-child {
 .app-table tr td.app-table-action-cell, .app-align-center {
     text-align: center;
 }
-            
+
+.app-module-self-destroy-button {
+   background:red;
+   padding:3px;
+   font-weight:bold;
+   color:white;
+}
+
 /* Common MSG classes */
 .app-alert-error {
     background: #D54E21;
