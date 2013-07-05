@@ -17,12 +17,25 @@ IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
+DISCLAIMER OF WARRANTY
+
+The Software is provided "AS IS" and "WITH ALL FAULTS," without warranty of any kind, including without limitation the warranties of merchantability,
+fitness for a particular purpose and non-infringement. The Licensor makes no warranty that the Software is free of defects or is suitable for any
+particular purpose. In no event shall the Licensor be responsible for loss or damages arising from the installation or use of the Software,
+including but not limited to any indirect, punitive, special, incidental or consequential damages of any character including, without limitation,
+damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses.
+The entire risk as to the quality and performance of the Software is borne by you. Should the Software prove defective, you and not the
+Licensor assume the entire cost of any service and repair.
+
 */
 
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://club.orbisius.com/products/');
 define('ORBISIUS_WP_SAK_APP_VER', '0.0.1');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
+
+// this stops WP Super Cache and W3 Total Cache from caching
+define( 'WP_CACHE', false );
 
 try {
     $ctrl = Orbisius_WP_SAK_Controller::getInstance();
@@ -74,23 +87,27 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
     public function handleAjax() {
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $params = $ctrl->getParams();
-        
+        $lockouts = $this->lockouts;
+
         $ip = empty($params['ip']) ? '' : $params['ip'];
 
         $s = 0;
         $msg = '';
+
+        $status = array('status' => 0, 'message' => '');
         
         if (!empty($lockouts[$ip])) {
             unset($lockouts[$ip]);
 
             update_option('limit_login_lockouts', $lockouts);
 
-            $s = 1;
+            $status['status'] = 1;
         } else {
-            $msg = 'IP address: [' . esc_attr($ip) . '] not found.';
+            $status['message'] = 'IP address: [' . esc_attr($ip) . '] not found.';
+            $status['data'] = $lockouts;
         }
 
-        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, json_encode( array('status' => $s, 'message' => $msg) ) );
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, json_encode($status));
     }
 
     /**
@@ -99,14 +116,18 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
      * @return type
      */
     public function isBlocked($ip = '') {
-       $ip = empty($ip) ? $_SERVER['REMOTE_ADDR'] : $ip;
+       $ip = empty($ip) ? $this->getIP() : $ip;
+       
        $lockouts = $this->lockouts;
-
-       $banned = !empty($lockouts) && array_key_exists($my_ip, $lockouts);
+       $banned = !empty($lockouts) && !empty($lockouts[$ip]);
 
        return $banned;
     }
 
+    /**
+     * Gets IP. This may require checking some $_SERVER variables ... if the user is using a proxy.
+     * @return string
+     */
     public function getIP() {
         $ip = $_SERVER['REMOTE_ADDR'];
 
@@ -121,11 +142,6 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
     public function getBlockedAsHTML() {
        $buff = '';
        $lockouts = $this->lockouts;
-
-$lockouts['127.0.0.1'] = time();
-$lockouts['127.0.0.2'] = time();
-$lockouts['127.0.0.3'] = time();
-$lockouts['127.0.0.4'] = time();
 
        $my_ip = $this->getIP();
 
@@ -387,7 +403,7 @@ BUFF_EOF;
                 $my_ip = $_SERVER['REMOTE_ADDR'];
 
                 if ($mod_obj->isBlocked($my_ip)) {
-                    $descr .= "<div class='app-alert-error'>Your IP [$my_ip] address is blocked.</div>";
+                    $descr .= "<div class='app-alert-error'>Your IP [$my_ip] address is blocked. Scroll down and click on Unblock your IP.</div>";
                 } else {
                     $descr .= "<div class='app-alert-success'>Your IP [$my_ip] address is NOT blocked.</div>";
                 }
