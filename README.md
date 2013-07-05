@@ -20,6 +20,7 @@ Features
 - Built-in Self Destroy mechanism (must be user triggered) -> the script will try to remove itself. 
 If that is not accessible (due to permissions issues). The user must delete the !sak4wp.php file manually 
 (e.g. by using an FTP client or accessing the file from a control panel).
+- The script is self contained. It outputs JavaScript and CSS files however returns header not modified to make the page load faster.
 
 Limit Login Attempts related features
 - Allows you to Unblock yourself or somebody else from Limit Login Attempts plugin
