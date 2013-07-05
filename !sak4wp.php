@@ -66,7 +66,7 @@ class Orbisius_WP_SAK_Controller_Module {
         }
     }
 
-    public function handleAjax() {
+    public function handleAction() {
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, json_encode( array('status' => 0, 'message' => "Invalid Action") ) );
     }
@@ -84,7 +84,12 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
         $this->lockouts = $lockouts;
     }
 
-    public function handleAjax() {
+    /**
+     * Handles IP unblocking. It searches the IP in the list and then
+     * updates the array and saves it in the db.
+     * The result is JSON
+     */
+    public function unblockIPAction() {
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $params = $ctrl->getParams();
         $lockouts = $this->lockouts;
@@ -157,11 +162,16 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
             $buff .= "</tr>\n";
 
             foreach ($lockouts as $ip => $ts) {
-                $you = $my_ip == $ip ? ' <span class="app-simple-alert-success">(you)</span>' : '';
+                $you = $extra_cls = '';
+
+                if ($my_ip == $ip) {
+                    $you = '<span class="app-simple-alert-success">&larr; (you)</span>';
+                    $extra_cls = 'app-module-limit-login-attempts-my-ip';
+                }
                 
                 $t = date('r', $ts);
-                $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
-                $buff .= "<tr $cls>\n";
+                $cls = $cnt % 2 != 0 ? 'app-table-row-odd' : '';
+                $buff .= "<tr class='$cls $extra_cls'>\n";
                 $buff .= "<td><a href='http://who.is/whois-ip/ip-address/$ip/' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you </td>\n";
                 $buff .= "<td class='app-align-center'>$t</td>\n";
                 $buff .= "<td class='app-align-center'><a href='javascript:void(0);' class='mod_limit_login_attempts_blocked_ip' data-ip='$ip'>Unblock</a></td>\n";
@@ -360,10 +370,25 @@ class Orbisius_WP_SAK_Controller {
 	public function run() {
         $params = $this->params;
         
-		if (!empty($params['cmd']) && $params['cmd'] == 'ajax') {
-            $obj = new Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker();
+		if (!empty($params['module']) && !empty($params['action'])) {
+            $action = $params['action'];
+            $module = $params['module'];
+
+            // e.g. Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker
+            $module_class = 'Orbisius_WP_SAK_Controller_Module_' . $module;
+
+            $obj_action_name = $action . 'Action';
+
+            // if the module name doesn't exist OR the class -> it's an error.
+            if (!class_exists($module_class)
+                    || (($obj = new $module_class()) && !method_exists($obj, $obj_action_name))) {
+                $status['status'] = 0;
+                $status['message'] = 'Internal Error.';
+                $this->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, json_encode($status));
+            }
+            
             $obj->init();
-            $obj->handleAjax();
+            $obj->$obj_action_name();
         }
 
         $this->displayHeader();
@@ -403,7 +428,8 @@ BUFF_EOF;
                 $my_ip = $_SERVER['REMOTE_ADDR'];
 
                 if ($mod_obj->isBlocked($my_ip)) {
-                    $descr .= "<div class='app-alert-error'>Your IP [$my_ip] address is blocked. Scroll down and click on Unblock your IP.</div>";
+                    $descr .= "<div class='app-alert-error'>Your IP [$my_ip] address is blocked.
+                        Scroll down to the yellow row and click on Unblock link.</div>";
                 } else {
                     $descr .= "<div class='app-alert-success'>Your IP [$my_ip] address is NOT blocked.</div>";
                 }
@@ -454,9 +480,12 @@ BUFF_EOF;
                 $descr = <<<BUFF_EOF
 <h4>Donate</h4>
 <p>Thank you for considering a donation to this project. We appraciate every contribution.</p>
+<p>By donating you will speed up the development of the project.</p>
+
+<br/>
 
 <h4>Where to send the money?</h4>
-<p>Please send it to <strong>billing@orbisius.com</strong> via PayPal.</p>
+<p>Please send it via PayPal to <strong>billing@orbisius.com</strong>.</p>
 
 BUFF_EOF;
 
@@ -514,7 +543,7 @@ BUFF_EOF;
 
         <ul class="nav">
             <li class="active"><a href="$script">Dashboard</a></li>
-            <li class="active"><a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a></li>
+            <li class="active">Modules: [<a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>] </li>
 
             <li class='right'><a href="$script?page=about">About</a></li>
             <li class='right'><a href="$script?page=donate">Donate</a></li>
@@ -589,7 +618,7 @@ BUFF_EOF;
                         type : "post",
                         dataType : "json",
                         url : wpsak_json_cfg.ajax_url, // contains all the necessary params
-                        data : { cmd : 'ajax', ip : ip, page : 'aaa' },
+                        data : { module : 'Limit_Login_Attempts_Unblocker', action : 'unblockIP', ip : ip },
                         success : function(json) {
                            $('.app-ajax-message').remove();
                 
@@ -732,120 +761,65 @@ BUFF_EOF;
         $buff['cust'] = <<<BUFF_EOF
 /* My CSS */
 /* Custom container */
-      body {
-        padding-top: 20px;
-        padding-bottom: 60px;
-      }
-      .container {
-        margin: 0 auto;
-        max-width: 1000px;
-      }
-      .container > hr {
-        margin: 60px 0;
-      }
+body {
+  padding-top: 20px;
+  padding-bottom: 60px;
+}
+.container {
+  margin: 0 auto;
+  max-width: 1000px;
+}
+.container > hr {
+  margin: 60px 0;
+}
 
-      /* Main marketing message and sign up button */
-      .jumbotron {
-        margin: 80px 0;
-        text-align: center;
-      }
-      .jumbotron h1 {
-        font-size: 100px;
-        line-height: 1;
-      }
-      .jumbotron .lead {
-        font-size: 24px;
-        line-height: 1.25;
-      }
-      .jumbotron .btn {
-        font-size: 21px;
-        padding: 14px 24px;
-      }
+.social_links, .app_ver {
+    float : right;
+}
 
-      /* Supporting marketing content */
-      .marketing {
-        margin: 60px 0;
-      }
-      .marketing p + h4 {
-        margin-top: 28px;
-      }
+.main_container {
+    border:2px solid #555;
+    padding:1%;
+    _min-height:500px;
+}
 
-      /* Customize the navbar links to be fill the entire space of the .navbar */
-      .navbar .navbar-inner {
-        padding: 0;
-      }
-      .navbar .nav {
-        margin: 0;
-        display: table;
-        width: 100%;
-      }
-      .navbar .nav li {
-        display: table-cell;
-        width: 1%;
-        float: none;
-      }
-      .navbar .nav li a {
-        font-weight: bold;
-        text-align: center;
-        border-left: 1px solid rgba(255,255,255,.75);
-        border-right: 1px solid rgba(0,0,0,.1);
-      }
-      .navbar .nav li:first-child a {
-        border-left: 0;
-        border-radius: 3px 0 0 3px;
-      }
-      .navbar .nav li:last-child a {
-        border-right: 0;
-        border-radius: 0 3px 3px 0;
-      }
+#EMAIL {
+  border:1px solid #555;
+  font-size: 26px;
+  outline:0 none;
+  width:25%;
+  min-height:45px;
+}
 
-	  .social_links, .app_ver {
-		  float : right;
-	  }
-                
-	  .main_container {
-		  border:2px solid #555;
-		  padding:1%;
-          _min-height:500px;
-	  }
+.mc_embed_signup {
+    background:#ccc;
+    padding:5px;
+}
 
-	  #EMAIL {
-		border:1px solid #555;
-		font-size: 26px;
-		outline:0 none;
-		width:25%;
-		min-height:45px;
-	  }
+.jumbotron {
+    margin: 40px 0;
+}
 
-	  .mc_embed_signup {
-		  background:#ccc;
-		  padding:5px;
-	  }
+ul.nav {
+    border:1px solid #ccc;
+    padding:10px;
+    margin:0;
+}
 
-	  .jumbotron {
-		  margin: 40px 0;
-	  }
+ul.nav li {
+    display:inline;
+    padding-left:5px;
+    border-left:1px solid #ccc;
+    margin-left:5px;
+}
 
-      ul.nav {
-          border:1px solid #ccc;
-          padding:10px;
-          margin:0;
-      }
+ul.nav li:first-child {
+    border-left:0;
+}
 
-      ul.nav li {
-          display:inline;
-          padding-left:5px;
-          border-left:1px solid #ccc;
-          margin-left:5px;
-      }
-
-      ul.nav li:first-child {
-          border-left:0;
-      }
-
-      ul.nav li:last-child {
-          border-right:0;
-      }
+ul.nav li:last-child {
+    border-right:0;
+}
 
       ul.nav li.right {
           float:right;
@@ -874,6 +848,11 @@ BUFF_EOF;
 
 .app-table-row-odd {
     background:#dadada;
+}
+
+.app-module-limit-login-attempts-my-ip {
+    background:yellow;
+    font-weight:bold;
 }
 
 .app-table tr td.app-table-action-cell, .app-align-center {
