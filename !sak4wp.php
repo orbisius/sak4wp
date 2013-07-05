@@ -457,8 +457,15 @@ BUFF_EOF;
 <h4>Support</h4>
 <p>We provide support via <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a>.</p>
 
-<h4>Issues</h4>
-<p>If you've found a bug or have a suggestion submit a ticket at <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">support forums</a>.</p>
+<br/>
+<h4>Suggestions</h4>
+<p>If you have a suggestion submit a ticket at <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a> too.</p>
+
+<br/>
+<h4>Security</h4>
+<p>
+    <strong>If you've found a security bug please <a href="http://orbisius.com/site/contact/" target="_blank">Contact us</a> right away!</strong>
+</p>
 
 BUFF_EOF;
 
