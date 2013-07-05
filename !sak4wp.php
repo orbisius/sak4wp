@@ -146,7 +146,7 @@ $lockouts['127.0.0.4'] = time();
                 $t = date('r', $ts);
                 $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
                 $buff .= "<tr $cls>\n";
-                $buff .= "<td><a href='http://who.is/whois/$ip' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you </td>\n";
+                $buff .= "<td><a href='http://who.is/whois-ip/ip-address/$ip/' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you </td>\n";
                 $buff .= "<td class='app-align-center'>$t</td>\n";
                 $buff .= "<td class='app-align-center'><a href='javascript:void(0);' class='mod_limit_login_attempts_blocked_ip' data-ip='$ip'>Unblock</a></td>\n";
                 $buff .= "</tr>\n";

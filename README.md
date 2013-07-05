@@ -17,7 +17,10 @@ That way you should be able to see it in case you forget the file.
 Features
 --------
 - Dashboard - Shows stats about db, php info, WordPress version
+
+Limit Login Attempts related features
 - Allows you to Unblock yourself or somebody else from Limit Login Attempts plugin
+- Added a link to a whois service to see more info about the blocked IP.
 - ... many more are planned.
 
 
