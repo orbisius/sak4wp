@@ -46,6 +46,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 Author
 ------
 
-Slavi Marinov
-@orbisius
+Svetoslav (Slavi) Marinov | 
+twitter: http://twitter.com/orbisius
 http://orbisius.com
+
