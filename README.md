@@ -17,9 +17,9 @@ That way you should be able to see it in case you forget the file.
 Features
 --------
 - Dashboard - Shows database info, php info, WordPress version
-- Built-in Self Destroy mechanism (must be user triggered) -> the script will try to remove itself.
- (for now it renames itself so it's not accessible). If there is a need the user can FTP connect and remove the extra numbers after the .php extension.
-
+- Built-in Self Destroy mechanism (must be user triggered) -> the script will try to remove itself. 
+If that is not accessible (due to permissions issues). The user must delete the !sak4wp.php file manually 
+(e.g. by using an FTP client or accessing the file from a control panel).
 
 Limit Login Attempts related features
 - Allows you to Unblock yourself or somebody else from Limit Login Attempts plugin

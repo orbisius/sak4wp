@@ -1,7 +1,7 @@
 <?php
 
 /**
-WordPress Swiss Army Knife - Standalone script that allows you fix your WordPress installation and make some admin stuff.
+Swiss Army Knife for WordPress - a standalone script that allows you fix your WordPress installation and make some admin stuff.
 You must remove it after the work is complete to avoid security issues.
 
 License: LGPL
@@ -363,8 +363,13 @@ class Orbisius_WP_SAK_Controller {
             $img_buff = base64_decode($img_buff);
             $this->sendHeader(self::HEADER_IMAGE_PNG, $img_buff);
         } elseif (isset($params['destroy'])) {
-            rename(__FILE__, __FILE__ . '.' . time());
-            $this->redirect(ORBISIUS_WP_SAK_APP_SCRIPT); // this should be a test.
+            if (1||!unlink(__FILE__)) {
+                die('Cannot self destroy. Please delete ' . ORBISIUS_WP_SAK_APP_SCRIPT . ' manually.');
+            }
+
+            // This should be a test. If the user is seeing the script
+            // that means it is is still alive.
+            $this->redirect(ORBISIUS_WP_SAK_APP_SCRIPT);
         }
     }
     
