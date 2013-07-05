@@ -1,18 +1,28 @@
 <?php
 
-define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
-define('ORBISIUS_WP_SAK_APP_URL', 'http://club.orbisius.com/products/');
-define('ORBISIUS_WP_SAK_APP_VER', '0.0.1');
-define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
-
 /**
 WordPress Swiss Army Knife - Standalone script that allows you fix your WordPress installation and make some admin stuff.
+You must remove it after the work is complete to avoid security issues.
+
 License: LGPL
 Author: Svetoslav Marinov (SLAVI)
 Author Site: http://orbisius.com
 Copyright: All Rights Reserved.
+Disclaimer: By using this script you take full responsibility to remove it.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
 */
-//header('Content-Type: text/plain');
+
+define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
+define('ORBISIUS_WP_SAK_APP_URL', 'http://club.orbisius.com/products/');
+define('ORBISIUS_WP_SAK_APP_VER', '0.0.1');
+define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 
 try {
     $ctrl = Orbisius_WP_SAK_Controller::getInstance();
