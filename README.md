@@ -1,4 +1,4 @@
-sak4wp
+SAK4WP - Swiss Army Knife for WordPress
 ======
 
 Swiss Army Knife for WordPress is a standalone script which allows you to perform some recovery operations on your WordPress site.
