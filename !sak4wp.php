@@ -409,7 +409,7 @@ EOF;
 
         if (file_exists($htaccess_file)) {
             $buff .= "<h4>.htaccess (Read Only)</h4>\n";
-            $buff .= '<br/><textarea class="app-code-textarea" readonly="readonly">';
+            $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
             $buff .= file_get_contents($htaccess_file);
             $buff .= '</textarea>';
         }
