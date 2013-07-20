@@ -291,36 +291,6 @@ EOF;
     }
 
     /**
-     *
-     * @param type $title
-     * @param type $data
-     */
-    public function renderKeyValueTable($title, $data = array()) {
-        $buff = '';
-        $buff .= "<h4>$title</h4>\n";
-        $buff .= "<table class='app-table'>\n";
-        $cnt = 0;
-
-        foreach ($data as $key => $value) {
-            if (is_numeric($value)) {
-                $value = number_format($value, 2);
-                $value = preg_replace('#\.00$#', '', $value);
-            }
-            
-            $cnt++;
-            $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
-            $buff .= "<tr $cls>\n";
-            $buff .= "<td class='download_url_cell'>$key</td>\n";
-            $buff .= "<td class='download_url_cell'>$value</td>\n";
-            $buff .= "</tr>\n";
-        }
-
-        $buff .= "</table>\n";
-
-        return $buff;
-    }
-    
-    /**
      * 
      */
     public function run() {
@@ -329,9 +299,11 @@ EOF;
 
         $buff = '';
 
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        
         $cfg = $this->read_wp_config();
         $cfg['db_version'] = $wpdb->get_var("SELECT VERSION()");
-        $buff .= $this->renderKeyValueTable('Database Info', $cfg);
+        $buff .= $ctrl->renderKeyValueTable('Database Info', $cfg);
 
         $data = array();
         $data['PHP Version'] = phpversion();
@@ -340,7 +312,7 @@ EOF;
         $data['Max Upload File Size Limit'] = $this->get_max_upload_size() . 'MB';
         $data['Memory Limit'] = $this->get_memory_limit() . 'MB';
 
-        $buff .= $this->renderKeyValueTable('System Info', $data);
+        $buff .= $ctrl->renderKeyValueTable('System Info', $data);
 
         $data = array();
         $data['User(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->users");
@@ -364,7 +336,7 @@ EOF;
                 "
         );
         
-        $buff .= $this->renderKeyValueTable('WordPress Site Stats', $data);
+        $buff .= $ctrl->renderKeyValueTable('WordPress Site Stats', $data);
 
         $htaccess_file = ABSPATH . '/.htaccess';
 
@@ -859,7 +831,38 @@ BUFF_EOF;
 BUFF_EOF;
 		echo $buff;
 	}
-	
+
+    /**
+     * Renders a nice stats table. Expects that the data is key value pairs.
+     * @param string $title - the text that will be shown above the table.
+     * @param array $data
+     * @return string HTML table
+     */
+    public function renderKeyValueTable($title, $data = array()) {
+        $buff = '';
+        $buff .= "<h4>$title</h4>\n";
+        $buff .= "<table class='app-table'>\n";
+        $cnt = 0;
+
+        foreach ($data as $key => $value) {
+            if (is_numeric($value)) {
+                $value = number_format($value, 2);
+                $value = preg_replace('#\.00$#', '', $value);
+            }
+
+            $cnt++;
+            $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
+            $buff .= "<tr $cls>\n";
+            $buff .= "<td class='download_url_cell'>$key</td>\n";
+            $buff .= "<td class='download_url_cell'>$value</td>\n";
+            $buff .= "</tr>\n";
+        }
+
+        $buff .= "</table>\n";
+
+        return $buff;
+    }
+
     const HEADER_CSS = 'css';
     const HEADER_JS = 'js';
     const HEADER_JSON = 'json';
