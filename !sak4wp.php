@@ -123,43 +123,15 @@ EOF;
         if (empty($results)) {
             $buff .= "No results.";
         } else {
-            // :STODO: make this a metod for table rendering too
-            $buff .= "<table width='100%' class='app-table' cellpadding='2' cellspacing='0'>\n";
-
+            $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+            
+            // make title clickable
             foreach ($results as $idx => $row_obj) {
-               $row_arr = (array) $row_obj;
-
-               $link = get_permalink($row_arr['ID']);
-
-               // let's put header col. we'll output the keys in a tr
-               if ($idx == 0) {
-                   $buff .= "<tr class='app-table-header-row'>\n";
-
-                   foreach (array_keys($row_arr) as $key) {
-                       $buff .= "<td>$key</td>\n";
-                   }
-
-                   $buff .= "</tr>\n";
-               }
-
-               $cls = $idx % 2 != 0 ? 'app-table-row-odd' : '';
-               $buff .= "<tr class='$cls app-table-data-row'>\n";
-
-               foreach ($row_arr as $key => $value) {
-                   // make title clickable
-                   if ($key == 'post_title') {
-                       $value = "<a href='$link' target='_blank'>$value</a>";
-                   }
-                   
-                   $buff .= "<td>$value</td>\n";
-               }
-               
-               $buff .= "</tr>\n";
-
-               //$buff .= var_export($row_arr, 1);
+               $link = get_permalink($row_obj->ID);
+               $results[$idx]->post_title = "<a href='$link' target='_blank'>$row_obj->post_title</a>";
             }
 
-            $buff .= "</table>\n";
+            $buff .= $ctrl->renderTable('', '', $results);
         }
 
         return $buff;
@@ -833,6 +805,59 @@ BUFF_EOF;
 BUFF_EOF;
 		echo $buff;
 	}
+
+    /**
+     * Renders a nice stats table. Expects that the data is rows of associative array.
+     * @param string $title - the text that will be shown above the table.
+     * @param array $data
+     * @return string HTML table
+     */
+    public function renderTable($title = '', $description = '', $data = array()) {
+        $buff = '';
+        $buff .= "<h4>$title</h4>\n";
+        $buff .= "<p>$description</p>\n";
+        $buff .= "<table width='100%' class='app-table' cellpadding='2' cellspacing='0'>\n";
+
+        foreach ($data as $idx => $row_obj) {
+           // conv. to array if necessary
+           $row_arr = is_object($row_obj) ? (array) $row_obj : $row_obj;
+
+           // let's put header col. we'll output the keys in a tr
+           if ($idx == 0) {
+               $buff .= "\t<tr class='app-table-header-row'>\n";
+
+               foreach (array_keys($row_arr) as $key) {
+                   $buff .= "\t\t<td>$key</td>\n";
+               }
+
+               $buff .= "\t</tr>\n";
+           }
+
+           $cls = $idx % 2 != 0 ? 'app-table-row-odd' : '';
+           $buff .= "\t<tr class='$cls app-table-data-row'>\n";
+
+           foreach ($row_arr as $key => $value) {
+               $buff .= "\t\t<td>$value</td>\n";
+           }
+
+           $buff .= "\t</tr>\n";
+           
+           // let's put header col. we'll output the keys in a tr
+           if ($idx == count($data) - 1) {
+               $buff .= "\t<tr class='app-table-header-row'>\n";
+
+               foreach (array_keys($row_arr) as $key) {
+                   $buff .= "\t\t<td>$key</td>\n";
+               }
+
+               $buff .= "\t</tr>\n";
+           }
+        }
+
+        $buff .= "</table>\n";
+        
+        return $buff;
+    }
 
     /**
      * Renders a nice stats table. Expects that the data is key value pairs.
