@@ -27,6 +27,7 @@ Limit Login Attempts related features
 - Added a link to a whois service to see more info about the blocked IP.
 - ... many more are planned.
 
+- Added New Module: List Page Templates
 
 Support
 --------

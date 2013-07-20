@@ -58,6 +58,7 @@ try {
  * 
  */
 class Orbisius_WP_SAK_Controller_Module {
+    protected $description = '';
     private $params = array();
 
     public function init($params = null) {
@@ -70,8 +71,92 @@ class Orbisius_WP_SAK_Controller_Module {
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, json_encode( array('status' => 0, 'message' => "Invalid Action") ) );
     }
+
+    /**
+     * Descripton about what the module does
+     */
+    public function getInfo() {
+        return $this->description;
+    }
 }
 
+/**
+ * This module handles actions related to Limit Login Attempts plugin.
+ */
+class Orbisius_WP_SAK_Controller_Module_List_Page_Templates extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     *
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>List Page Templates</h4>
+<p>This module allows you to see which page templates are use by your pages.
+</p>
+EOF;
+    }
+    
+    /**
+     *
+     */
+    public function run() {
+        global $wpdb;
+
+        $results = $wpdb->get_results(
+            "SELECT ID, post_title, post_author, post_parent, meta_key, meta_value, post_date FROM $wpdb->posts p
+                LEFT JOIN $wpdb->term_relationships r ON (p.ID = r.object_id)
+                LEFT JOIN $wpdb->postmeta pm ON (p.ID = pm.post_id)
+                WHERE pm.meta_key = '_wp_page_template'
+                ORDER BY post_parent
+                LIMIT 500
+            " // p.*,pm.*
+        );
+
+        $buff = '';
+
+        if (empty($results)) {
+            $buff .= "No results.";
+        } else {
+            $buff .= "<table width='100%' class='app-table'>\n";
+
+            foreach ($results as $idx => $row_obj) {
+               $row_arr = (array) $row_obj;
+
+               $link = get_permalink($row_arr['ID']);
+
+               // let's put header col. we'll output the keys in a tr
+               if ($idx == 0) {
+                   $buff .= "<tr class='app-table-header-row'>\n";
+
+                   foreach (array_keys($row_arr) as $key) {
+                       $buff .= "<td>$key</td>\n";
+                   }
+
+                   $buff .= "</tr>\n";
+               }
+
+               $buff .= "<tr>\n";
+               
+               foreach ($row_arr as $key => $value) {
+                   // make title clickable
+                   if ($key == 'post_title') {
+                       $value = "<a href='$link' target='_blank'>$value</a>";
+                   }
+                   
+                   $buff .= "<td>$value</td>\n";
+               }
+               
+               $buff .= "</tr>\n";
+
+               //$buff .= var_export($row_arr, 1);
+            }
+
+            $buff .= "</table>\n";
+        }
+
+        return $buff;
+    }
+}
+	
 /**
  * This module handles actions related to Limit Login Attempts plugin.
  */
@@ -432,6 +517,12 @@ class Orbisius_WP_SAK_Controller {
         $app_name = ORBISIUS_WP_SAK_APP_NAME;
          
 		switch ($page) {
+            case 'mod_list_page_templates':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_List_Page_Templates();
+                $descr = $mod_obj->getInfo();
+                $descr .= $mod_obj->run();
+
+                break;
             case 'mod_unblock':
                 $descr = <<<BUFF_EOF
 <h4>Limit Login Attempts Unblocker</h4>
@@ -567,7 +658,13 @@ BUFF_EOF;
 
         <ul class="nav">
             <li class="active"><a href="$script">Dashboard</a></li>
-            <li class="active">Modules: [<a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>] </li>
+            <li class="active">Modules: [
+				<a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>
+				| <a href="$script?page=mod_list_page_templates" title="Lists Page Templates.">Page Templates</a>
+			
+			] 
+			
+			</li>
 
             <li class='right'><a href='$script?destroy' class='app-module-self-destroy-button' title='This will remove this script. If you see the same script that means the self destruction didn't happen. Please remove the file manually by connecting using an FTP client.'
                 onclick="return confirm('This will remove this script. If you see the same script that means the self destruction didn\'t happen. Please confirm self destroy operation.', '');">Self Destroy</a>
