@@ -779,9 +779,21 @@ BUFF_EOF;
                 break;
             
             case 'help':
+                    $app_url = ORBISIUS_WP_SAK_APP_URL;
+        $ver = "<strong>Always remove this file when the work is complete!</strong>
+                | Powered by <a href='$app_url' target='_blank'>$app_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
+
                 $descr = <<<BUFF_EOF
 <h4>Support</h4>
 <p>We provide support via <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a>.</p>
+
+<br/>
+<h4>Home Page</h4>
+<p><a href="$app_url" target="_blank">$app_url</a></p>
+
+<br/>
+<h4>Project Page on GitHub Page</h4>
+<p><a href="https://github.com/orbisius/sak4wp/" target="_blank">https://github.com/orbisius/sak4wp/</a></p>
 
 <br/>
 <h4>Suggestions</h4>
