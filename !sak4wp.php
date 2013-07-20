@@ -78,14 +78,21 @@ class Orbisius_WP_SAK_Controller_Module {
     public function getInfo() {
         return $this->description;
     }
+
+    /**
+     * Descripton about what the module does
+     */
+    public function run() {
+        trigger_error("Module doesn't implement run() method.", E_USER_ERROR);
+    }
 }
 
 /**
- * This module handles actions related to Limit Login Attempts plugin.
+ * This module handles lists page templates.
  */
 class Orbisius_WP_SAK_Controller_Module_List_Page_Templates extends Orbisius_WP_SAK_Controller_Module {
     /**
-     *
+     * Setups the object stuff and defines some descriptions
      */
     public function __construct() {
         $this->description = <<<EOF
@@ -273,61 +280,123 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
 
 class Orbisius_WP_SAK_Controller_Module_Stats extends Orbisius_WP_SAK_Controller_Module {
     /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>Stats</h4>
+<p>This module allows you to see a lot of stats for your WordPress site.
+</p>
+EOF;
+    }
+
+    /**
+     *
+     * @param type $title
+     * @param type $data
+     */
+    public function renderKeyValueTable($title, $data = array()) {
+        $buff = '';
+        $buff .= "<h4>$title</h4>\n";
+        $buff .= "<table class='app-table'>\n";
+        $cnt = 0;
+
+        foreach ($data as $key => $value) {
+            $cnt++;
+            $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
+            $buff .= "<tr $cls>\n";
+            $buff .= "<td class='download_url_cell'>$key</td>\n";
+            $buff .= "<td class='download_url_cell'>$value</td>\n";
+            $buff .= "</tr>\n";
+        }
+
+        $buff .= "</table>\n";
+
+        return $buff;
+    }
+    
+    /**
      * 
      */
-    public function getStats() {
-        $buff = '';
+    public function run() {
+        global $wpdb;
         global $wp_version;
 
+        $buff = '';
+
         $cfg = $this->read_wp_config();
+        $buff .= $this->renderKeyValueTable('Database Info', $cfg);
+
+        $data = array();
+        $data['PHP Version'] = phpversion();
+        $data['WordPress Version'] = $wp_version;
+        $data['Operating System'] = PHP_OS;
+        $data['Max Upload File Size Limit'] = $this->get_max_upload_size() . 'MB';
+        $data['Memory Limit'] = $this->get_memory_limit() . 'MB';
+
+        $buff .= $this->renderKeyValueTable('System Info', $data);
+
+        $data = array();
+        $data['User(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->users");
+        $data['User Meta Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->usermeta");
+        $data['Comment(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->comments");
+        $data['Comment Meta Rows(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->commentmeta");
+        $data['Posts'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'post'");
+        $data['Pages'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'page'");
+        $data['Attachments'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'attachment'");
+        $data['Options Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->options");
+        $data['Link(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->links");
+        $data['Terms(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->terms");
+        $data['Terms Taxonomy Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_taxonomy");
+        $data['Terms Relationship(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_relationships");
+        $data['Meta Data Row(s)'] = $posts_cnt = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->postmeta pm");
+        $data['Revisions'] = $wpdb->get_var(
+            "SELECT COUNT(*) as rev_cnt FROM $wpdb->posts p
+	LEFT JOIN $wpdb->term_relationships r ON (p.ID = r.object_id)
+	LEFT JOIN $wpdb->postmeta pm ON (p.ID = pm.post_id)
+	WHERE p.post_type = 'revision'
+                "
+        );
         
-        $buff .= "<br/><strong>Database Info</strong>\n";
-        $buff .= "<table class='app-table'>\n";
-        $cnt = 0;
-        
-        foreach ($cfg as $key => $value) {
-            $cnt++;
-            $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
-            $buff .= "<tr $cls>\n";
-            $buff .= "<td class='download_url_cell'>$key</td>\n";
-            $buff .= "<td class='download_url_cell'>$value</td>\n";
-            $buff .= "</tr>\n";
-        }
-
-        $buff .= "</table>";
-
-        $cfg = array();
-        $cfg['php version'] = phpversion();
-        $cfg['WordPress version'] = $wp_version;
-        $cfg['operating system'] = PHP_OS;
-        
-        $buff .= "<br/><strong>Other Info</strong>\n";
-        $buff .= "<table class='app-table'>\n";
-        $cnt = 0;
-
-        foreach ($cfg as $key => $value) {
-            $cnt++;
-            $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
-            $buff .= "<tr $cls>\n";
-            $buff .= "<td class='download_url_cell'>$key</td>\n";
-            $buff .= "<td class='download_url_cell'>$value</td>\n";
-            $buff .= "</tr>\n";
-        }
-
-        $buff .= "</table>";
+        $buff .= $this->renderKeyValueTable('WordPress Site Stats', $data);
 
         $htaccess_file = ABSPATH . '/.htaccess';
 
         if (file_exists($htaccess_file)) {
-            $buff .= "<br/><strong>.htaccess Info (Read Only)</strong>\n";
+            $buff .= "<h4>.htaccess (Read Only)</h4>\n";
             $buff .= '<br/><textarea class="app-code-textarea" readonly="readonly">';
             $buff .= file_get_contents($htaccess_file);
             $buff .= '</textarea>';
         }
-
+        
         return $buff;
     }
 
+    /**
+     * checks several variables and returns the lowest (in MB).
+     * @see http://www.kavoir.com/2010/02/php-get-the-file-uploading-limit-max-file-size-allowed-to-upload.html
+     * @return int
+     */
+    public static function get_max_upload_size() {
+        $max_upload = (int)(ini_get('upload_max_filesize'));
+        $max_post = (int)(ini_get('post_max_size'));
+        $memory_limit = (int)(ini_get('memory_limit'));
+
+        $upload_mb = min($max_upload, $max_post, $memory_limit);
+
+        return $upload_mb;
+    }
+
+    /**
+     * Returns memory limit based on the CFG in MB
+     * 
+     * @return int
+     */
+    public static function get_memory_limit() {
+        $memory_limit = (int)(ini_get('memory_limit'));
+        return $memory_limit;
+    }
+    
     /**
      * Reads wordpress's config file and returns db data in an array.
      *
@@ -514,9 +583,16 @@ class Orbisius_WP_SAK_Controller {
             $page = $_REQUEST['page'];
         }
 
+        $script = ORBISIUS_WP_SAK_APP_SCRIPT;
         $app_name = ORBISIUS_WP_SAK_APP_NAME;
          
 		switch ($page) {
+            case 'mod_stats':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
+                $descr = $mod_obj->getInfo();
+                $descr .= $mod_obj->run();
+
+                break;
             case 'mod_list_page_templates':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_List_Page_Templates();
                 $descr = $mod_obj->getInfo();
@@ -550,12 +626,16 @@ BUFF_EOF;
             case '':
             case 'home':
                 $descr = <<<BUFF_EOF
-                $app_name is a standalone script which allows you to perform some recovery operations on your WordPress site. <br/>
-                This script is intended to be used for short time only and then removed in order to prevent security issues.
-BUFF_EOF;
+                <p>$app_name is a standalone script which allows you to see some stats for your wordpress site and also perform some
+                    recovery operations on your WordPress site.
+                        This script is intended to be used for short time only and then removed in order to prevent security issues.
+                   </p>
+                <p> When you are done click on the <a href='$script?destroy' class='app-module-self-destroy-button' title='This will remove this script. If you see the same script that means the self destruction didn't happen. Please remove the file manually by connecting using an FTP client.'
+                onclick="return confirm('This will remove this script. If you see the same script that means the self destruction didn\'t happen. Please confirm self destroy operation.', '');">Self Destroy</a>
 
-                $stats_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
-                $descr .= "<br/>" . $stats_obj->getStats();
+   button and the script will attempt to delete itself (if it has the necessary permissions).
+                   </p>
+BUFF_EOF;
 
                 break;
             
@@ -659,11 +739,10 @@ BUFF_EOF;
         <ul class="nav">
             <li class="active"><a href="$script">Dashboard</a></li>
             <li class="active">Modules: [
-				<a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>
+				  <a href="$script?page=mod_stats" title="Lists WordPress Site Stats.">Stats</a>
+				| <a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>
 				| <a href="$script?page=mod_list_page_templates" title="Lists Page Templates.">Page Templates</a>
-			
 			] 
-			
 			</li>
 
             <li class='right'><a href='$script?destroy' class='app-module-self-destroy-button' title='This will remove this script. If you see the same script that means the self destruction didn't happen. Please remove the file manually by connecting using an FTP client.'

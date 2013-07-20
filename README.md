@@ -27,6 +27,7 @@ Limit Login Attempts related features
 - Added a link to a whois service to see more info about the blocked IP.
 - ... many more are planned.
 
+- Updated Stats Module: It is not part of the dashboard anymore. Added some WordPress site stats e.g. number of posts, pages, attachments etc.
 - Added New Module: List Page Templates
 
 Support
