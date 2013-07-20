@@ -142,8 +142,9 @@ EOF;
                    $buff .= "</tr>\n";
                }
 
-               $buff .= "<tr>\n";
-               
+               $cls = $idx % 2 != 0 ? 'app-table-row-odd' : '';
+               $buff .= "<tr class='$cls'>\n";
+
                foreach ($row_arr as $key => $value) {
                    // make title clickable
                    if ($key == 'post_title') {
