@@ -302,6 +302,11 @@ EOF;
         $cnt = 0;
 
         foreach ($data as $key => $value) {
+            if (is_numeric($value)) {
+                $value = number_format($value, 2);
+                $value = preg_replace('#\.00$#', '', $value);
+            }
+            
             $cnt++;
             $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
             $buff .= "<tr $cls>\n";
@@ -325,6 +330,7 @@ EOF;
         $buff = '';
 
         $cfg = $this->read_wp_config();
+        $cfg['db_version'] = $wpdb->get_var("SELECT VERSION()");
         $buff .= $this->renderKeyValueTable('Database Info', $cfg);
 
         $data = array();

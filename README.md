@@ -28,6 +28,7 @@ Limit Login Attempts related features
 - ... many more are planned.
 
 - Updated Stats Module: It is not part of the dashboard anymore. Added some WordPress site stats e.g. number of posts, pages, attachments etc.
+	added db version info, numbers are formatted (good for large sites).
 - Added New Module: List Page Templates
 
 Support
