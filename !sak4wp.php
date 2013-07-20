@@ -267,6 +267,84 @@ EOF;
     }
 
     /**
+     * Tries to get the temp directory for php.
+     * It checks if this function exists: sys_get_temp_dir (since php 5.2).
+     * Otherwise it checks the ENV variables TMP, TEMP, and TMPDIR
+     * 
+     * @see http://php.net/manual/en/function.sys-get-temp-dir.php
+     * @return string
+     */
+    function get_tmp_dir() {
+        $dir = '/tmp';
+
+        if (function_exists('sys_get_temp_dir')) {
+            $dir = sys_get_temp_dir();
+        } else {
+            if ($temp = getenv('TMP')) {
+                $dir = $temp;
+            } elseif ($temp = getenv('TEMP')) {
+                $dir = $temp;
+            } elseif ($temp = getenv('TMPDIR')) {
+                $dir = $temp;
+            } else {
+                $temp = tempnam(__FILE__, '');
+
+                if (file_exists($temp)) {
+                    unlink($temp);
+                    $dir = dirname($temp);
+                }
+            }
+        }
+
+        return $dir;
+    }
+
+    /**
+    * Parses the WP.org website to get the latest WP version.
+    * It uses the temp directory to store the version
+    *
+    * @param void
+    * @return string e.g. 3.5.1 or defaults to 0.0.0 in case of an error
+    */
+    function get_latest_wp_version() {
+       $url = 'http://wordpress.org/download/';
+       $ver = $default_ver = '0.0.0'; // default
+       $ver_file = rtrim($this->get_tmp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wp-ver.txt'; // C:\Windows\TEMP\wp-ver.txt 
+
+       // we will check every 4h for a WP version
+       if (!file_exists($ver_file) || (time() - filemtime($ver_file) > 4 * 3600)) {
+           $result = Orbisius_WP_SAK_Util::makeHttpRequest($url);
+
+           if (empty($result['error'])) {
+               $body_buff = $result['buffer'];
+
+               // look for a link that points to latest.zip"
+               // <a class="button download-button" href="/latest.zip" onClick="recordOutboundLink(this, 'Download', 'latest.zip');return false;">
+               // <strong>Download&nbsp;WordPress&nbsp;3.5.1</strong></span></a>
+               if (preg_match('#(<a.*?latest\.zip.*?</a>)#si', $body_buff, $matches)) {
+                   $dl_link = $matches[1];
+                   $dl_link = strip_tags($dl_link);
+
+                   if (preg_match('#(\d+\.\d+(?:\.\d+)?[\w]*)#si', $dl_link, $ver_matches)) { // 1.2.3 or 1.2.3b
+                       $ver = $ver_matches[1];
+                       file_put_contents($ver_file, $ver);
+                   }
+               }
+           }
+       } else {
+           $ver = file_get_contents($ver_file);
+
+           // Did somebody change the version file from the tmp?
+           // and inserted some bad JS?
+           if (!preg_match('#^[\.\d]+$#', $ver)) {
+               $ver = $default_ver;
+           }
+       }
+
+       return $ver;
+    }
+
+    /**
      * 
      */
     public function run() {
@@ -282,8 +360,21 @@ EOF;
         $buff .= $ctrl->renderKeyValueTable('Database Info', $cfg);
 
         $data = array();
+        $latest_wp_version = $this->get_latest_wp_version();
         $data['PHP Version'] = phpversion();
-        $data['WordPress Version'] = $wp_version;
+        $wp_version_label = $wp_version;
+
+        if (version_compare($wp_version, $latest_wp_version, '<')) {
+            $upgrade_link = admin_url('update-core.php');
+            $wp_version_label .= " (<span class='app-simple-alert-error'><a href='$upgrade_link' target='_blank'>upgrade</a> or download
+                the latest <a href='http://wordpress.org/latest.zip' target='_blank'>WordPress</a> version ASAP</span>)";
+        } else {
+            $wp_version_label .= " (<span class='app-simple-alert-success'>Cool. You're running the latest WordPress)</span>";
+        }
+
+        $data['WordPress Version'] = $wp_version_label;
+        $data['Latest WordPress Version'] = $latest_wp_version;
+
         $data['Operating System'] = PHP_OS;
         $data['Max Upload File Size Limit'] = $this->get_max_upload_size() . 'MB';
         $data['Memory Limit'] = $this->get_memory_limit() . 'MB';
@@ -392,6 +483,97 @@ EOF;
         // wp prefix; $table_prefix  = 'default_db_wp_';
         if (preg_match('#table_prefix\s*=\s*[\'"]\s*(.*?)\s*[\'"]#si', $wp_config_buff, $matches)) {
             $data['db_prefix'] = $matches[1];
+        }
+
+        return $data;
+    }
+}
+
+class Orbisius_WP_SAK_Util {
+    /**
+    * Makes a request to a given URL. Headers are requested too.
+    *
+    * @param string
+    * @return array ; use $data['buffer'] to get the contents and $data['headers'] to get an array of headers.
+    * @see http://stackoverflow.com/questions/28395/passing-post-values-with-curl
+    */
+    public static function makeHttpRequest($url, $params = array()) {
+        if (!function_exists('curl_init')) {
+            throw new Exception("Cannot find cURL php extension or it's not loaded.");
+        }
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_VERBOSE, 2);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_SSLVERSION,3);
+
+        if (defined('CURLOPT_CERTINFO')) {
+            curl_setopt($ch, CURLOPT_CERTINFO, 1);
+        }
+
+        curl_setopt($ch, CURLOPT_USERAGENT, empty($params['user_agent']) ? 'Mozilla/4.0 (compatible; MSIE 1.0; unknown)' : $params['user_agent']);
+
+        if (!empty($params)) {
+            if (isset($params['__req']) && strtolower($params['__req']) == 'get') {
+                unset($params['__req']);
+                $url .= '?' . http_build_query($params);
+            } else {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+            }
+        }
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+
+        $buffer  = curl_exec($ch);
+        $status = !empty($buffer);
+        $error = empty($buffer) ? curl_error($ch) : '';
+        $error_no = empty($buffer) ? curl_errno($ch) : '';
+
+        $data = array(
+            'status' => $status,
+            'error' => $error,
+            'error_no' => $error_no,
+            'debug' => curl_getinfo($ch),
+        );
+
+        curl_close($ch);
+
+        $data['debug']['ip'] = $_SERVER['REMOTE_ADDR'];
+        $data['debug']['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
+
+        if (empty($error)) {
+            $m = array();
+            // the buffer contains headers and the document body
+            $arr = preg_match('#(.*?)\r?\n\r?\n(.*)#si', $buffer, $m);
+
+            $headers_buff = $m[1];
+            $body_buff = trim($m[2]);
+
+            $data['buffer'] = $body_buff;
+            $data['raw_buffer'] = $buffer;
+
+            $header_lines = preg_split('#[\r]\n#si', $headers_buff);
+
+            // Parse header lines and put them in array
+            foreach ($header_lines as $line) {
+                $key = $val = '';
+                @list ($key, $val) = preg_split('#\s*:\s*#si', $line);
+
+                // parse status field: HTTP/1.1 200 OK
+                if (empty($val) && preg_match('#HTTP/1.\d\s(\d+)#si', $key, $matches)) {
+                    $key = 'Status';
+                    $val = $matches[1];
+                }
+
+                $data['headers'][$key] = $val;
+            }
         }
 
         return $data;

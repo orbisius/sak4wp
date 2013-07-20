@@ -1,5 +1,5 @@
 SAK4WP - Swiss Army Knife for WordPress
-======
+=======================================
 
 Swiss Army Knife for WordPress is a standalone script which allows you to perform some recovery operations on your WordPress site.
 This script is intended to be used for a short time only and then removed in order to prevent security issues.
@@ -16,23 +16,61 @@ That way you should be able to see it in case you forget the file.
 
 Features
 --------
-- Dashboard - Shows database info, php info, WordPress version
+- Dashboard - Shows some description about the app.
+
+- Self contained. 
+	You just need to upload one file. It outputs JavaScript and CSS files however returns header not modified to make the page load faster.
+
 - Built-in Self Destroy mechanism (must be user triggered) -> the script will try to remove itself. 
-If that is not accessible (due to permissions issues). The user must delete the !sak4wp.php file manually 
-(e.g. by using an FTP client or accessing the file from a control panel).
-- The script is self contained. It outputs JavaScript and CSS files however returns header not modified to make the page load faster.
+	If that is not accessible (due to permissions issues). The user must delete the !sak4wp.php file manually 
+	(e.g. by using an FTP client or accessing the file from a control panel).
+
+- When data is shown in tables the currently viewed row is nicely highlited.
+
+
+Modules
+-------
 
 Limit Login Attempts related features
 - Allows you to Unblock yourself or somebody else from Limit Login Attempts plugin
 - Added a link to a whois service to see more info about the blocked IP.
-- ... many more are planned.
 
-- Updated Stats Module: It is not part of the dashboard anymore. Added some WordPress site stats e.g. number of posts, pages, attachments etc.
-	added db version info, numbers are formatted (good for large sites).
-- Added New Module: List Page Templates
+Stats Module
+- It shows WordPress site stats e.g. number of posts, pages, users, attachments, revisions etc. Numbers are nicely formatted.
+- Db version info, db config details parsed from wp-config.php
+- Shows if you are running an older or the latest WordPress version. Links to update and to the latest wp are provided. 
+ 
+List Page Templates
+- This module allows you to see which page templates are use by your pages.
+
+Please fork and improve!
+
+Future Ideas
+------------
+- Make it not to require WordPress to be present -> e.g. it can download and install WP
+- Manage Plugins - Activate/Deactivate/Deploy
+	Service to hold different plugin plugin configuration options e.g. a list of faviourite plugins
+- Manage Users - add, delete, update, import
+- Manage Content - add, delete, update, create sample pages e.g. Home, Services, Contact, About etc.
+- Clean DB - removes all content, attachments, menus, plugins -> show checkboxes so the user decides what to delete.
+- Download stats (as HTML, TEXT, PDF?)
+- Email stats
+	This may require some inline CSS in the email because lots of mail providers will remove most of the CSS
+- Detect if a WordPress plugin crashed e.g. by setting a custom error function and raising the error reporing level.
+	if there is a fatal error coming from /wp-content/plugins/PLUGIN-SLUG/ then deactivate that plugin either by updating 
+	the active plugins array or renaming the plugin's folder.
+- Use TMP folder to set the time when it was last used. If the app is hasn't been used for more than 2-3 hours -> self destroy
+- Automatic updater -> check the latest version at git hub and override itself
+- Create/modify child themes
+- Create a nice filemanager
+- Simple IDE - rich text or simple text to create txt or HTML files
+- Use files to setup some encrypted PWD in case the user decides to keep using the script.
+- Download any file from WP or ZIP a folder
+- Setup a service that will accept ftp details and will upload the !sak4wp on any hosting
+
 
 Support
---------
+-------
 
 Please submit suggestions at github issue tracker: https://github.com/orbisius/sak4wp/issues
 
