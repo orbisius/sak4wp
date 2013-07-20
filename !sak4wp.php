@@ -582,8 +582,11 @@ BUFF_EOF;
                     recovery operations on your WordPress site.
                         This script is intended to be used for short time only and then removed in order to prevent security issues.
                    </p>
-                <p> When you are done click on the <a href='$script?destroy' class='app-module-self-destroy-button' title='This will remove this script. If you see the same script that means the self destruction didn't happen. Please remove the file manually by connecting using an FTP client.'
-                onclick="return confirm('This will remove this script. If you see the same script that means the self destruction didn\'t happen. Please confirm self destroy operation.', '');">Self Destroy</a>
+                <p> When you are done click on the <a href='$script?destroy' class='app-module-self-destroy-button' 
+                    title="This will remove this script. If you see the same script that means the self destruction didn't happen.
+                        Please remove the file manually by connecting using an FTP client."
+                onclick="return confirm('This will remove this script. If you see the same script that means the self
+                    destruction didn\'t happen. Please confirm self destroy operation.', '');">Self Destroy</a>
 
    button and the script will attempt to delete itself (if it has the necessary permissions).
                    </p>
@@ -697,11 +700,14 @@ BUFF_EOF;
 			] 
 			</li>
 
-            <li class='right'><a href='$script?destroy' class='app-module-self-destroy-button' title='This will remove this script. If you see the same script that means the self destruction didn't happen. Please remove the file manually by connecting using an FTP client.'
-                onclick="return confirm('This will remove this script. If you see the same script that means the self destruction didn\'t happen. Please confirm self destroy operation.', '');">Self Destroy</a>
+            <li class='right'><a href='$script?destroy' class='app-module-self-destroy-button' title="This will remove this script.
+                If you see the same script that means the self destruction didn't happen. Please remove the file manually by connecting using an FTP client."
+                onclick="return confirm('This will remove this script. If you see the same script that means the self destruction didn\'t happen.
+                    Please confirm self destroy operation.', '');">Self Destroy</a>
 
-                <a href='#' class='app-question-box' title='The script will attempt to remove itself. After than it will try to redirect to itself. So if you see the same script that means the self destruction didn't finish successfully.In that case remove the file manually by using an FTP client.'
-                ">?</a>
+                <a href='#' class='app-question-box' title="The script will attempt to remove itself. After than it will try to redirect to
+                    itself. So if you see the same script that means the self destruction didn't finish successfully.
+                        In that case remove the file manually by using an FTP client.">?</a>
             </li>
             <li class='right'><a href="$script?page=about">About</a></li>
             <li class='right'><a href="$script?page=donate">Donate</a></li>
