@@ -143,7 +143,7 @@ EOF;
                }
 
                $cls = $idx % 2 != 0 ? 'app-table-row-odd' : '';
-               $buff .= "<tr class='$cls'>\n";
+               $buff .= "<tr class='$cls app-table-data-row'>\n";
 
                foreach ($row_arr as $key => $value) {
                    // make title clickable
@@ -1065,6 +1065,10 @@ ul.nav li.right {
 
 .app-table-row-odd {
     background:#dadada;
+}
+
+.app-table-data-row {
+    text-align: center;
 }
 
 .app-module-limit-login-attempts-my-ip {
