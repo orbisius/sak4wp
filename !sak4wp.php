@@ -1117,6 +1117,16 @@ ul.nav li.right {
     text-align: center;
 }
 
+/*
+This color is the same as the color of the links in the main nav.
+There's a separate rule for links because it seems there's another CSS
+which makes them look bad or blend with the background.
+*/
+.app-table-data-row:hover, .app-table-data-row:hover td a {
+    background:	#0088CC;
+    color:white;
+}
+
 .app-table-hightlist-row {
     background:yellow;
     font-weight:bold;
