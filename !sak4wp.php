@@ -123,7 +123,8 @@ EOF;
         if (empty($results)) {
             $buff .= "No results.";
         } else {
-            $buff .= "<table width='100%' class='app-table'>\n";
+            // :STODO: make this a metod for table rendering too
+            $buff .= "<table width='100%' class='app-table' cellpadding='2' cellspacing='0'>\n";
 
             foreach ($results as $idx => $row_obj) {
                $row_arr = (array) $row_obj;
