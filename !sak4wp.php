@@ -247,7 +247,7 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
             }
             
             $ctrl = Orbisius_WP_SAK_Controller::getInstance();
-            $buff .= $ctrl->renderTable('Blocked IPs', 'Blocked by Limit Login Attempts plugin', $data, $highlight_rows);
+            $buff .= $ctrl->renderTable('Blocked IPs', '', $data, $highlight_rows);
        }
 
        return $buff;
