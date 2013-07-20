@@ -855,7 +855,7 @@ BUFF_EOF;
 
            $cls = $idx % 2 != 0 ? 'app-table-row-odd' : '';
            $cls .= $extra_cls;
-           $buff .= "\t<tr class='$cls app-table-data-row'>\n";
+           $buff .= "\t<tr class='$cls app-table-data-row-centered'>\n";
 
            foreach ($row_arr as $key => $value) {
                $buff .= "\t\t<td>$value</td>\n";
@@ -888,8 +888,12 @@ BUFF_EOF;
      */
     public function renderKeyValueTable($title, $data = array()) {
         $buff = '';
-        $buff .= "<h4>$title</h4>\n";
-        $buff .= "<table class='app-table'>\n";
+
+        if (!empty($title)) {
+            $buff .= "<h4>$title</h4>\n";
+        }
+
+        $buff .= "<table class='app-table' cellpadding='2' cellspacing='0'>\n";
         $cnt = 0;
 
         foreach ($data as $key => $value) {
@@ -899,8 +903,9 @@ BUFF_EOF;
             }
 
             $cnt++;
-            $cls = $cnt % 2 != 0 ? 'class="app-table-row-odd"' : '';
-            $buff .= "<tr $cls>\n";
+            $cls = $cnt % 2 != 0 ? ' app-table-row-odd ' : '';
+            $cls .= ' app-table-data-row ';
+            $buff .= "<tr class='$cls'>\n";
             $buff .= "<td class='download_url_cell'>$key</td>\n";
             $buff .= "<td class='download_url_cell'>$value</td>\n";
             $buff .= "</tr>\n";
@@ -1113,7 +1118,7 @@ ul.nav li.right {
     background:#dadada;
 }
 
-.app-table-data-row {
+.app-table-data-row-centered {
     text-align: center;
 }
 
@@ -1122,7 +1127,7 @@ This color is the same as the color of the links in the main nav.
 There's a separate rule for links because it seems there's another CSS
 which makes them look bad or blend with the background.
 */
-.app-table-data-row:hover, .app-table-data-row:hover td a {
+.app-table-data-row:hover, .app-table-data-row:hover td a, .app-table-data-row-centered:hover, .app-table-data-row-centered:hover td a {
     background:	#0088CC;
     color:white;
 }
