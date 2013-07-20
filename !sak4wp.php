@@ -30,7 +30,7 @@ Licensor assume the entire cost of any service and repair.
 */
 
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
-define('ORBISIUS_WP_SAK_APP_URL', 'http://club.orbisius.com/products/');
+define('ORBISIUS_WP_SAK_APP_URL', 'http://club.orbisius.com/products/tools/swiss-army-knife-for-wordpress/');
 define('ORBISIUS_WP_SAK_APP_VER', '0.0.1');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 
