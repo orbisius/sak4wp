@@ -10,7 +10,7 @@ Installation
 Upload !sak4wp.php in the folder where your WordPress installation is.
 Then open your browser and navigate to http://yoursite.com/!sak4wp.php
 
-Note: The file name is intentially prefixed by an exclamation mark (!) to make sure the file appears first in the list of files, even above .htaccess.
+Note: The file name is intentionally prefixed by an exclamation mark (!) to make sure the file appears first in the list of files, even above .htaccess.
 That way you should be able to see it in case you forget the file.
 
 
