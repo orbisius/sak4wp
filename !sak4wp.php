@@ -216,36 +216,38 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
 
        $my_ip = $this->getIP();
 
+       // ::STMP: fake IPs for testing
+       /*$lockouts['127.0.0.1'] = time();
+       $lockouts['124'] = time();*/
+
        if (!empty($lockouts)) {
             $cnt = 0;
-            
-            $buff .= "<h4>Blocked IPs</h4>\n";
-            $buff .= "<table border='0' class='app-table'>\n";
-            $buff .= "<tr class='app-table-header-row'>\n";
-            $buff .= "<td class='plugin_name_cell'>IP</td>\n";
-            $buff .= "<td class='download_url_cell'>When Blocked</td>\n";
-            $buff .= "<td class='app-table-action-cell'>Action</td>\n";
-            $buff .= "</tr>\n";
+            $data = $highlight_rows = array();
 
             foreach ($lockouts as $ip => $ts) {
-                $you = $extra_cls = '';
+                $you = '';
 
                 if ($my_ip == $ip) {
                     $you = '<span class="app-simple-alert-success">&larr; (you)</span>';
-                    $extra_cls = 'app-module-limit-login-attempts-my-ip';
+                    $highlight_rows[] = $cnt;
                 }
                 
                 $t = date('r', $ts);
-                $cls = $cnt % 2 != 0 ? 'app-table-row-odd' : '';
-                $buff .= "<tr class='$cls $extra_cls'>\n";
-                $buff .= "<td><a href='http://who.is/whois-ip/ip-address/$ip/' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you </td>\n";
-                $buff .= "<td class='app-align-center'>$t</td>\n";
-                $buff .= "<td class='app-align-center'><a href='javascript:void(0);' class='mod_limit_login_attempts_blocked_ip' data-ip='$ip'>Unblock</a></td>\n";
-                $buff .= "</tr>\n";
+                $ip_who_is_link = "<a href='http://who.is/whois-ip/ip-address/$ip/' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you";
+                $when_blocked = $t;
+                $action = "<a href='javascript:void(0);' class='mod_limit_login_attempts_blocked_ip' data-ip='$ip'>Unblock</a>";
+
+                $data[] = array(
+                    'IP' => $ip_who_is_link,
+                    'When Blocked' => $when_blocked,
+                    'Action' => $action,
+                );
+                
                 $cnt++;
             }
-
-            $buff .= "</table>\n";
+            
+            $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+            $buff .= $ctrl->renderTable('Blocked IPs', 'Blocked by Limit Login Attempts plugin', $data, $highlight_rows);
        }
 
        return $buff;
@@ -816,12 +818,20 @@ BUFF_EOF;
      * Renders a nice stats table. Expects that the data is rows of associative array.
      * @param string $title - the text that will be shown above the table.
      * @param array $data
+     * @param array $highlight_rows - some rows may need to be highlighted to stand out (diff bg color)
      * @return string HTML table
      */
-    public function renderTable($title = '', $description = '', $data = array()) {
+    public function renderTable($title = '', $description = '', $data = array(), $highlight_rows = array()) {
         $buff = '';
-        $buff .= "<h4>$title</h4>\n";
-        $buff .= "<p>$description</p>\n";
+
+        if (!empty($title)) {
+            $buff .= "<h4>$title</h4>\n";
+        }
+
+        if (!empty($description)) {
+            $buff .= "<p>$description</p>\n";
+        }
+
         $buff .= "<table width='100%' class='app-table' cellpadding='2' cellspacing='0'>\n";
 
         foreach ($data as $idx => $row_obj) {
@@ -839,7 +849,12 @@ BUFF_EOF;
                $buff .= "\t</tr>\n";
            }
 
+           // Do we need to highlight the current row?
+           $extra_cls = (!empty($highlight_rows) && in_array($idx, $highlight_rows))
+                    ? ' app-table-hightlist-row ' : '';
+
            $cls = $idx % 2 != 0 ? 'app-table-row-odd' : '';
+           $cls .= $extra_cls;
            $buff .= "\t<tr class='$cls app-table-data-row'>\n";
 
            foreach ($row_arr as $key => $value) {
@@ -1102,7 +1117,7 @@ ul.nav li.right {
     text-align: center;
 }
 
-.app-module-limit-login-attempts-my-ip {
+.app-table-hightlist-row {
     background:yellow;
     font-weight:bold;
 }
