@@ -89,6 +89,55 @@ class Orbisius_WP_SAK_Controller_Module {
 }
 
 /**
+ * Example Module - Handles ...
+ */
+class Orbisius_WP_SAK_Controller_Module_Example extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {     
+        $this->description = <<<EOF
+<h4>Example</h4>
+<p>This module allows you to ...
+</p>
+EOF;
+    }
+
+    /**
+     * 
+     */
+    public function run() {
+        $buff = '';
+
+        if (!empty($_REQUEST['cmd'])) {
+            if ($_REQUEST['cmd'] == 'command') {
+                $text = empty($_REQUEST['text']) ? substr(sha1(mt_rand(100, 1000) . time()), 0, 6) : trim($_REQUEST['text']);
+				
+                $this->doSomething($text);
+
+                $buff .= "<br/>";
+            }
+        }
+		
+        // Let's show delete button if any if the files exists.
+        if ($ht_files_exist) {
+            $buff .= "<p><br/><a href='?page=mod_htaccess&cmd=delete_htaccess' class='app-module-self-destroy-button'
+                    onclick='return confirm('Are you sure?', '');'>delete .htaccess & .htpasswd files.</a></p>\n";
+        }
+        
+        return $buff;
+    }
+    
+    /**
+     * Sample Method
+     */
+    public function doSomething($text) {
+        
+        return $text;
+    }
+}
+
+/**
  * This module handles lists page templates.
  */
 class Orbisius_WP_SAK_Controller_Module_Htaccess extends Orbisius_WP_SAK_Controller_Module {
