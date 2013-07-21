@@ -114,9 +114,8 @@ EOF;
         $htaccess_file = $this->htaccess_dir . '.htaccess';
         $htpasswd_file = $this->htaccess_dir . '.htpasswd';
         $admin_url = admin_url('/');
-        $host = $_SERVER['HTTP_HOST'];
 
-        $buff .= "Domain: [$host] <a href='$admin_url' target='_blank'>WordPress admin</a><br/><br/>\n";
+        $buff .= "<a href='$admin_url' target='_blank'>WordPress admin</a><br/><br/>\n";
 
         if (!empty($_REQUEST['cmd'])) {
             if ($_REQUEST['cmd'] == 'create_htaccess') {
@@ -1016,6 +1015,9 @@ BUFF_EOF;
         $ver = "<strong>Always remove this file when the work is complete!</strong>
                 | Powered by <a href='$app_url' target='_blank'>$app_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
 
+        $host = $_SERVER['HTTP_HOST'];
+        $host = str_replace('www.', '', $host);
+        
         $page_content = $this->getPageContent();
 
 		$buff = <<<BUFF_EOF
@@ -1047,6 +1049,8 @@ BUFF_EOF;
 				  </script>
 		  </span>
 		</h3>
+
+        <p>Running on: <strong>{$host}</strong></p>
 
         <ul class="nav">
             <li class="active"><a href="$script">Dashboard</a></li>
