@@ -113,12 +113,16 @@ EOF;
 
         $htaccess_file = $this->htaccess_dir . '.htaccess';
         $htpasswd_file = $this->htaccess_dir . '.htpasswd';
+        $admin_url = admin_url('/');
+        $host = $_SERVER['HTTP_HOST'];
+
+        $buff .= "Domain: [$host] <a href='$admin_url' target='_blank'>WordPress admin</a><br/><br/>\n";
 
         if (!empty($_REQUEST['cmd'])) {
             if ($_REQUEST['cmd'] == 'create_htaccess') {
                 $user = empty($_REQUEST['user']) ? '' : trim($_REQUEST['user']);				
                 $pass = empty($_REQUEST['pass']) ? substr(sha1(time() . mt_rand(100, 1000)), 0, 5) : trim($_REQUEST['pass']);
-				$admin_url = admin_url('/');
+				
                 $this->createHtaccessFile($user, $pass);
 
                 $buff .= "<br/>Copy the following login info for your records<br/><pre>\nAdmin URL: $admin_url\nUser: $user\nPassword: $pass\n</pre>";
@@ -131,9 +135,6 @@ EOF;
 
         if (file_exists($htaccess_file)) {
             $ht_files_exist++;
-
-            $admin_login = admin_url('/');
-            $buff .= "<br/><a href='$admin_login' target='_blank'>Go to WordPress admin.</a><br/>\n";
 
             $buff .= "<span class='app-simple-alert-success'>.htaccess [$htaccess_file] already exists (Read Only Data)</span>\n";
             $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
@@ -150,13 +151,16 @@ EOF;
             }
         } else {
             $buff .= "<span class='app-simple-alert-error'>File [$htaccess_file] doesn't exist</span>\n";
+        }
+
+        if (1) {
             //$buff .= "<br/><a href='?page=mod_htaccess&cmd=create_htaccess'>create .htaccess file.</a>\n";
-            $buff .= "<br/><form method='post'>\n";
+            $buff .= "<br/>Create Account<br/><form method='post'>\n";
             $buff .= "<input type='hidden' name='cmd' value='create_htaccess' />\n";
             $buff .= "User: <input type='text' name='user' value='' />\n";
             $buff .= "Pass: <input type='text' name='pass' value='' />\n";
-            $buff .= "<input type='submit' name='submit' value='create htaccess and htpasswd files' />\n";
-            $buff .= "</form>\n";
+            $buff .= "<input type='submit' name='submit' class='app-btn-primary' value='create' />\n";
+            $buff .= "</form>\n<br/>Note: If the files already exist the new data will be appended.";
         }
 
         // Let's show delete button if any if the files exists.
@@ -203,7 +207,7 @@ EOF;
 AuthUserFile $htpasswd_file
 
 AuthType Basic
-AuthName "Protected Content"
+AuthName "Protected Area"
 AuthGroupFile None
 Require valid-user
 ######## SAK4WP_END ########
@@ -1498,6 +1502,13 @@ which makes them look bad or blend with the background.
    padding:3px;
    font-weight:bold;
    color:white;
+}
+
+.app-btn-primary  {
+   background:green;
+   padding:3px;
+   color:white;
+   border: 1px solid #777777;
 }
 
 .app-question-box {
