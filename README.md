@@ -39,7 +39,8 @@ Stats Module
 - It shows WordPress site stats e.g. number of posts, pages, users, attachments, revisions etc. Numbers are nicely formatted.
 - Db version info, db config details parsed from wp-config.php
 - Shows if you are running an older or the latest WordPress version. Links to update and to the latest wp are provided. 
- 
+- Disk space usage (linux only)
+
 List Page Templates
 - This module allows you to see which page templates are use by your pages.
  

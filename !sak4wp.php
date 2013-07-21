@@ -533,6 +533,12 @@ EOF;
         $data['Max Upload File Size Limit'] = $this->get_max_upload_size() . 'MB';
         $data['Memory Limit'] = $this->get_memory_limit() . 'MB';
 
+        $dir = dirname(__FILE__); // that's where the sak is installed.
+        $disk_usage = `du -sh $dir`;
+        $disk_usage = trim($disk_usage);
+        $disk_usage = empty($disk_usage) ? 'N/A' : $disk_usage;
+        $data['Disk Space Usage'] = $disk_usage;
+
         $buff .= $ctrl->renderKeyValueTable('System Info', $data);
 
         $data = array();
