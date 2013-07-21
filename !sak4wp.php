@@ -99,7 +99,9 @@ class Orbisius_WP_SAK_Controller_Module_Htaccess extends Orbisius_WP_SAK_Control
         
         $this->description = <<<EOF
 <h4>.htaccess</h4>
-<p>This module allows you create an .htaccess and .htpasswd files for the WordPress admin area.</p>
+<p>This module allows you create an .htaccess and .htpasswd files for the WordPress admin area.
+    It will also add a snippet in the main .htaccess file so wp-login.php is protected too.
+</p>
 EOF;
     }
 
@@ -112,6 +114,7 @@ EOF;
         $buff = '';
 
         $htaccess_file = $this->htaccess_dir . '.htaccess';
+        $root_htaccess_file = ABSPATH . '.htaccess';
         $htpasswd_file = $this->htaccess_dir . '.htpasswd';
         $admin_url = admin_url('/');
 
@@ -119,8 +122,8 @@ EOF;
 
         if (!empty($_REQUEST['cmd'])) {
             if ($_REQUEST['cmd'] == 'create_htaccess') {
-                $user = empty($_REQUEST['user']) ? '' : trim($_REQUEST['user']);				
-                $pass = empty($_REQUEST['pass']) ? substr(sha1(time() . mt_rand(100, 1000)), 0, 5) : trim($_REQUEST['pass']);
+                $user = empty($_REQUEST['user']) ? substr(sha1(mt_rand(100, 1000) . time()), 0, 6) : trim($_REQUEST['user']);
+                $pass = empty($_REQUEST['pass']) ? substr(sha1(time() . mt_rand(100, 1000)), 0, 10) : trim($_REQUEST['pass']);
 				
                 $this->createHtaccessFile($user, $pass);
 
@@ -131,6 +134,15 @@ EOF;
         }
 
         $ht_files_exist = 0;
+
+        if (file_exists($root_htaccess_file)) {
+            $ht_files_exist++;
+
+            $buff .= "<span class='app-simple-alert-success'>.htaccess [$root_htaccess_file] already exists (Read Only Data)</span>\n";
+            $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
+            $buff .= file_get_contents($root_htaccess_file);
+            $buff .= '</textarea>';
+        }
 
         if (file_exists($htaccess_file)) {
             $ht_files_exist++;
@@ -159,7 +171,8 @@ EOF;
             $buff .= "User: <input type='text' name='user' value='' />\n";
             $buff .= "Pass: <input type='text' name='pass' value='' />\n";
             $buff .= "<input type='submit' name='submit' class='app-btn-primary' value='create' />\n";
-            $buff .= "</form>\n<br/>Note: If the files already exist the new data will be appended.";
+            $buff .= "</form>\n<br/>Note: If the files already exist the new data will be appended.
+                If you leave either box empty random user/pass will be generated.";
         }
 
         // Let's show delete button if any if the files exists.
@@ -195,8 +208,9 @@ EOF;
      */
     public function createHtaccessFile($user, $pwd = '') {
         $status1 = $status2 = true;
-        $htaccess_file = $this->htaccess_dir . '.htaccess';
         $htpasswd_file = $this->htaccess_dir . '.htpasswd';
+        $htaccess_file = $this->htaccess_dir . '.htaccess';
+        $htaccess_root_dir_file = ABSPATH . '.htaccess'; // in the www
 
         $htpasswd_buff = $user . ':' . $this->generatePassword($pwd) . "\n";
 
@@ -213,6 +227,29 @@ Require valid-user
 
 BUFF;
 
+        $htaccess_buff_wp_login = <<<BUFF
+
+######## SAK4WP_PROTECT_LOGIN_START ########
+<FilesMatch "wp-login.php">
+	AuthUserFile $htpasswd_file
+
+	AuthType Basic
+	AuthName "Protected Area"
+	AuthGroupFile None
+	Require valid-user
+</FilesMatch>
+######## SAK4WP_PROTECT_LOGIN_START_END ########
+
+BUFF;
+
+        // Creates password file
+        $current_htpasswd_buff = is_file($htpasswd_file) ? file_get_contents($htpasswd_file) : '';
+
+        // we will only add the info if the htaccess doesn't exist there yet
+        if (empty($current_htpasswd_buff) || (stripos($current_htpasswd_buff, $htpasswd_buff) === false)) {
+            $status2 = file_put_contents($htpasswd_file, $htpasswd_buff, FILE_APPEND);
+        }
+
         $current_htaccess_buff = is_file($htaccess_file) ? file_get_contents($htaccess_file) : '';
 
         // we will only add the info if the htaccess doesn't exist there yet
@@ -220,11 +257,12 @@ BUFF;
             $status1 = file_put_contents($htaccess_file, $htaccess_buff, FILE_APPEND);
         }
 
-        $current_htpasswd_buff = is_file($htpasswd_file) ? file_get_contents($htpasswd_file) : '';
+        // Restricts access to wp-login.php
+        $current_htaccess_rootdir_buff = is_file($htaccess_root_dir_file) ? file_get_contents($htaccess_root_dir_file) : '';
 
         // we will only add the info if the htaccess doesn't exist there yet
-        if (empty($current_htpasswd_buff) || (stripos($current_htpasswd_buff, $htpasswd_buff) === false)) {
-            $status2 = file_put_contents($htpasswd_file, $htpasswd_buff, FILE_APPEND);
+        if (empty($current_htaccess_rootdir_buff) || (stripos($current_htaccess_rootdir_buff, 'SAK4WP_PROTECT_LOGIN_START') === false)) {
+            $status3 = file_put_contents($htaccess_root_dir_file, $htaccess_buff_wp_login, FILE_APPEND);
         }
 
         return $status1 && $status2;

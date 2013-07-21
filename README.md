@@ -45,7 +45,11 @@ List Page Templates
 - This module allows you to see which page templates are use by your pages.
  
 .htaccess
-- This module allows you create an .htaccess and .htpasswd files for the WordPress admin area.
+- This module allows you to protect WordPress admin area by creating an .htaccess and .htpasswd files.
+- Protects wp-login.php too 
+Note: This will stop affect WordPress registrations because WP uses wp-login.php for registrations.
+You can overcome that if you use a plugin that handles the registrations without relying on wp-login.php file.
+- User and Passwords can be auto-generated
 - TODO: check a list of sites if they have successfully protected their wp-admin folder
 - TODO: cookie remember pwd?
 
