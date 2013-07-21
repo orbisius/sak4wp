@@ -90,6 +90,156 @@ class Orbisius_WP_SAK_Controller_Module {
 /**
  * This module handles lists page templates.
  */
+class Orbisius_WP_SAK_Controller_Module_Htaccess extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->htaccess_dir = ABSPATH . 'wp-admin/';
+        
+        $this->description = <<<EOF
+<h4>.htaccess</h4>
+<p>This module allows you create an .htaccess and .htpasswd files for the WordPress admin area.</p>
+EOF;
+    }
+
+    private $htaccess_dir = null;
+
+    /**
+     * 
+     */
+    public function run() {
+        $buff = '';
+
+        $htaccess_file = $this->htaccess_dir . '.htaccess';
+        $htpasswd_file = $this->htaccess_dir . '.htpasswd';
+
+        if (!empty($_REQUEST['cmd'])) {
+            if ($_REQUEST['cmd'] == 'create_htaccess') {
+                $user = empty($_REQUEST['user']) ? '' : trim($_REQUEST['user']);
+                $pass = empty($_REQUEST['pass']) ? substr(sha1(time() . mt_rand(100, 1000)), 0, 5) : trim($_REQUEST['pass']);
+                $this->createHtaccessFile($user, $pass);
+
+                $buff .= "<br/>Copy the following login info for your records<br/><pre>\nUser: $user\nPassword: $pass\n</pre>";
+            } elseif ($_REQUEST['cmd'] == 'delete_htaccess') {
+                $this->deleteHtaccessFile();
+            }
+        }
+
+        $ht_files_exist = 0;
+
+        if (file_exists($htaccess_file)) {
+            $ht_files_exist++;
+
+            $admin_login = admin_url('/');
+            $buff .= "<br/><a href='$admin_login' target='_blank'>Go to WordPress admin.</a><br/>\n";
+
+            $buff .= "<span class='app-simple-alert-success'>.htaccess [$htaccess_file] already exists (Read Only Data)</span>\n";
+            $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
+            $buff .= file_get_contents($htaccess_file);
+            $buff .= '</textarea>';
+
+            if (file_exists($htpasswd_file)) {
+                $ht_files_exist++;
+            
+                $buff .= "<span class='app-simple-alert-success'>File [$htpasswd_file] already exists (Read Only Data)</span>\n";
+                $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
+                $buff .= file_get_contents($htpasswd_file);
+                $buff .= '</textarea>';
+            }
+        } else {
+            $buff .= "<span class='app-simple-alert-error'>File [$htaccess_file] doesn't exist</span>\n";
+            //$buff .= "<br/><a href='?page=mod_htaccess&cmd=create_htaccess'>create .htaccess file.</a>\n";
+            $buff .= "<br/><form method='post'>\n";
+            $buff .= "<input type='hidden' name='cmd' value='create_htaccess' />\n";
+            $buff .= "User: <input type='text' name='user' value='' />\n";
+            $buff .= "Pass: <input type='text' name='pass' value='' />\n";
+            $buff .= "<input type='submit' name='submit' value='create htaccess and htpasswd files' />\n";
+            $buff .= "</form>\n";
+        }
+
+        // Let's show delete button if any if the files exists.
+        if ($ht_files_exist) {
+            $buff .= "<p><br/><a href='?page=mod_htaccess&cmd=delete_htaccess' class='app-module-self-destroy-button'
+                    onclick='return confirm('Are you sure?', '');'>delete .htaccess & .htpasswd files.</a></p>\n";
+        }
+        
+        return $buff;
+    }
+
+    /**
+     * Deletes pwd and htaccess file.
+     * @return bool returns true if both 
+     */
+    public function deleteHtaccessFile() {
+        $htaccess_file = $this->htaccess_dir . '.htaccess';
+        $htpasswd_file = $this->htaccess_dir . '.htpasswd';
+
+        $status1 = @unlink($htaccess_file);
+        $status2 = @unlink($htpasswd_file);
+
+        return $status1 && $status2;
+    }
+    
+    /**
+     * Creates/appends .htaccess and .htpasswd files in wp-admin folder.
+     * It will check if the password or basic auth rules are aleady added.
+     *
+     * @param string $user
+     * @param string $pwd
+     * @return bool returns true if both
+     */
+    public function createHtaccessFile($user, $pwd = '') {
+        $status1 = $status2 = true;
+        $htaccess_file = $this->htaccess_dir . '.htaccess';
+        $htpasswd_file = $this->htaccess_dir . '.htpasswd';
+
+        $htpasswd_buff = $user . ':' . $this->generatePassword($pwd) . "\n";
+
+        $htaccess_buff = <<<BUFF
+
+######## SAK4WP_START ########
+AuthUserFile $htpasswd_file
+
+AuthType Basic
+AuthName "Protected Content"
+AuthGroupFile None
+Require valid-user
+######## SAK4WP_END ########
+
+BUFF;
+
+        $current_htaccess_buff = is_file($htaccess_file) ? file_get_contents($htaccess_file) : '';
+
+        // we will only add the info if the htaccess doesn't exist there yet
+        if (empty($current_htaccess_buff) || (stripos($current_htaccess_buff, 'SAK4WP_START') === false)) {
+            $status1 = file_put_contents($htaccess_file, $htaccess_buff, FILE_APPEND);
+        }
+
+        $current_htpasswd_buff = is_file($htpasswd_file) ? file_get_contents($htpasswd_file) : '';
+
+        // we will only add the info if the htaccess doesn't exist there yet
+        if (empty($current_htpasswd_buff) || (stripos($current_htpasswd_buff, $htpasswd_buff) === false)) {
+            $status2 = file_put_contents($htpasswd_file, $htpasswd_buff, FILE_APPEND);
+        }
+
+        return $status1 && $status2;
+    }
+
+    /**
+     * Generates a password that will be used in htaccess
+     * @see http://www.htaccesstools.com/articles/create-password-for-htpasswd-file-using-php/
+     */
+    public function generatePassword($plain_text_pwd) {
+        $password = crypt($plain_text_pwd, base64_encode($plain_text_pwd));
+        
+        return $password;
+    }
+}
+
+/**
+ * This module handles lists page templates.
+ */
 class Orbisius_WP_SAK_Controller_Module_List_Page_Templates extends Orbisius_WP_SAK_Controller_Module {
     /**
      * Setups the object stuff and defines some descriptions
@@ -101,7 +251,7 @@ class Orbisius_WP_SAK_Controller_Module_List_Page_Templates extends Orbisius_WP_
 </p>
 EOF;
     }
-    
+
     /**
      *
      */
@@ -723,6 +873,12 @@ class Orbisius_WP_SAK_Controller {
         $app_name = ORBISIUS_WP_SAK_APP_NAME;
          
 		switch ($page) {
+            case 'mod_htaccess':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Htaccess();
+                $descr = $mod_obj->getInfo();
+                $descr .= $mod_obj->run();
+
+                break;
             case 'mod_stats':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
                 $descr = $mod_obj->getInfo();
@@ -893,7 +1049,8 @@ BUFF_EOF;
 				  <a href="$script?page=mod_stats" title="Lists WordPress Site Stats.">Stats</a>
 				| <a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>
 				| <a href="$script?page=mod_list_page_templates" title="Lists Page Templates.">Page Templates</a>
-			] 
+				| <a href="$script?page=mod_htaccess" title="Lists Page Templates.">.htaccess</a>
+			]
 			</li>
 
             <li class='right'><a href='$script?destroy' class='app-module-self-destroy-button' title="This will remove this script.
