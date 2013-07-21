@@ -1023,6 +1023,7 @@ BUFF_EOF;
 
         $host = $_SERVER['HTTP_HOST'];
         $host = str_replace('www.', '', $host);
+        $admin_url = admin_url('/');
         
         $page_content = $this->getPageContent();
 
@@ -1056,7 +1057,7 @@ BUFF_EOF;
 		  </span>
 		</h3>
 
-        <p>Running on: <strong>{$host}</strong></p>
+        <p>Running on: <strong>{$host}</strong> | <a href='$admin_url' target='_blank'>Admin Area</a></p>
 
         <ul class="nav">
             <li class="active"><a href="$script">Dashboard</a></li>
