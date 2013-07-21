@@ -100,7 +100,7 @@ class Orbisius_WP_SAK_Controller_Module_Htaccess extends Orbisius_WP_SAK_Control
         
         $this->description = <<<EOF
 <h4>.htaccess</h4>
-<p>This module allows you create an .htaccess and .htpasswd files for the WordPress admin area.
+<p>This module allows you to create an .htaccess and .htpasswd files for the WordPress admin area.
     It will also add a snippet in the main .htaccess file so wp-login.php is protected too.
 </p>
 EOF;
