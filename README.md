@@ -53,6 +53,11 @@ You can overcome that if you use a plugin that handles the registrations without
 - TODO: check a list of sites if they have successfully protected their wp-admin folder
 - TODO: cookie remember pwd?
 
+Locate WordPress
+- This module searches for local WordPress installations (linux only). It starts from a specified folder and shows the found WordPress installations and their versions.
+Useful if you manage multiple WordPress sites and want to make sure all of them are running the latest WordPress version.
+
+
 Please fork and improve!
 
 Future Ideas

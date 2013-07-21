@@ -138,6 +138,123 @@ EOF;
 }
 
 /**
+ * Locate_WordPress Module - Searches for local WordPress installations in different folders and shows their versions.
+ */
+class Orbisius_WP_SAK_Controller_Module_Locate_WordPress extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>Locate WordPress</h4>
+<p>Searches for local WordPress installations in different folders and shows their versions. 
+Useful if you manage multiple WordPress sites and want to make sure all of them are running the latest WordPress.
+</p>
+EOF;
+    }
+
+    /**
+     * 
+     */
+    public function run() {
+        $buff = '';
+
+		$start_folder = empty($_REQUEST['start_folder']) ? dirname(__FILE__) : trim($_REQUEST['start_folder']);
+		$start_folder_esc = esc_attr($start_folder);
+		
+        if (!empty($_REQUEST['cmd'])) {
+            if ($_REQUEST['cmd'] == 'command') {
+                $text = empty($_REQUEST['text']) ? substr(sha1(mt_rand(100, 1000) . time()), 0, 6) : trim($_REQUEST['text']);
+				
+                $this->doSomething($text);
+
+                $buff .= "<br/>";
+            }
+        }
+
+		$buff .= "<br/><form method='post' id='mod_locate_wordpress_form'>\n";
+		$buff .= "<input type='hidden' name='cmd' value='search' />\n";
+		$buff .= "Start Folder:<br/><input type='text' name='start_folder' id='start_folder' value='$start_folder_esc' class='app-text-long' />\n";
+		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Search' />\n";
+		$buff .= "</form>\n";
+		
+        //$buff .= "<p><br/><a href='?page=mod_locate_wp&cmd=search' class='app-btn-primary mod_search_for_wordpress'>Search</a></p>\n";
+        $buff .= "<p class='results'></p>\n";
+        
+        return $buff;
+    }
+    
+	/**
+     * This is called via ajax and does some searching for WP.
+	 * Needs starting folder.
+     * The result is JSON
+     */
+    public function searchAction() {
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $params = $ctrl->getParams();
+
+        $start_folder = empty($params['start_folder']) ? dirname(__FILE__) : $params['start_folder'];
+
+        $s = 0;
+        $msg = '';
+
+        $status = array('status' => 0, 'message' => '', 'results' => '', 'start_folder' => $start_folder);
+        
+		// this searches for folders that contain wp-includes and that's where we'll read version.php
+		$cmd = "find $start_folder -type d -name \"wp-includes\" 2>/dev/null";
+		
+        if (!empty($start_folder)) {
+            $file_search_buffer = `$cmd`;
+		
+			if (!empty($file_search_buffer)) {
+				$lines = preg_split('#[\r\n]+#si', $file_search_buffer);
+				
+				foreach ($lines as $line) {
+					if (empty($line)) {
+						continue;
+					}
+					
+					$ver_file = $line . '/version.php'; // we just need to append the file to the abs dir path.
+					$ver_buff = file_get_contents($ver_file); // will be faster if we read first 120 bytes?
+										
+					$version = '0.0.0'; // defaut
+					
+					// parse version which is like this $wp_version = '3.5.2';
+					if (preg_match('#wp_version\s*=\s*[\'"]([^\'"]+)#si', $ver_buff, $matches)) {
+						$version = $matches[1];
+					}
+					
+					// by doing the dirname we'll go up 1 level above wp-includes -> wp root dir
+					$data[dirname($line)] = $version;		
+				}
+
+				$result_html = $ctrl->renderKeyValueTable('WordPress Installations', $data, array(
+						'table_css' => 'app-table-long-first-col',
+						'header' => array('Location', 'WordPress Version'),
+					)
+				);
+			}
+						
+            $status['status'] = 1;
+        } else {
+            $status['message'] = 'Error';
+        }
+		
+		$status['results'] = empty($result_html) ? '<div class="app-alert-notice">Nothing found</div>' : $result_html;
+
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $status);
+    }	
+	
+    /**
+     * Sample Method
+     */
+    public function doSomething($text) {
+        
+        return $text;
+    }
+}
+
+/**
  * This module handles lists page templates.
  */
 class Orbisius_WP_SAK_Controller_Module_Htaccess extends Orbisius_WP_SAK_Controller_Module {
@@ -950,7 +1067,7 @@ class Orbisius_WP_SAK_Controller {
                     || (($obj = new $module_class()) && !method_exists($obj, $obj_action_name))) {
                 $status['status'] = 0;
                 $status['message'] = 'Internal Error.';
-                $this->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, json_encode($status));
+                $this->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $status);
             }
             
             $obj->init();
@@ -983,7 +1100,13 @@ class Orbisius_WP_SAK_Controller {
         $app_name = ORBISIUS_WP_SAK_APP_NAME;
          
 		switch ($page) {
-            case 'mod_htaccess':
+            case 'mod_locate_wp':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Locate_WordPress();
+                $descr = $mod_obj->getInfo();
+                $descr .= $mod_obj->run();
+
+                break;            
+		case 'mod_htaccess':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Htaccess();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
@@ -1162,9 +1285,10 @@ BUFF_EOF;
             <li class="active"><a href="$script">Dashboard</a></li>
             <li class="active">Modules: [
 				  <a href="$script?page=mod_stats" title="Lists WordPress Site Stats.">Stats</a>
-				| <a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list.">Unblock</a>
-				| <a href="$script?page=mod_list_page_templates" title="Lists Page Templates.">Page Templates</a>
-				| <a href="$script?page=mod_htaccess" title="Lists Page Templates.">.htaccess</a>
+				| <a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list">Unblock</a>
+				| <a href="$script?page=mod_list_page_templates" title="Lists Page Templates">Page Templates</a>
+				| <a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a>
+				| <a href="$script?page=mod_locate_wp" title="Searches for WordPress Installations starting for a given folder">Locate WordPress</a>
 			]
 			</li>
 
@@ -1232,10 +1356,44 @@ BUFF_EOF;
             var wpsak_json_cfg = { ajax_url : '$script' } ;
 
             jQuery(document).ready(function($) {
+				// search for wp
+                $('#mod_locate_wordpress_form').submit(function() {
+					$('.app-ajax-message').remove();
+					var form = $(this);
+					var container = '.results';
+					
+                    $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
+				
+					$.ajax({
+                        type : "post",
+                        dataType : "json",
+                        url : wpsak_json_cfg.ajax_url, // contains all the necessary params
+                        data : $(form).serialize() + '&module=Locate_WordPress&action=search',
+                        success : function(json) {
+                           $('.app-ajax-message').remove();
+                
+                           if (json.status) {
+                              $(container).html(json.results);
+                           } else {
+                              $(container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
+                                  + json.message + "</span>");
+                           }
+                        },
+                        error : function(jqXHR, text_status, error_thrown) {
+                            $('.app-ajax-message').remove();
+                
+                            alert("There was an error. " + text_status + ' ' + error_thrown);
+                        },
+                        
+                    }); // ajax
+
+                    return false;
+				}); // search4wp
+				
                 // unblock IP ajax
                 $('.mod_limit_login_attempts_blocked_ip').click(function() {
                     var ip = $(this).data('ip');
-                    var link_container = $(this).closest('td');
+                    var container = $(this).closest('td');
                 
                     if (!confirm('Are you sure you want to unblock : ' + ip + '?', '')) {
                         return false;
@@ -1244,7 +1402,7 @@ BUFF_EOF;
                     //var parent_container = $(this).closest('tr'); // in case we want to remove the unblocked row
 
                     $('.app-ajax-message').remove();
-                    $(link_container).append("<span class='app-ajax-message app-alert-notice'>loading ...</span>");
+                    $(container).append("<span class='app-ajax-message app-alert-notice'>loading ...</span>");
 
                     $.ajax({
                         type : "post",
@@ -1256,9 +1414,9 @@ BUFF_EOF;
                 
                            if (json.status) {
                               //$(parent_container).slideUp('slow').remove();
-                              $(link_container).append("<span class='app-ajax-message app-alert-success'>Unblocked!</span>");
+                              $(container).append("<span class='app-ajax-message app-alert-success'>Unblocked!</span>");
                            } else {
-                              $(link_container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
+                              $(container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
                                   + json.message + "</span>");
                            }
                         },
@@ -1352,15 +1510,28 @@ BUFF_EOF;
      * @param array $data
      * @return string HTML table
      */
-    public function renderKeyValueTable($title, $data = array()) {
+    public function renderKeyValueTable($title, $data = array(), $options = array()) {
         $buff = '';
 
         if (!empty($title)) {
             $buff .= "<h4>$title</h4>\n";
         }
 
-        $buff .= "<table class='app-table' cellpadding='2' cellspacing='0'>\n";
-        $cnt = 0;
+		// this is a nice way to add extra CSS
+		$table_css = empty($options['table_css']) ? '' : $options['table_css'];
+		
+		$cnt = 0;
+        $buff .= "<table class='app-table $table_css' cellpadding='2' cellspacing='0'>\n";        
+		
+		if (!empty($options['header'])) {		
+		   $buff .= "\t<tr class='app-table-header-row'>\n";
+
+		   foreach ($options['header'] as $label) {
+			   $buff .= "\t\t<td>$label</td>\n";
+		   }
+
+		   $buff .= "\t</tr>\n";
+		}
 
         foreach ($data as $key => $value) {
             if (is_numeric($value)) {
@@ -1372,8 +1543,8 @@ BUFF_EOF;
             $cls = $cnt % 2 != 0 ? ' app-table-row-odd ' : '';
             $cls .= ' app-table-data-row ';
             $buff .= "<tr class='$cls'>\n";
-            $buff .= "<td class='download_url_cell'>$key</td>\n";
-            $buff .= "<td class='download_url_cell'>$value</td>\n";
+            $buff .= "<td>$key</td>\n"; //  class='data_cell_long'  class='data_cell_short'
+            $buff .= "<td>$value</td>\n";
             $buff .= "</tr>\n";
         }
 
@@ -1397,9 +1568,10 @@ BUFF_EOF;
     const bootstrap_glyphicons_halflings_white = 'iVBORw0KGgoAAAANSUhEUgAAAdUAAACfCAMAAACY07N7AAAC2VBMVEX///8AAAAAAAD5+fn///8AAAD////9/f1tbW0AAAD///////////8AAAAAAAD////w8PD+/v729vYAAAD8/PwAAAAAAAD////////a2toAAADCwsL09PT////////09PT39/f///8AAAAAAACzs7P9/f0AAADi4uKwsLD////////7+/vn5+f+/v7///8AAADt7e0AAADPz88AAAD9/f329vbt7e37+/vn5+f6+vrh4eGSkpL+/v7+/v7BwcGYmJh0dHTh4eHQ0NAAAADz8/O7u7uhoaGAgID9/f3U1NRiYmL////V1dX4+Pjc3Nz6+vr7+/vp6en7+/v9/f39/f3R0dHy8vL8/Pz4+Pjr6+v8/Py2trbGxsbl5eXu7u719fX9/f1lZWVnZ2fw8PC2trbg4OD39/f6+vrp6enl5eX6+vr4+PjLy8v///+EhITx8fF4eHj39/fd3d35+fnIyMjS0tLs7Oz6+vre3t7i4uLm5ubz8/Obm5uoqKilpaXc3Nzu7u7////x8fHJycnw8PD////////e3t7Gxsa8vLzr6+vW1tbQ0NDi4uL5+fn09PTi4uLs7Oz19fW0tLT////9/f37+/v8/Pz6+vrm5uYAAADk5OT8/Pz39/ewsLCZmZn9/f3s7Oz8/PzBwcHp6en////a2trw8PDw8PD19fXx8fH+/v74+Pj+/v6Ojo7i4uL7+/v5+fnc3Nz////y8vL6+vqfn5/t7e339/f29vbo6Ojz8/P6+vr19fX19fWmpqbLy8v6+vr4+PjT09Pr6+v6+vrr6+uqqqrz8/Pt7e2ioqLPz8/a2trW1taioqLr6+vi4uL5+flVVVXNzc3////W1tbj4+Ph4eHq6ur8/Pz////29vb7+/vz8/P09PTMzMz////////5+fn19fX////y8vL9/f0AAADZ2dn8/Pz7+/v8/Pzp6em/v7/7+/vq6urp6en+/v7////4ck/mAAAA8nRSTlMAGgDUzwIP8SMQ759fCgUvqfDGFeIYA78fbxNTt98/hsV/BhdD4Q1rRI+vwo3ATxJTD18IoKWasozTETbQ4D40IX5hC6dAMR7RXydvEsRuotKLkZCATYahkzOxQlFqmbZwJiUhFWy1wyJYcXI7gB2XIEFbgjxg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';
     
     /**
-     *
+     * Outputs the necessary header based on the type.
+	 * The $buffer can be an array -> will be JSON encoded.
      * @param string $type
-     * @param string $buffer
+     * @param string/array $buffer
      */
 	public function sendHeader($type = null, $buffer = '') {
 		if ($type == self::HEADER_CSS) {
@@ -1417,6 +1589,8 @@ BUFF_EOF;
         // header('Cache-Control: public');
         
         if (!empty($buffer)) {
+			$buffer = is_scalar($buffer) ? $buffer : json_encode($buffer);
+			
             if ($type != self::HEADER_JSON) { // don't bother caching JSON replies
                 $etag = md5($buffer);
                 header("ETag: \"$etag\"");
@@ -1573,6 +1747,14 @@ ul.nav li.right {
     width: 100%;
 }
 
+.app-table-long-first-col tr td:first-child { 
+	width : 80%;
+}
+
+.app-table-long-first-col tr td:last-child { 
+	text-align:center;
+}
+
 .app-table-header-row {
     font-weight:bolder;
 	background:#666;
@@ -1614,11 +1796,19 @@ which makes them look bad or blend with the background.
    color:white;
 }
 
+/* Form fields */
+.app-text-long {
+	width:100%;
+}
+
+/* Buttons */
 .app-btn-primary  {
    background:green;
    padding:3px;
    color:white;
-   border: 1px solid #777777;
+   border: 0;
+   margin-top:3px;
+   margin-bottom:3px;
 }
 
 .app-question-box {
