@@ -33,6 +33,7 @@ define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://club.orbisius.com/products/tools/swiss-army-knife-for-wordpress/');
 define('ORBISIUS_WP_SAK_APP_VER', '0.0.1');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
+define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
 // this stops WP Super Cache and W3 Total Cache from caching
 define( 'WP_CACHE', false );
@@ -211,6 +212,8 @@ EOF;
         $htpasswd_file = $this->htaccess_dir . '.htpasswd';
         $htaccess_file = $this->htaccess_dir . '.htaccess';
         $htaccess_root_dir_file = ABSPATH . '.htaccess'; // in the www
+        $host = ORBISIUS_WP_SAK_HOST;
+        $host = preg_quote($host);
 
         $htpasswd_buff = $user . ':' . $this->generatePassword($pwd) . "\n";
 
@@ -238,6 +241,16 @@ BUFF;
 	AuthGroupFile None
 	Require valid-user
 </FilesMatch>
+
+<IfModule mod_rewrite.c>
+	RewriteEngine on
+	RewriteCond %{REQUEST_METHOD} POST
+	RewriteCond %{HTTP_REFERER} !^https?://(.*)?$host [NC]
+	RewriteCond %{REQUEST_URI} ^/wp-login\.php(.*)$ [OR]
+	RewriteCond %{REQUEST_URI} ^/wp-admin$
+	RewriteRule ^(.*)$ - [R=403,L]
+</IfModule>
+
 ######## SAK4WP_PROTECT_LOGIN_START_END ########
 
 BUFF;
@@ -1059,8 +1072,7 @@ BUFF_EOF;
         $ver = "<strong>Always remove this file when the work is complete!</strong>
                 | Powered by <a href='$app_url' target='_blank'>$app_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
 
-        $host = $_SERVER['HTTP_HOST'];
-        $host = str_replace('www.', '', $host);
+        $host = ORBISIUS_WP_SAK_HOST;
         $admin_url = admin_url('/');
         
         $page_content = $this->getPageContent();
