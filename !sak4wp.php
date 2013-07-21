@@ -116,11 +116,12 @@ EOF;
 
         if (!empty($_REQUEST['cmd'])) {
             if ($_REQUEST['cmd'] == 'create_htaccess') {
-                $user = empty($_REQUEST['user']) ? '' : trim($_REQUEST['user']);
+                $user = empty($_REQUEST['user']) ? '' : trim($_REQUEST['user']);				
                 $pass = empty($_REQUEST['pass']) ? substr(sha1(time() . mt_rand(100, 1000)), 0, 5) : trim($_REQUEST['pass']);
+				$admin_url = admin_url('/');
                 $this->createHtaccessFile($user, $pass);
 
-                $buff .= "<br/>Copy the following login info for your records<br/><pre>\nUser: $user\nPassword: $pass\n</pre>";
+                $buff .= "<br/>Copy the following login info for your records<br/><pre>\nAdmin URL: $admin_url\nUser: $user\nPassword: $pass\n</pre>";
             } elseif ($_REQUEST['cmd'] == 'delete_htaccess') {
                 $this->deleteHtaccessFile();
             }

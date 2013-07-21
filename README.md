@@ -45,6 +45,8 @@ List Page Templates
  
 .htaccess
 - This module allows you create an .htaccess and .htpasswd files for the WordPress admin area.
+- TODO: check a list of sites if they have successfully protected their wp-admin folder
+- TODO: cookie remember pwd?
 
 Please fork and improve!
 
@@ -71,7 +73,7 @@ Future Ideas
 - Download any file from WP or ZIP a folder
 - Setup a service that will accept ftp details and will upload the !sak4wp on any hosting
 - Backup -> Files + Db; Send to Dropbox
-- Scan the folders for other WP installations -> manage multiple WP installs from 1 copy of the program
+- Scan the folders for other WP installations -> manage multiple WP installs from 1 copy of the program or copy/move itself to another folder/site
 - DONE: Protect WP admin directory (basic auth)
 
 
