@@ -647,14 +647,14 @@ BUFF;
 
         // we will only add the info if the htaccess doesn't exist there yet
         if (empty($current_htpasswd_buff) || (stripos($current_htpasswd_buff, $htpasswd_buff) === false)) {
-            $status2 = file_put_contents($htpasswd_file, $htpasswd_buff, FILE_APPEND);
+            $status2 = Orbisius_WP_SAK_Util_File::write($htpasswd_file, $current_htpasswd_buff, Orbisius_WP_SAK_Util_File::FILE_APPEND);
         }
 
         $current_htaccess_buff = is_file($htaccess_file) ? file_get_contents($htaccess_file) : '';
 
         // we will only add the info if the htaccess doesn't exist there yet
         if (empty($current_htaccess_buff) || (stripos($current_htaccess_buff, 'SAK4WP_START') === false)) {
-            $status1 = file_put_contents($htaccess_file, $htaccess_buff, FILE_APPEND);
+            $status1 = Orbisius_WP_SAK_Util_File::write($htaccess_file, $htaccess_buff, Orbisius_WP_SAK_Util_File::FILE_APPEND);
         }
 
         // Restricts access to wp-login.php
@@ -662,7 +662,7 @@ BUFF;
 
         // we will only add the info if the htaccess doesn't exist there yet
         if (empty($current_htaccess_rootdir_buff) || (stripos($current_htaccess_rootdir_buff, 'SAK4WP_PROTECT_LOGIN_START') === false)) {
-            $status3 = file_put_contents($htaccess_root_dir_file, $htaccess_buff_wp_login, FILE_APPEND);
+            $status3 = Orbisius_WP_SAK_Util_File::write($htaccess_root_dir_file, $htaccess_buff_wp_login, Orbisius_WP_SAK_Util_File::FILE_APPEND);
         }
 
         return $status1 && $status2;
@@ -1024,9 +1024,9 @@ EOF;
 */
 class Orbisius_WP_SAK_Util_File {
     // options for read/write methods.
-    const FILE_APPEND = 1;
-    const UNSERIALIZE = 2;
-    const SERIALIZE = 3;
+    const SERIALIZE = 2;
+    const UNSERIALIZE = 4;
+    const FILE_APPEND = 8;
 	
     /**
      * @desc write function using flock
@@ -1043,9 +1043,11 @@ class Orbisius_WP_SAK_Util_File {
 
         $write_mod = 'wb';
 
-        if ($option == self::SERIALIZE) {
+        if ($option & self::SERIALIZE) {
             $buffer = serialize($buffer);
-        } elseif ($option == self::FILE_APPEND) {
+        }
+
+        if ($option & self::FILE_APPEND) {
             $write_mod = 'ab';
         }
 
@@ -1393,12 +1395,12 @@ class Orbisius_WP_SAK_Util {
 
                    if (preg_match('#(\d+\.\d+(?:\.\d+)?[\w]*)#si', $dl_link, $ver_matches)) { // 1.2.3 or 1.2.3b
                        $ver = $ver_matches[1];
-                       file_put_contents($ver_file, $ver);
+                       Orbisius_WP_SAK_Util_File::write($ver_file, $ver);
                    }
                }
            }
        } else {
-           $ver = file_get_contents($ver_file);
+           $ver = Orbisius_WP_SAK_Util_File::read($ver_file);
 
            // Did somebody change the version file from the tmp?
            // and inserted some bad JS?
