@@ -4,7 +4,7 @@
 Swiss Army Knife for WordPress - a standalone script that allows you fix your WordPress installation and make some admin stuff.
 You must remove it after the work is complete to avoid security issues.
 
-License: LGPL
+License: GPL (v2 or later)
 Author: Svetoslav Marinov (SLAVI)
 Author Site: http://orbisius.com
 Copyright: All Rights Reserved.
