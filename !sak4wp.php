@@ -394,12 +394,15 @@ EOF;
         $htaccess_buff = <<<BUFF
 
 ######## SAK4WP_START ########
-AuthUserFile $htpasswd_file
+# Protect all files except admin-ajax.php which is used by plugins to send ajax calls.
+<FilesMatch "!admin-ajax.php">
+	AuthUserFile $htpasswd_file
 
-AuthType Basic
-AuthName "Protected Area"
-AuthGroupFile None
-Require valid-user
+	AuthType Basic
+	AuthName "Protected Area"
+	AuthGroupFile None
+	Require valid-user
+</FilesMatch>
 ######## SAK4WP_END ########
 
 BUFF;
