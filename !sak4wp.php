@@ -219,6 +219,8 @@ EOF;
 					// let's load WP page
 					$result = Orbisius_WP_SAK_Util::makeHttpRequest($link);				
 
+					$org_link_esc = esc_attr($link);
+					
 					if (empty($result['error'])) {
 						$body_buff = $result['buffer'];
 						
@@ -226,7 +228,7 @@ EOF;
 						// e.g. http://downloads.wordpress.org/plugin/orbisius-cyberstore.1.1.7.zip
 						if (preg_match('#(https?://downloads.wordpress.org/plugin/(?:[\w-.]+).zip)#si', $body_buff, $matches)) {
 							$link = $matches[1];
-							$result_html .= Orbisius_WP_SAK_Util::msg("Found Plugin Download Link: [$link]", 2);
+							$result_html .= Orbisius_WP_SAK_Util::msg("Found Download Link: [$org_link_esc => $link]", 2);
 						}
 					} else {
 						$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Find Plugin Download Link: [$link]", 2);
