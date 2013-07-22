@@ -204,6 +204,7 @@ EOF;
 		$cmd = "find $start_folder -type d -name \"wp-includes\" 2>/dev/null";
 		
         if (!empty($start_folder)) {
+			$latest_wp_version = Orbisius_WP_SAK_Util::getLatestWordPressVersion();
             $file_search_buffer = `$cmd`;
 		
 			if (!empty($file_search_buffer)) {
@@ -215,20 +216,27 @@ EOF;
 					}
 					
 					$ver_file = $line . '/version.php'; // we just need to append the file to the abs dir path.
-					$ver_buff = file_get_contents($ver_file); // will be faster if we read first 120 bytes?
+					$ver_buff = @file_get_contents($ver_file); // will be faster if we read first 120 bytes?
 										
 					$version = '0.0.0'; // defaut
 					
 					// parse version which is like this $wp_version = '3.5.2';
 					if (preg_match('#wp_version\s*=\s*[\'"]([^\'"]+)#si', $ver_buff, $matches)) {
 						$version = $matches[1];
+						
+						// is it the latest?; no -> let's warn them
+						if (version_compare($version, $latest_wp_version, '<')) {
+							$version = "<span class='app-simple-alert-error'>$version (upgrade)</span>";
+						} else {
+							$version = "<span class='app-simple-alert-success'>$version</span>";
+						}
 					}
 					
 					// by doing the dirname we'll go up 1 level above wp-includes -> wp root dir
 					$data[dirname($line)] = $version;		
 				}
 
-				$result_html = $ctrl->renderKeyValueTable('WordPress Installations', $data, array(
+				$result_html = $ctrl->renderKeyValueTable('WordPress Installations. Latest WordPress Version: ' . $latest_wp_version, $data, array(
 						'table_css' => 'app-table-long-first-col',
 						'header' => array('Location', 'WordPress Version'),
 					)
@@ -635,85 +643,7 @@ class Orbisius_WP_SAK_Controller_Module_Stats extends Orbisius_WP_SAK_Controller
 <p>This module allows you to see a lot of stats for your WordPress site.
 </p>
 EOF;
-    }
-
-    /**
-     * Tries to get the temp directory for php.
-     * It checks if this function exists: sys_get_temp_dir (since php 5.2).
-     * Otherwise it checks the ENV variables TMP, TEMP, and TMPDIR
-     * 
-     * @see http://php.net/manual/en/function.sys-get-temp-dir.php
-     * @return string
-     */
-    function get_tmp_dir() {
-        $dir = '/tmp';
-
-        if (function_exists('sys_get_temp_dir')) {
-            $dir = sys_get_temp_dir();
-        } else {
-            if ($temp = getenv('TMP')) {
-                $dir = $temp;
-            } elseif ($temp = getenv('TEMP')) {
-                $dir = $temp;
-            } elseif ($temp = getenv('TMPDIR')) {
-                $dir = $temp;
-            } else {
-                $temp = tempnam(__FILE__, '');
-
-                if (file_exists($temp)) {
-                    unlink($temp);
-                    $dir = dirname($temp);
-                }
-            }
-        }
-
-        return $dir;
-    }
-
-    /**
-    * Parses the WP.org website to get the latest WP version.
-    * It uses the temp directory to store the version
-    *
-    * @param void
-    * @return string e.g. 3.5.1 or defaults to 0.0.0 in case of an error
-    */
-    function get_latest_wp_version() {
-       $url = 'http://wordpress.org/download/';
-       $ver = $default_ver = '0.0.0'; // default
-       $ver_file = rtrim($this->get_tmp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wp-ver.txt'; // C:\Windows\TEMP\wp-ver.txt 
-
-       // we will check every 4h for a WP version
-       if (!file_exists($ver_file) || (time() - filemtime($ver_file) > 4 * 3600)) {
-           $result = Orbisius_WP_SAK_Util::makeHttpRequest($url);
-
-           if (empty($result['error'])) {
-               $body_buff = $result['buffer'];
-
-               // look for a link that points to latest.zip"
-               // <a class="button download-button" href="/latest.zip" onClick="recordOutboundLink(this, 'Download', 'latest.zip');return false;">
-               // <strong>Download&nbsp;WordPress&nbsp;3.5.1</strong></span></a>
-               if (preg_match('#(<a.*?latest\.zip.*?</a>)#si', $body_buff, $matches)) {
-                   $dl_link = $matches[1];
-                   $dl_link = strip_tags($dl_link);
-
-                   if (preg_match('#(\d+\.\d+(?:\.\d+)?[\w]*)#si', $dl_link, $ver_matches)) { // 1.2.3 or 1.2.3b
-                       $ver = $ver_matches[1];
-                       file_put_contents($ver_file, $ver);
-                   }
-               }
-           }
-       } else {
-           $ver = file_get_contents($ver_file);
-
-           // Did somebody change the version file from the tmp?
-           // and inserted some bad JS?
-           if (!preg_match('#^[\.\d]+$#', $ver)) {
-               $ver = $default_ver;
-           }
-       }
-
-       return $ver;
-    }
+    }    
 
     /**
      * 
@@ -731,7 +661,7 @@ EOF;
         $buff .= $ctrl->renderKeyValueTable('Database Info', $cfg);
 
         $data = array();
-        $latest_wp_version = $this->get_latest_wp_version();
+        $latest_wp_version = Orbisius_WP_SAK_Util::getLatestWordPressVersion();
         $data['PHP Version'] = phpversion();
         $wp_version_label = $wp_version;
 
@@ -867,6 +797,84 @@ EOF;
 }
 
 class Orbisius_WP_SAK_Util {
+	/**
+     * Tries to get the temp directory for php.
+     * It checks if this function exists: sys_get_temp_dir (since php 5.2).
+     * Otherwise it checks the ENV variables TMP, TEMP, and TMPDIR
+     * 
+     * @see http://php.net/manual/en/function.sys-get-temp-dir.php
+     * @return string
+     */
+    public static function getTempDir() {
+        $dir = '/tmp';
+
+        if (function_exists('sys_get_temp_dir')) {
+            $dir = sys_get_temp_dir();
+        } else {
+            if ($temp = getenv('TMP')) {
+                $dir = $temp;
+            } elseif ($temp = getenv('TEMP')) {
+                $dir = $temp;
+            } elseif ($temp = getenv('TMPDIR')) {
+                $dir = $temp;
+            } else {
+                $temp = tempnam(__FILE__, '');
+
+                if (file_exists($temp)) {
+                    unlink($temp);
+                    $dir = dirname($temp);
+                }
+            }
+        }
+
+        return $dir;
+    }    
+	
+	/**
+    * Parses the WP.org website to get the latest WP version.
+    * It uses the temp directory to store the version
+    *
+    * @param void
+    * @return string e.g. 3.5.1 or defaults to 0.0.0 in case of an error
+    */
+    public static function getLatestWordPressVersion() {
+       $url = 'http://wordpress.org/download/';
+       $ver = $default_ver = '0.0.0'; // default
+       $ver_file = rtrim(self::getTempDir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wp-ver.txt'; // C:\Windows\TEMP\wp-ver.txt 
+
+       // we will check every 4h for a WP version
+       if (!file_exists($ver_file) || (time() - filemtime($ver_file) > 4 * 3600)) {
+           $result = Orbisius_WP_SAK_Util::makeHttpRequest($url);
+
+           if (empty($result['error'])) {
+               $body_buff = $result['buffer'];
+
+               // look for a link that points to latest.zip"
+               // <a class="button download-button" href="/latest.zip" onClick="recordOutboundLink(this, 'Download', 'latest.zip');return false;">
+               // <strong>Download&nbsp;WordPress&nbsp;3.5.1</strong></span></a>
+               if (preg_match('#(<a.*?latest\.zip.*?</a>)#si', $body_buff, $matches)) {
+                   $dl_link = $matches[1];
+                   $dl_link = strip_tags($dl_link);
+
+                   if (preg_match('#(\d+\.\d+(?:\.\d+)?[\w]*)#si', $dl_link, $ver_matches)) { // 1.2.3 or 1.2.3b
+                       $ver = $ver_matches[1];
+                       file_put_contents($ver_file, $ver);
+                   }
+               }
+           }
+       } else {
+           $ver = file_get_contents($ver_file);
+
+           // Did somebody change the version file from the tmp?
+           // and inserted some bad JS?
+           if (!preg_match('#^[\.\d]+$#', $ver)) {
+               $ver = $default_ver;
+           }
+       }
+
+       return $ver;
+    }
+	
     /**
     * Makes a request to a given URL. Headers are requested too.
     *
@@ -1848,7 +1856,7 @@ which makes them look bad or blend with the background.
 /* Common MSG simple classes */
 .app-simple-alert-error {
     padding:3px;
-    color: #D54E21;
+    color: red;
 }
 
 .app-simple-alert-success {

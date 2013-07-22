@@ -56,7 +56,8 @@ You can overcome that if you use a plugin that handles the registrations without
 Locate WordPress
 - This module searches for local WordPress installations (linux only). It starts from a specified folder and shows the found WordPress installations and their versions.
 Useful if you manage multiple WordPress sites and want to make sure all of them are running the latest WordPress version.
-
+It also allows you to find old/forgotten WordPress installations. If the version cannot be detected it will show 0.0.0
+The versions that are older will be shown in red, the up-to-date ones will be shown in green.
 
 Please fork and improve!
 
