@@ -196,7 +196,6 @@ EOF;
 		
         if (!empty($locations)) {
 			$plugins_dir = WP_PLUGIN_DIR;
-			$result_html .= "<pre>";
 		
 			foreach ($locations as $link) {
 				if (empty($link)) {
@@ -220,6 +219,7 @@ EOF;
 					$dl_status = Orbisius_WP_SAK_Util::downloadFile($link);
 					
 					if (empty($dl_status['status'])) {
+						$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]", 0);
 					} else {
 						$result_html .= Orbisius_WP_SAK_Util::msg("Download OK: [$link_esc]", 1);
 						$file = $dl_status['file'];
@@ -231,13 +231,8 @@ EOF;
 							$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting Failed: [$link_esc]", 0);
 						}
 					}					
-					
-					//$result_html .= var_export($dl_status, 1);
-					//$result_html .= var_export($extract_status, 1);
 				}
 			}
-			
-			$result_html .= "</pre>";
 
             $status = 1;
         } else {
