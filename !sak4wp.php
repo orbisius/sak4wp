@@ -439,7 +439,7 @@ EOF;
 					}
 					
 					$ver_file = $line . '/version.php'; // we just need to append the file to the abs dir path.
-					$ver_buff = @file_get_contents($ver_file); // will be faster if we read first 120 bytes?
+					$ver_buff = Orbisius_WP_SAK_Util_File::read($ver_file); // will be faster if we read first 120 bytes?
 										
 					$version = '0.0.0'; // defaut
 					
@@ -536,7 +536,7 @@ EOF;
 
             $buff .= "<span class='app-simple-alert-success'>.htaccess [$root_htaccess_file] already exists (Read Only Data)</span>\n";
             $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
-            $buff .= file_get_contents($root_htaccess_file);
+            $buff .= Orbisius_WP_SAK_Util_File::read($root_htaccess_file);
             $buff .= '</textarea>';
         }
 
@@ -545,7 +545,7 @@ EOF;
 
             $buff .= "<span class='app-simple-alert-success'>.htaccess [$htaccess_file] already exists (Read Only Data)</span>\n";
             $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
-            $buff .= file_get_contents($htaccess_file);
+            $buff .= Orbisius_WP_SAK_Util_File::read($htaccess_file);
             $buff .= '</textarea>';
 
             if (file_exists($htpasswd_file)) {
@@ -553,7 +553,7 @@ EOF;
             
                 $buff .= "<span class='app-simple-alert-success'>File [$htpasswd_file] already exists (Read Only Data)</span>\n";
                 $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
-                $buff .= file_get_contents($htpasswd_file);
+                $buff .= Orbisius_WP_SAK_Util_File::read($htpasswd_file);
                 $buff .= '</textarea>';
             }
         } else {
@@ -643,14 +643,14 @@ BUFF;
 BUFF;
 
         // Creates password file
-        $current_htpasswd_buff = is_file($htpasswd_file) ? file_get_contents($htpasswd_file) : '';
+        $current_htpasswd_buff = is_file($htpasswd_file) ? Orbisius_WP_SAK_Util_File::read($htpasswd_file) : '';
 
         // we will only add the info if the htaccess doesn't exist there yet
         if (empty($current_htpasswd_buff) || (stripos($current_htpasswd_buff, $htpasswd_buff) === false)) {
-            $status2 = Orbisius_WP_SAK_Util_File::write($htpasswd_file, $current_htpasswd_buff, Orbisius_WP_SAK_Util_File::FILE_APPEND);
+            $status2 = Orbisius_WP_SAK_Util_File::write($htpasswd_file, $htpasswd_buff, Orbisius_WP_SAK_Util_File::FILE_APPEND);
         }
 
-        $current_htaccess_buff = is_file($htaccess_file) ? file_get_contents($htaccess_file) : '';
+        $current_htaccess_buff = is_file($htaccess_file) ? Orbisius_WP_SAK_Util_File::read($htaccess_file) : '';
 
         // we will only add the info if the htaccess doesn't exist there yet
         if (empty($current_htaccess_buff) || (stripos($current_htaccess_buff, 'SAK4WP_START') === false)) {
@@ -658,7 +658,7 @@ BUFF;
         }
 
         // Restricts access to wp-login.php
-        $current_htaccess_rootdir_buff = is_file($htaccess_root_dir_file) ? file_get_contents($htaccess_root_dir_file) : '';
+        $current_htaccess_rootdir_buff = is_file($htaccess_root_dir_file) ? Orbisius_WP_SAK_Util_File::read($htaccess_root_dir_file) : '';
 
         // we will only add the info if the htaccess doesn't exist there yet
         if (empty($current_htaccess_rootdir_buff) || (stripos($current_htaccess_rootdir_buff, 'SAK4WP_PROTECT_LOGIN_START') === false)) {
@@ -984,7 +984,7 @@ EOF;
         }
 
         $data = array();
-        $wp_config_buff = file_get_contents($wp_config_file);
+        $wp_config_buff = Orbisius_WP_SAK_Util_File::read($wp_config_file);
 
         /*if (empty($wp_config_buff)) {
             throw new Exception("There was an error with the mibew zip package.");
@@ -1043,12 +1043,14 @@ class Orbisius_WP_SAK_Util_File {
 
         $write_mod = 'wb';
 
-        if ($option & self::SERIALIZE) {
-            $buffer = serialize($buffer);
-        }
+        if (!is_null($option)) {
+            if ($option & self::SERIALIZE) {
+                $buffer = serialize($buffer);
+            }
 
-        if ($option & self::FILE_APPEND) {
-            $write_mod = 'ab';
+            if ($option & self::FILE_APPEND) {
+                $write_mod = 'ab';
+            }
         }
 
         if (($handle = @fopen($file, $write_mod))
