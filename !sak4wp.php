@@ -31,8 +31,9 @@ Licensor assume the entire cost of any service and repair.
 
 */
 
+define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
-define('ORBISIUS_WP_SAK_APP_URL', 'http://club.orbisius.com/products/tools/swiss-army-knife-for-wordpress/');
+define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
 define('ORBISIUS_WP_SAK_APP_VER', '0.0.1');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
@@ -1756,11 +1757,12 @@ BUFF_EOF;
 	
 	public function displayHeader() {
         $script = ORBISIUS_WP_SAK_APP_SCRIPT;
-		$app_name = ORBISIUS_WP_SAK_APP_NAME;
+		$app_name = ORBISIUS_WP_SAK_APP_NAME;		
+        $app_short_name = ORBISIUS_WP_SAK_APP_SHORT_NAME;
 		$app_url = ORBISIUS_WP_SAK_APP_URL;
         $year = date('Y');
         $ver = "<strong>Always remove this file when the work is complete!</strong>
-                | Powered by <a href='$app_url' target='_blank'>$app_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
+                | Powered by <a href='$app_url' target='_blank' title='$app_name'>$app_short_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
 
         $host = ORBISIUS_WP_SAK_HOST;
         $admin_url = admin_url('/');
@@ -1803,15 +1805,14 @@ BUFF_EOF;
 
         <ul class="nav">
             <li class="active"><a href="$script">Dashboard</a></li>
-            <li class="active">Modules: [
+            <li class="active">Modules:
 				  <a href="$script?page=mod_stats" title="Lists WordPress Site Stats.">Stats</a>
 				| <a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list">Unblock</a>
 				| <a href="$script?page=mod_list_page_templates" title="Lists Page Templates">Page Templates</a>
 				| <a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a>
 				| <a href="$script?page=mod_locate_wp" title="Searches for WordPress Installations starting for a given folder">Locate WordPress</a>
 				| <a href="$script?page=mod_plugin_manager" title="Searches and installs plugins">Plugin Manager</a>
-				| <a href="$script?page=mod_self_protect" title="Self Protect">Self Protect</a>
-			]
+				<!--| <a href="$script?page=mod_self_protect" title="Self Protect">Self Protect</a>	-->
 			</li>
 
             <li class='right'><a href='$script?destroy' class='app-module-self-destroy-button' title="This will remove this script.
