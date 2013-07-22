@@ -28,6 +28,10 @@ Features
 
 - When data is shown in tables the currently viewed row is nicely highlited.
 
+- Shows User and Server's IP
+
+- Easy to Use
+
 
 Modules
 -------
@@ -48,17 +52,19 @@ List Page Templates
 .htaccess
 - This module allows you to protect WordPress admin area by creating an .htaccess and .htpasswd files.
 - Protects wp-login.php too 
-Note: This will stop affect WordPress registrations because WP uses wp-login.php for registrations.
-You can overcome that if you use a plugin that handles the registrations without relying on wp-login.php file.
 - User and Passwords can be auto-generated
 - TODO: check a list of sites if they have successfully protected their wp-admin folder
 - TODO: cookie remember pwd?
+- TODO: Update .htaccess files
+Note: This will stop affect WordPress registrations because WP uses wp-login.php for registrations.
+You can overcome that if you use a plugin that handles the registrations without relying on wp-login.php file.
 
 Locate WordPress
 - This module searches for local WordPress installations (linux only). It starts from a specified folder and shows the found WordPress installations and their versions.
 Useful if you manage multiple WordPress sites and want to make sure all of them are running the latest WordPress version.
 It also allows you to find old/forgotten WordPress installations. If the version cannot be detected it will show 0.0.0
 The versions that are older will be shown in red, the up-to-date ones will be shown in green.
+TODO: autosuggest?
 
 Plugin Manager
 - This module allows you to manage plugins: bulk download and install, TODO: (de)activate, delete. 
@@ -66,6 +72,12 @@ Just enter the plugin's WordPress.org page or a zip file location (web) and the 
 The plugin will show which links are skipped and if they were successfully extracted. The file size of the downloaded file is shown.
 The plugin directory where the download plugin will be extract is shown. Warning: If the plugin already exists its files will be overriden! 
 SAK4WP checks the remote file size before downloading the file. Plugins files larger than the limit (10MB) will be not be downloaded.
+
+Self Protect
+This module allows you to run SAK4WP more securely. The first time you access SAK4WP, it will save your IP and browser info.
+If somebody else accesses the file from a different IP or browser, he/she will be stopped.
+The module doesn't require any configurations. It is always run before other modules.
+
 
 Please fork and improve!
 

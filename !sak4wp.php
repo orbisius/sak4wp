@@ -7,7 +7,9 @@ You must remove it after the work is complete to avoid security issues.
 License: GPL (v2 or later)
 Author: Svetoslav Marinov (SLAVI)
 Author Site: http://orbisius.com
+Product Site: http://sak4wp.com
 Copyright: All Rights Reserved.
+
 Disclaimer: By using this script you take full responsibility to remove it.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -85,6 +87,69 @@ class Orbisius_WP_SAK_Controller_Module {
      */
     public function run() {
         trigger_error("Module doesn't implement run() method.", E_USER_ERROR);
+    }
+}
+
+/**
+ * Self_Protect Module - Make sure that only one user can access SAK.
+ */
+class Orbisius_WP_SAK_Controller_Module_Self_Protect extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {     
+        $this->description = <<<EOF
+<h4>Self Protect</h4>
+<p>
+This module allows you to run SAK4WP more securely. The first time you access SAK4WP, it will save your IP and browser info.
+If somebody else accesses the file from a different IP or browser, he/she will be stopped.
+The module doesn't require any configurations. It is always run before other modules.
+</p>
+EOF;
+    }
+
+    /**
+     * Creates a first run file and stores IP + browser info
+     */
+    public function run() {
+        $buff = '';
+		
+		$this->checkFirstRun();
+		
+        return $buff;
+    }    
+	
+    /**
+     * Checks if the script is access from a different IP or browser.
+	 * It dies with an error
+     */
+    public function checkFirstRun() {
+		// Creates a (host specific) file which stops people from accessing SAK4WP as the same time as you.
+        $first_run_file = Orbisius_WP_SAK_Util::getTempDir() . '.ht-sak4wp-' . ORBISIUS_WP_SAK_HOST;
+
+		$ip = Orbisius_WP_SAK_Util::getIP();
+		$ua = empty($_SERVER['HTTP_USER_AGENT']) ? '' : $_SERVER['HTTP_USER_AGENT'];
+        
+		if (file_exists($first_run_file)) {
+			$data = Orbisius_WP_SAK_Util_File::read($first_run_file, Orbisius_WP_SAK_Util_File::UNSERIALIZE);
+			
+			// If any of the recorded info is different, we don't want to deal with that person.
+			if (empty($data) || $data['ip'] != $ip || $data['ua'] != $ua) {			
+				$ctrl = Orbisius_WP_SAK_Controller::getInstance();
+				$ctrl->doExit();
+			}
+		} else {
+			$creation_time = time();
+		
+			$data['ua'] = $ua;
+			$data['ip'] = $ip;
+			$data['creation_time'] = $creation_time;
+			$data['hash'] = sha1($ua . $ip . $creation_time . ORBISIUS_WP_SAK_HOST);
+			
+			Orbisius_WP_SAK_Util_File::write($first_run_file, $data, Orbisius_WP_SAK_Util_File::SERIALIZE);
+		}
+		
+        return true;
     }
 }
 
@@ -672,7 +737,8 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
      */
     public function __construct() {
         $lockouts = get_option('limit_login_lockouts');
-        $this->lockouts = $lockouts;		
+        $this->lockouts = $lockouts;
+		$this->ip = Orbisius_WP_SAK_Util::getIP();
 		$this->description = <<<EOF
 <h4>Limit Login Attempts Unblocker</h4>
 <p> This section allows you to unblock yourself or other IP address that were blocked by
@@ -686,7 +752,7 @@ EOF;
      */
     public function run() {
 		$buff = '';
-		$my_ip = $this->getIP();
+		$my_ip = $this->ip;
 
 		if ($this->isBlocked($my_ip)) {
 			$buff .= "<div class='app-alert-error'>Your IP [$my_ip] address is blocked.
@@ -734,11 +800,11 @@ EOF;
 
     /**
      * Checks if the current user or a specific IP is banned.
-     * @param type $ip
-     * @return type
+     * @param string $ip
+     * @return bool
      */
     public function isBlocked($ip = '') {
-       $ip = empty($ip) ? $this->getIP() : $ip;
+       $ip = empty($ip) ? Orbisius_WP_SAK_Util::getIP() : $ip;
        
        $lockouts = $this->lockouts;
        $banned = !empty($lockouts) && !empty($lockouts[$ip]);
@@ -747,25 +813,16 @@ EOF;
     }
 
     /**
-     * Gets IP. This may require checking some $_SERVER variables ... if the user is using a proxy.
+     * Renders all the IPs in a nice table.
+	 *
+     * @param string $ip
      * @return string
-     */
-    public function getIP() {
-        $ip = $_SERVER['REMOTE_ADDR'];
-
-        return $ip;
-    }
-
-    /**
-     * Checks if the current user or a specific IP is banned.
-     * @param type $ip
-     * @return type
      */
     public function getBlockedAsHTML() {
        $buff = '';
        $lockouts = $this->lockouts;
 
-       $my_ip = $this->getIP();
+       $my_ip = $this->ip;
 
        // ::STMP: fake IPs for testing
        /*$lockouts['127.0.0.1'] = time();
@@ -959,6 +1016,78 @@ EOF;
     }
 }
 
+/**
+* Cool file functions. Support file locking, (de)serialization etc.
+*/
+class Orbisius_WP_SAK_Util_File {
+    // options for read/write methods.
+    const FILE_APPEND = 1;
+    const UNSERIALIZE = 2;
+    const SERIALIZE = 3;
+	
+    /**
+     * @desc write function using flock
+     *
+     * @param string $vars
+     * @param string $buffer
+     * @param int $append
+     * @return bool
+     */
+    public static function write($file, $buffer = '', $option = null) {
+        $buff = false;
+        $tries = 0;
+        $handle = '';
+
+        $write_mod = 'wb';
+
+        if ($option == self::SERIALIZE) {
+            $buffer = serialize($buffer);
+        } elseif ($option == self::FILE_APPEND) {
+            $write_mod = 'ab';
+        }
+
+        if (($handle = @fopen($file, $write_mod))
+                && flock($handle, LOCK_EX)) {
+            // lock obtained
+            if (fwrite($handle, $buffer) !== false) {
+                @fclose($handle);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @desc read function using flock
+     *
+     * @param string $vars
+     * @param string $buffer
+     * @param int $option whether to unserialize the data
+     * @return mixed : string/data struct
+     */
+    public static function read($file, $option = null) {
+        $buff = false;
+        $read_mod = "rb";
+        $handle = false;
+
+        if (($handle = @fopen($file, $read_mod))
+                && (flock($handle, LOCK_EX))) { //  | LOCK_NB - let's block; we want everything saved
+            $buff = @fread($handle, filesize($file));
+            @fclose($handle);
+        }
+
+        if ($option == self::UNSERIALIZE) {
+            $buff = unserialize($buff);
+        }
+
+        return $buff;
+    }
+}
+
+/**
+* Cool functions that do not belong to a class and can be called individually.
+*/
 class Orbisius_WP_SAK_Util {
 	public static $curl_options = array(
         CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 5.1; pl; rv:1.9) Gecko/2008052906 Firefox/3.0',
@@ -967,7 +1096,27 @@ class Orbisius_WP_SAK_Util {
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_TIMEOUT => 400,
-	);
+	);	
+
+    /**
+     * Gets IP. This may require checking some $_SERVER variables ... if the user is using a proxy.
+     * @return string
+     */
+    public static public function getIP() {
+        $ip = $_SERVER['REMOTE_ADDR'];
+
+        return $ip;
+    }
+	
+    /**
+     * Gets Server IP from env.
+     * @return string
+     */
+    public static public function getServerIP() {
+        $ip = $_SERVER['SERVER_ADDR'];
+
+        return $ip;
+    }
 
     /**
      * proto str formatFileSize( int $size )
@@ -1340,10 +1489,11 @@ class Orbisius_WP_SAK_Controller {
     }
 
     /**
-     * Does some cleanup
+     * Does some cleanup, outputs some text (if any) and exists.
      */
-	public function doExit() {
+	public function doExit($msg = '') {
         unset($this->params);
+		echo $msg;
         exit;
     }
 
@@ -1382,6 +1532,10 @@ class Orbisius_WP_SAK_Controller {
 	public function preRun() {
         $params = $this->params;
         
+		// Let's make sure we are protected all the time.
+		$mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
+		$mod_obj->run();
+		
         if (isset($params['css'])) {
             $this->outputStyles($params['css']);
         } elseif (isset($params['js'])) {
@@ -1464,7 +1618,13 @@ class Orbisius_WP_SAK_Controller {
         $app_name = ORBISIUS_WP_SAK_APP_NAME;
          
 		switch ($page) {
-            case 'mod_plugin_manager':
+            case 'mod_self_protect':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
+                $descr = $mod_obj->getInfo();
+                //$descr .= $mod_obj->run();
+
+                break;                
+			case 'mod_plugin_manager':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Plugin_Manager();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
@@ -1599,6 +1759,8 @@ BUFF_EOF;
 
         $host = ORBISIUS_WP_SAK_HOST;
         $admin_url = admin_url('/');
+		$ip = Orbisius_WP_SAK_Util::getIP();
+		$server_ip = Orbisius_WP_SAK_Util::getServerIP();
         
         $page_content = $this->getPageContent();
 
@@ -1632,7 +1794,7 @@ BUFF_EOF;
 		  </span>
 		</h3>
 
-        <p>Running on: <strong>{$host}</strong> | <a href='$admin_url' target='_blank'>Admin Area</a></p>
+        <p>Running on: <strong>{$host}</strong> | Your IP: $ip | Server IP: $server_ip | <a href='$admin_url' target='_blank'>Admin Area</a></p>
 
         <ul class="nav">
             <li class="active"><a href="$script">Dashboard</a></li>
@@ -1643,6 +1805,7 @@ BUFF_EOF;
 				| <a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a>
 				| <a href="$script?page=mod_locate_wp" title="Searches for WordPress Installations starting for a given folder">Locate WordPress</a>
 				| <a href="$script?page=mod_plugin_manager" title="Searches and installs plugins">Plugin Manager</a>
+				| <a href="$script?page=mod_self_protect" title="Self Protect">Self Protect</a>
 			]
 			</li>
 
