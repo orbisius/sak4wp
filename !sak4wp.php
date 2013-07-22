@@ -224,10 +224,9 @@ EOF;
 						
 						// the download link may contain alphanumeric + some versioning.
 						// e.g. http://downloads.wordpress.org/plugin/orbisius-cyberstore.1.1.7.zip
-						if (preg_match('#(https?://downloads.wordpress.org/plugin/([\w-.]+).zip)#si', $body_buff, $matches)) {
+						if (preg_match('#(https?://downloads.wordpress.org/plugin/(?:[\w-.]+).zip)#si', $body_buff, $matches)) {
 							$link = $matches[1];
-							$plugin_slug = $matches[2];
-							$result_html .= Orbisius_WP_SAK_Util::msg("Found Plugin Download Link: [$link] for plugin: [$plugin_slug]", 2);
+							$result_html .= Orbisius_WP_SAK_Util::msg("Found Plugin Download Link: [$link]", 2);
 						}
 					} else {
 						$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Find Plugin Download Link: [$link]", 2);
