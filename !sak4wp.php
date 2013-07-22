@@ -141,16 +141,25 @@ EOF;
  * Plugin_Manager Module - Allows you to manage plugins: bulk install, de/activate, delete
  */
 class Orbisius_WP_SAK_Controller_Module_Plugin_Manager extends Orbisius_WP_SAK_Controller_Module {
+	private $target_dir = ''; // plugins directory i.e. wp-content/plugins/
     /**
      * Setups the object stuff and defines some descriptions
      */
     public function __construct() {
+		$this->target_dir = WP_PLUGIN_DIR;
+		$warning = Orbisius_WP_SAK_Util::msg("If the plugin already exists its files will be overriden!", 0);
+		 
         $this->description = <<<EOF
 <h4>Plugin Manager</h4>
 <p>Allows you to manage plugins: bulk install, TODO: (de)activate, delete. Just paste the plugin's <!--strikewebsite link or --> zip file location.
 Enter multiple links each on a new line. Currently, this module downloads and extracts the files. You will need to login and activate the plugins.
+
+<br/> Plugins will be extracted in: <strong>$this->target_dir</strong> <br/>
+
+$warning
 </p>
 EOF;
+		
     }
 
     /**
@@ -180,22 +189,20 @@ EOF;
 	 * Needs starting folder.
      * The result is JSON
      */
-    public function downloadAction() {
+    public function downloadAction() {	
+        $msg = '';
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $params = $ctrl->getParams();
 
         $download_list_buff = empty($params['download_list_buff']) ? '' : trim($params['download_list_buff']);
 
-		$locations = preg_split('#[\r\n]+#si', $download_list_buff);
-		$locations = array_map('trim', $locations);
-		$locations = array_unique($locations);
-		$locations = array_filter($locations);
-		
-        $s = 0;
-        $msg = '';     
+		$locations = preg_split('#[\r\n]+#si', $download_list_buff); // let's split things by new lines.
+		$locations = array_map('trim', $locations); // no spaces
+		$locations = array_unique($locations); // only unique links
+		$locations = array_filter($locations); // skip empty lines		
 		
         if (!empty($locations)) {
-			$plugins_dir = WP_PLUGIN_DIR;
+			$plugins_dir = $this->target_dir;
 		
 			foreach ($locations as $link) {
 				if (empty($link)) {
@@ -232,7 +239,9 @@ EOF;
 						} else {
 							$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting Failed: [$link_esc]", 0);
 						}
-					}					
+					}
+					
+					$result_html .= '<br/>';
 				}
 			}
 
@@ -1018,7 +1027,7 @@ class Orbisius_WP_SAK_Util {
 				unlink($file);				
 		
 				throw new Exception("curl_exec error $file. Curl Error: " . curl_error($ch));
-			} elseif (!empty($target_dir)) {
+			} elseif (!empty($target_dir) && is_dir($target_dir)) { // ::SNOTE: this is not tested yet!
 				$eurl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
 				
 				if (preg_match('#^.*/(.+)$#', $eurl, $match)) {
@@ -2143,7 +2152,7 @@ which makes them look bad or blend with the background.
     color: white;
     padding: 3px;
     text-align: center;
-    margin:2px 5px;
+    margin:2px 0px;
 }
 
 .app-alert-success {
@@ -2152,7 +2161,7 @@ which makes them look bad or blend with the background.
     color: white;
     padding: 3px;
     text-align: center;
-    margin:2px 5px;
+    margin:2px 0px;
 }
 
 .app-alert-notice {
@@ -2160,7 +2169,7 @@ which makes them look bad or blend with the background.
     border: 1px solid #eee;
     padding: 3px;
     text-align: center;
-    margin:2px 5px;
+    margin:2px 0px;
 }
                 
 /* Common MSG simple classes */
