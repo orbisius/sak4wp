@@ -147,7 +147,8 @@ class Orbisius_WP_SAK_Controller_Module_Plugin_Manager extends Orbisius_WP_SAK_C
     public function __construct() {
         $this->description = <<<EOF
 <h4>Plugin Manager</h4>
-<p>Allows you to manage plugins: bulk install, TODO: (de)activate, delete. Just paste the plugin website link or zip file location.
+<p>Allows you to manage plugins: bulk install, TODO: (de)activate, delete. Just paste the plugin's <!--strikewebsite link or --> zip file location.
+Enter multiple links each on a new line. Currently, this module downloads and extracts the files. You will need to login and activate the plugins.
 </p>
 EOF;
     }
@@ -158,14 +159,14 @@ EOF;
     public function run() {
         $buff = '';
 
-		$start_folder = empty($_REQUEST['start_folder']) ? '' : trim($_REQUEST['start_folder']);
-		$start_folder_esc = esc_attr($start_folder);		
+		$download_list_buff = empty($_REQUEST['download_list_buff']) ? '' : trim($_REQUEST['download_list_buff']);
+		$download_list_buff_esc = esc_attr($download_list_buff);		
 
 		// Ajax
 		$buff .= "<br/><form method='post' id='module_form'>\n";
 		$buff .= "<input type='hidden' name='cmd' value='search' />\n";
-		$buff .= "<textarea name='start_folder' id='start_folder' class='app-text-long' rows='15'>$start_folder_esc</textarea>\n";
-		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download & Install' />\n";
+		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app-text-long' rows='15'>$download_list_buff_esc</textarea>\n";
+		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download & Extract' />\n";
 		$buff .= "</form>\n";
 		
         //$buff .= "<p><br/><a href='?page=mod_locate_wp&cmd=search' class='app-btn-primary mod_search_for_wordpress'>Search</a></p>\n";
@@ -183,57 +184,69 @@ EOF;
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $params = $ctrl->getParams();
 
-        $start_folder = empty($params['start_folder']) ? '' : $params['start_folder'];
+        $download_list_buff = empty($params['download_list_buff']) ? '' : trim($params['download_list_buff']);
 
-		$locations = preg_split('#[\r\n]+#si', $start_folder);
+		$locations = preg_split('#[\r\n]+#si', $download_list_buff);
 		$locations = array_map('trim', $locations);
 		$locations = array_unique($locations);
+		$locations = array_filter($locations);
 		
         $s = 0;
-        $msg = '';
-
-        $status = array('status' => 0, 'message' => '', 'results' => '', );        
+        $msg = '';     
 		
-        if (!empty($start_folder)) {
+        if (!empty($locations)) {
 			$plugins_dir = WP_PLUGIN_DIR;
-			$result_html .= "<pre>" . $plugins_dir;
+			$result_html .= "<pre>";
 		
 			foreach ($locations as $link) {
 				if (empty($link)) {
 					continue;
 				}
 				
+				$link_esc = esc_attr($link);
+				
+				// skip links not ending in .zip for now. TODO: parse html and extract .zip files.
 				if (!preg_match('#\.zip$#si', $link)) {
-					// skip for now
+					
+					$result_html .= Orbisius_WP_SAK_Util::msg("Skipping link: [$link_esc]. Reason: doesn't end in .zip");
+					
 					continue;
 				} else {
 					$dl_status = null;
 					$extract_status = null;
 					
+					$result_html .= Orbisius_WP_SAK_Util::msg("Processing link: [$link_esc]", 2);
+					
 					$dl_status = Orbisius_WP_SAK_Util::downloadFile($link);
 					
 					if (empty($dl_status['status'])) {
 					} else {
+						$result_html .= Orbisius_WP_SAK_Util::msg("Download OK: [$link_esc]", 1);
 						$file = $dl_status['file'];
 						$extract_status = Orbisius_WP_SAK_Util::extractArchiveFile($file, $plugins_dir);
+						
+						if (!empty($extract_status['status'])) {
+							$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting OK: [$link_esc]", 1);
+						} else {
+							$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting Failed: [$link_esc]", 0);
+						}
 					}					
 					
-					$result_html .= var_export($dl_status, 1);
-					$result_html .= var_export($extract_status, 1);
+					//$result_html .= var_export($dl_status, 1);
+					//$result_html .= var_export($extract_status, 1);
 				}
 			}
-
-			$result_html .= var_export($locations, 1);
+			
 			$result_html .= "</pre>";
-					
-            $status['status'] = 1;
+
+            $status = 1;
         } else {
-            $status['message'] = 'Error';
+			$status = 1;
+            $result_html = Orbisius_WP_SAK_Util::msg('No links have been entered or the entered ones do not end in .zip.', 2);
         }
 		
-		$status['results'] = empty($result_html) ? '<div class="app-alert-notice">Nothing found</div>' : $result_html;
-
-        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $status);
+        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );   		
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
     }
 }
 
@@ -261,16 +274,6 @@ EOF;
 
 		$start_folder = empty($_REQUEST['start_folder']) ? dirname(__FILE__) : trim($_REQUEST['start_folder']);
 		$start_folder_esc = esc_attr($start_folder);
-		
-        if (!empty($_REQUEST['cmd'])) {
-            if ($_REQUEST['cmd'] == 'command') {
-                $text = empty($_REQUEST['text']) ? substr(sha1(mt_rand(100, 1000) . time()), 0, 6) : trim($_REQUEST['text']);
-				
-                $this->doSomething($text);
-
-                $buff .= "<br/>";
-            }
-        }
 
 		$buff .= "<br/><form method='post' id='mod_locate_wordpress_form'>\n";
 		$buff .= "<input type='hidden' name='cmd' value='search' />\n";
@@ -285,7 +288,7 @@ EOF;
     }
     
 	/**
-     * This is called via ajax and does some searching for WP.
+     * This is called via ajax and searches for WP by finding wp-includes folder starting from start_folder.
 	 * Needs starting folder.
      * The result is JSON
      */
@@ -326,9 +329,9 @@ EOF;
 						
 						// is it the latest?; no -> let's warn them
 						if (version_compare($version, $latest_wp_version, '<')) {
-							$version = "<span class='app-simple-alert-error'>$version (upgrade)</span>";
+							$version = Orbisius_WP_SAK_Util::msg("$version (upgrade)", 0, 1);
 						} else {
-							$version = "<span class='app-simple-alert-success'>$version</span>";
+							$version = Orbisius_WP_SAK_Util::msg("$version", 1, 1);
 						}
 					}
 					
@@ -348,7 +351,7 @@ EOF;
             $status['message'] = 'Error';
         }
 		
-		$status['results'] = empty($result_html) ? '<div class="app-alert-notice">Nothing found</div>' : $result_html;
+		$status['results'] = empty($result_html) ? Orbisius_WP_SAK_Util::msg("Nothing found", 2) : $result_html;
 
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $status);
     }
@@ -918,6 +921,31 @@ class Orbisius_WP_SAK_Util {
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_TIMEOUT => 400,
 	);
+	
+	/**
+     * a simple status message, no formatting except color.
+	 * status is 0, 1 or 2
+     */
+    function msg($msg, $status = 0, $use_simple_css = 0) {
+        $inline_css = '';
+        
+		if ($status ==  1) {
+			$cls = 'app-alert-success';
+		} elseif ($status == 2) {
+			$cls = 'app-alert-notice';
+		} else {
+			$cls = 'app-alert-error';
+		}		
+
+		// use a simple CSS e.g. a nice span to alert, not just huge divs
+		if ($use_simple_css) {
+			$cls = str_replace('alert', 'simple-alert', $cls);
+		}
+		
+        $str = "<div class='$cls' $inline_css>$msg</div>";
+		
+        return $str;
+    }
 		
 	/**
 	* Downloads a file from a given url. The file is saved in a tmp folder and the location is returned
@@ -1577,6 +1605,9 @@ BUFF_EOF;
             var wpsak_json_cfg = { ajax_url : '$script' } ;
 
             jQuery(document).ready(function($) {
+				// let's select the first input box
+				$('form').find('input[type=text],textarea,select').filter(':visible:first').focus();
+				
 				// Plugin_Manager
                 $('#module_form').submit(function() {
 					$('.app-ajax-message').remove();
@@ -2075,7 +2106,7 @@ which makes them look bad or blend with the background.
 
 /* Common MSG classes */
 .app-alert-error {
-    background: #D54E21;
+    background: red;
     border: 1px solid #eee;
     color: white;
     padding: 3px;

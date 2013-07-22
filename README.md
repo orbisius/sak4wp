@@ -60,7 +60,9 @@ It also allows you to find old/forgotten WordPress installations. If the version
 The versions that are older will be shown in red, the up-to-date ones will be shown in green.
 
 Plugin Manager
-- This module allows you to manage plugins: bulk download and install, TODO: (de)activate, delete. Just paste the plugin website link or zip file location.
+- This module allows you to manage plugins: bulk download and install, TODO: (de)activate, delete. 
+Just paste the plugin zip file location (web link) and the plugin will be downloaded and extracted in wp-content/plugins directory.
+The plugin will show which links are skipped and if they were successfully extracted.
 
 Please fork and improve!
 
