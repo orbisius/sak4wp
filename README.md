@@ -59,6 +59,9 @@ Useful if you manage multiple WordPress sites and want to make sure all of them 
 It also allows you to find old/forgotten WordPress installations. If the version cannot be detected it will show 0.0.0
 The versions that are older will be shown in red, the up-to-date ones will be shown in green.
 
+Plugin Manager
+- This module allows you to manage plugins: bulk download and install, TODO: (de)activate, delete. Just paste the plugin website link or zip file location.
+
 Please fork and improve!
 
 Future Ideas

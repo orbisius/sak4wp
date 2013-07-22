@@ -138,6 +138,106 @@ EOF;
 }
 
 /**
+ * Plugin_Manager Module - Allows you to manage plugins: bulk install, de/activate, delete
+ */
+class Orbisius_WP_SAK_Controller_Module_Plugin_Manager extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>Plugin Manager</h4>
+<p>Allows you to manage plugins: bulk install, TODO: (de)activate, delete. Just paste the plugin website link or zip file location.
+</p>
+EOF;
+    }
+
+    /**
+     * 
+     */
+    public function run() {
+        $buff = '';
+
+		$start_folder = empty($_REQUEST['start_folder']) ? dirname(__FILE__) : trim($_REQUEST['start_folder']);
+		$start_folder_esc = esc_attr($start_folder);		
+
+		// Ajax
+		$buff .= "<br/><form method='post' id='module_form'>\n";
+		$buff .= "<input type='hidden' name='cmd' value='search' />\n";
+		$buff .= "<textarea name='start_folder' id='start_folder' class='app-text-long' rows='15'>$start_folder_esc</textarea>\n";
+		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download & Install' />\n";
+		$buff .= "</form>\n";
+		
+        //$buff .= "<p><br/><a href='?page=mod_locate_wp&cmd=search' class='app-btn-primary mod_search_for_wordpress'>Search</a></p>\n";
+        $buff .= "<p class='results'></p>\n";
+        
+        return $buff;
+    }
+    
+	/**
+     * This is called via ajax and does some searching for WP.
+	 * Needs starting folder.
+     * The result is JSON
+     */
+    public function downloadAction() {
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $params = $ctrl->getParams();
+
+        $start_folder = empty($params['start_folder']) ? '' : $params['start_folder'];
+
+		$locations = preg_split('#[\r\n]+#si', $start_folder);
+		$locations = array_map('trim', $locations);
+		$locations = array_unique($locations);
+		
+        $s = 0;
+        $msg = '';
+
+        $status = array('status' => 0, 'message' => '', 'results' => '', );        
+		
+        if (!empty($start_folder)) {
+			$plugins_dir = WP_PLUGIN_DIR;
+			$result_html .= "<pre>" . $plugins_dir;
+		
+			foreach ($locations as $link) {
+				if (empty($link)) {
+					continue;
+				}
+				
+				if (!preg_match('#\.zip$#si', $link)) {
+					// skip for now
+					continue;
+				} else {
+					$dl_status = null;
+					$extract_status = null;
+					
+					$dl_status = Orbisius_WP_SAK_Util::downloadFile($link);
+					
+					if (empty($dl_status['status'])) {
+					} else {
+						$file = $dl_status['file'];
+						$extract_status = Orbisius_WP_SAK_Util::extractArchiveFile($file, $plugins_dir);
+					}					
+					
+					$result_html .= var_export($dl_status, 1);
+					$result_html .= var_export($extract_status, 1);
+				}
+			}
+
+			$result_html .= var_export($locations, 1);
+			$result_html .= "</pre>";
+					
+            $status['status'] = 1;
+        } else {
+            $status['message'] = 'Error';
+        }
+		
+		$status['results'] = empty($result_html) ? '<div class="app-alert-notice">Nothing found</div>' : $result_html;
+
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $status);
+    }
+}
+
+/**
  * Locate_WordPress Module - Searches for local WordPress installations in different folders and shows their versions.
  */
 class Orbisius_WP_SAK_Controller_Module_Locate_WordPress extends Orbisius_WP_SAK_Controller_Module {
@@ -251,14 +351,6 @@ EOF;
 		$status['results'] = empty($result_html) ? '<div class="app-alert-notice">Nothing found</div>' : $result_html;
 
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $status);
-    }	
-	
-    /**
-     * Sample Method
-     */
-    public function doSomething($text) {
-        
-        return $text;
     }
 }
 
@@ -791,6 +883,116 @@ EOF;
 }
 
 class Orbisius_WP_SAK_Util {
+	public static $curl_options = array(
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 5.1; pl; rv:1.9) Gecko/2008052906 Firefox/3.0',
+        CURLOPT_AUTOREFERER => true,
+        CURLOPT_COOKIEFILE => '',
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_TIMEOUT => 400,
+	);
+		
+	/**
+	* Downloads a file from a given url. The file is saved in a tmp folder and the location is returned
+	* in the record
+	*/	
+	public static function downloadFile($url, $target_dir = '') {
+		$status = 0;
+		$error = $file = '';
+
+		// let's allow the script to run longer in case we download lots of files.
+		$old_time_limit = ini_get('max_execution_time');
+		set_time_limit(600);
+
+		try {
+			if (!empty($target_dir)) { // trailingslash
+				$target_dir = rtrim($target_dir, '/');
+				$target_dir .= '/';
+			}
+			
+			if (($ch = curl_init($url)) == false) {
+				throw new Exception("curl_init error for url [$url].");
+			}
+
+			curl_setopt_array($ch, self::$curl_options);
+		   
+			$file = tempnam(self::getTempDir(), '!sak4wp_');	   
+			
+			$fp = fopen($file, "wb");
+			
+			if (empty($fp)) {
+				throw new Exception("fopen error for file [$url]");
+			}
+			
+			curl_setopt($ch, CURLOPT_FILE, $fp);       
+			curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
+			
+			if (curl_exec($ch) === false) {
+				unlink($file);				
+		
+				throw new Exception("curl_exec error $file. Curl Error: " . curl_error($ch));
+			} elseif (!empty($target_dir)) {
+				$eurl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+				
+				if (preg_match('#^.*/(.+)$#', $eurl, $match)) {
+					if (rename($file, $target_dir . $match[1]) || copy($file, $target_dir . $match[1])) {
+						$file = $target_dir . $match[1];
+					}
+				}
+			}
+		   
+		    fclose($fp);
+			curl_close($ch);
+			
+			$status = 1;
+		} catch (Exception $e) {
+			$error = $e->getMessage();
+		}
+		
+		$data = array(
+			'status' => $status,
+			'error' => $error,
+			'file' => $file,
+		);		
+		
+		set_time_limit($old_time_limit);
+		
+		return $data;
+	}	
+	
+	/**
+	* Downloads a file from a given url. The file is saved in a tmp folder and the location is returned
+	* in the record
+	*/	
+	public static function extractArchiveFile($archive_file, $target_directory) {
+		$status = 0;
+		$error = '';	
+		
+		// Requires WP to be loaded.
+		include_once(ABSPATH . '/wp-admin/includes/file.php');
+		
+		if (function_exists('WP_Filesystem')) {
+			WP_Filesystem();
+			
+			$status = unzip_file($archive_file, $target_directory);
+			
+			if (is_wp_error($status)) {
+				$error = $return->get_error_message();
+			} else {
+				$status = 1;
+			}
+		} else {
+			$error = 'WP_Filesystem is not loaded.';
+		}		
+		
+		$data = array(
+            'status' => $status,
+            'error' => $error,			
+        );
+		
+		return $data;
+	}
+
 	/**
      * Tries to get the temp directory for php.
      * It checks if this function exists: sys_get_temp_dir (since php 5.2).
@@ -1102,7 +1304,13 @@ class Orbisius_WP_SAK_Controller {
         $app_name = ORBISIUS_WP_SAK_APP_NAME;
          
 		switch ($page) {
-            case 'mod_locate_wp':
+            case 'mod_plugin_manager':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Plugin_Manager();
+                $descr = $mod_obj->getInfo();
+                $descr .= $mod_obj->run();
+
+                break;                 
+			case 'mod_locate_wp':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Locate_WordPress();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
@@ -1291,6 +1499,7 @@ BUFF_EOF;
 				| <a href="$script?page=mod_list_page_templates" title="Lists Page Templates">Page Templates</a>
 				| <a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a>
 				| <a href="$script?page=mod_locate_wp" title="Searches for WordPress Installations starting for a given folder">Locate WordPress</a>
+				| <a href="$script?page=mod_plugin_manager" title="Searches and installs plugins">Plugin Manager</a>
 			]
 			</li>
 
@@ -1358,6 +1567,40 @@ BUFF_EOF;
             var wpsak_json_cfg = { ajax_url : '$script' } ;
 
             jQuery(document).ready(function($) {
+				// Plugin_Manager
+                $('#module_form').submit(function() {
+					$('.app-ajax-message').remove();
+					var form = $(this);
+					var container = '.results';
+					
+                    $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
+				
+					$.ajax({
+                        type : "post",
+                        dataType : "json",
+                        url : wpsak_json_cfg.ajax_url, // contains all the necessary params
+                        data : $(form).serialize() + '&module=Plugin_Manager&action=download',
+                        success : function(json) {
+                           $('.app-ajax-message').remove();
+                
+                           if (json.status) {
+                              $(container).html(json.results);
+                           } else {
+                              $(container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
+                                  + json.message + "</span>");
+                           }
+                        },
+                        error : function(jqXHR, text_status, error_thrown) {
+                            $('.app-ajax-message').remove();
+                
+                            alert("There was an error. " + text_status + ' ' + error_thrown);
+                        },
+                        
+                    }); // ajax
+
+                    return false;
+				}); // Plugin_Manager
+				
 				// search for wp
                 $('#mod_locate_wordpress_form').submit(function() {
 					$('.app-ajax-message').remove();
