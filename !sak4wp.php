@@ -41,17 +41,19 @@ define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 // this stops WP Super Cache and W3 Total Cache from caching
 define( 'WP_CACHE', false );
 
+/*error_reporting(E_ALL);
+ini_set('display_errors', 1);*/
+
 try {
     $ctrl = Orbisius_WP_SAK_Controller::getInstance();
     $ctrl->init();
 
-    // this may fail.
     $ctrl->preRun();
     
+    // This WP load may fail which we'll check()
     include_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wp-load.php');
 
     $ctrl->check();
-    
     $ctrl->run();
     $ctrl->postRun();
 } catch (Exception $e) {
@@ -126,7 +128,7 @@ EOF;
      */
     public function checkFirstRun() {
 		// Creates a (host specific) file which stops people from accessing SAK4WP as the same time as you.
-        $first_run_file = Orbisius_WP_SAK_Util::getTempDir() . '.ht-sak4wp-' . ORBISIUS_WP_SAK_HOST;
+        $first_run_file = Orbisius_WP_SAK_Util::getWPUploadsDir() . '.ht-sak4wp-' . ORBISIUS_WP_SAK_HOST;
 
 		$ip = Orbisius_WP_SAK_Util::getIP();
 		$ua = empty($_SERVER['HTTP_USER_AGENT']) ? '' : $_SERVER['HTTP_USER_AGENT'];
@@ -137,7 +139,7 @@ EOF;
 			// If any of the recorded info is different, we don't want to deal with that person.
 			if (empty($data) || $data['ip'] != $ip || $data['ua'] != $ua) {			
 				$ctrl = Orbisius_WP_SAK_Controller::getInstance();
-				$ctrl->doExit();
+				$ctrl->doExit('Error');
 			}
 		} else {
 			$creation_time = time();
@@ -1108,7 +1110,7 @@ class Orbisius_WP_SAK_Util {
      * Gets IP. This may require checking some $_SERVER variables ... if the user is using a proxy.
      * @return string
      */
-    public static public function getIP() {
+    public static function getIP() {
         $ip = $_SERVER['REMOTE_ADDR'];
 
         return $ip;
@@ -1118,7 +1120,7 @@ class Orbisius_WP_SAK_Util {
      * Gets Server IP from env.
      * @return string
      */
-    public static public function getServerIP() {
+    public static function getServerIP() {
         $ip = $_SERVER['SERVER_ADDR'];
 
         return $ip;
@@ -1306,6 +1308,33 @@ class Orbisius_WP_SAK_Util {
         );
 		
 		return $data;
+	}
+
+	/**
+     * Returns WordPress' uploads folder. Local path. The directory includes a trailing slash
+     * We may need to save some hidden files there which weren't a good match for the temp directory.
+     * Since this code is run before the WP load, we might need to guess it?
+	 * 
+     * @see http://codex.wordpress.org/Function_Reference/wp_upload_dir
+     * @return string
+     */
+    public static function getWPUploadsDir() {
+		if (function_exists('wp_upload_dir')) {
+            $upload_dir = wp_upload_dir();
+            $dir = $upload_dir['basedir'];
+            $dir = rtrim($dir, '/') . '/';
+		} else {
+            $dir = dirname(__FILE__) . '/wp-content/uploads/';
+        }
+
+        // As a last resource we'll use temp dir.
+        // which is not a cool thing because anybody can search the temp folder
+        // and find out who is using SAK4WP
+        if (!is_dir($dir) || !is_writable($dir)) {
+            throw new Exception("Cannot find WordPress' upload_dir or it is not wriable.");
+        }
+		
+		return $dir;
 	}
 
 	/**
@@ -1497,9 +1526,14 @@ class Orbisius_WP_SAK_Controller {
     /**
      * Does some cleanup, outputs some text (if any) and exists.
      */
-	public function doExit($msg = '') {
+	public function doExit($msg = '', $title = '') {
         unset($this->params);
-		echo $msg;
+		
+        if (!empty($msg)) {
+            $app_name = ORBISIUS_WP_SAK_APP_SHORT_NAME;
+            echo "<h3 style='color:red;'>$app_name: $msg</h3>";
+        }
+
         exit;
     }
 
@@ -1510,6 +1544,10 @@ class Orbisius_WP_SAK_Controller {
         if (!defined('ABSPATH')) {
             die('ABSPATH is not defined. This script must be installed at the same level as your WordPress Installation.');
         }
+        
+        // Let's make sure we are protected all the time.
+		$mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
+		$mod_obj->run();
     }
 
     static private $_instance = null;
@@ -1533,15 +1571,11 @@ class Orbisius_WP_SAK_Controller {
 
     /**
      * Executes some quick and light actions that do not require WP to be loaded.
-     * E.g. outputting JS, CSS etc.
+     * E.g. outputting JS, CSS etc. as well as self destroy
      */
 	public function preRun() {
         $params = $this->params;
         
-		// Let's make sure we are protected all the time.
-		$mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
-		$mod_obj->run();
-		
         if (isset($params['css'])) {
             $this->outputStyles($params['css']);
         } elseif (isset($params['js'])) {
@@ -1554,7 +1588,7 @@ class Orbisius_WP_SAK_Controller {
             $this->sendHeader(self::HEADER_IMAGE_PNG, $img_buff);
         } elseif (isset($params['destroy'])) {
             if (!unlink(__FILE__)) {
-                die('Cannot self destroy. Please delete <strong>' . __FILE__ . '</strong> manually.');
+				$this->doExit('Cannot self destroy. Please delete <strong>' . __FILE__ . '</strong> manually.');
             }
 
             // This should be a test. If the user is seeing the script
@@ -1572,7 +1606,7 @@ class Orbisius_WP_SAK_Controller {
     }
 
     /**
-     * Executes tasks that require WP to loaded
+     * Executes tasks that require WP to be loaded.
      */
 	public function run() {
         $params = $this->params;
@@ -1606,7 +1640,11 @@ class Orbisius_WP_SAK_Controller {
 		return $this->params;
 	}
 
+    /**
+     * WP should be loaded by now.
+     */
 	public function postRun() {
+		
 	}
 
     /**
