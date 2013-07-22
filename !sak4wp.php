@@ -711,6 +711,8 @@ EOF;
         );
         
         $buff .= $ctrl->renderKeyValueTable('WordPress Site Stats', $data);
+		
+		return $buff;
     }
 
     /**
