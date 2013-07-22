@@ -158,7 +158,7 @@ EOF;
     public function run() {
         $buff = '';
 
-		$start_folder = empty($_REQUEST['start_folder']) ? dirname(__FILE__) : trim($_REQUEST['start_folder']);
+		$start_folder = empty($_REQUEST['start_folder']) ? '' : trim($_REQUEST['start_folder']);
 		$start_folder_esc = esc_attr($start_folder);		
 
 		// Ajax
@@ -631,6 +631,26 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
 EOF;
     }
 
+	/**
+     * Checks if the current IP is blocked and lists all the blocked IPs in a table.
+     */
+    public function run() {
+		$buff = '';
+		$my_ip = $this->getIP();
+
+		if ($this->isBlocked($my_ip)) {
+			$buff .= "<div class='app-alert-error'>Your IP [$my_ip] address is blocked.
+				Scroll down to the yellow row and click on Unblock link.</div>";
+		} else {
+			$buff .= "<div class='app-alert-success'>Your IP [$my_ip] address is NOT blocked.</div>";
+		}
+
+		$buff .= "<br/>";
+		$buff .= $this->getBlockedAsHTML();
+		
+		return $buff;
+	}
+	
     /**
      * Handles IP unblocking. It searches the IP in the list and then
      * updates the array and saves it in the db.
@@ -1344,18 +1364,7 @@ class Orbisius_WP_SAK_Controller {
             case 'mod_unblock':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker();
 				$descr = $mod_obj->getInfo();
-                $my_ip = $mod_obj->getIP();
-
-                if ($mod_obj->isBlocked($my_ip)) {
-                    $descr .= "<div class='app-alert-error'>Your IP [$my_ip] address is blocked.
-                        Scroll down to the yellow row and click on Unblock link.</div>";
-                } else {
-                    $descr .= "<div class='app-alert-success'>Your IP [$my_ip] address is NOT blocked.</div>";
-                }
-
-                $descr .= "<br/>";
-
-                $descr .= $mod_obj->getBlockedAsHTML();
+				$descr .= $mod_obj->run();
 
                 break;
             
