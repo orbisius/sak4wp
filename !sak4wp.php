@@ -969,7 +969,6 @@ class Orbisius_WP_SAK_Util {
         CURLOPT_TIMEOUT => 400,
 	);
 
-
     /**
      * proto str formatFileSize( int $size )
      *
@@ -1037,10 +1036,13 @@ class Orbisius_WP_SAK_Util {
 	*/
 	public static function getRemoteFileSize($url) {
 		 $ch = curl_init($url);
-
+		 
+		 curl_setopt_array($ch, self::$curl_options);
+		 
 		 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		 curl_setopt($ch, CURLOPT_HEADER, true);
 		 curl_setopt($ch, CURLOPT_NOBODY, true);
+		 curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 
 		 $data = curl_exec($ch);
 		 $size = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
