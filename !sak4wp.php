@@ -220,9 +220,11 @@ EOF;
 					
 					if (empty($dl_status['status'])) {
 						$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]", 0);
-					} else {
-						$result_html .= Orbisius_WP_SAK_Util::msg("Download OK: [$link_esc]", 1);
+					} else {					
 						$file = $dl_status['file'];
+						$file_size = Orbisius_WP_SAK_Util::formatFileSize(filesize($file));
+						$result_html .= Orbisius_WP_SAK_Util::msg("Download OK: [$link_esc, $file_size]", 1);
+						
 						$extract_status = Orbisius_WP_SAK_Util::extractArchiveFile($file, $plugins_dir);
 						
 						if (!empty($extract_status['status'])) {
@@ -916,6 +918,41 @@ class Orbisius_WP_SAK_Util {
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_TIMEOUT => 400,
 	);
+
+
+    /**
+     * proto str formatFileSize( int $size )
+     *
+     * @param string
+     * @return string 1 KB/ MB
+     */
+    public static function formatFileSize($size) {
+    	$size_suff = 'Bytes';
+
+        if ($size > 1024 ) {
+            $size /= 1024;
+            $size_suff = 'KB';
+        }
+
+        if ( $size > 1024 ) {
+            $size /= 1024;
+            $size_suff = 'MB';
+        }
+
+        if ( $size > 1024 ) {
+            $size /= 1024;
+            $size_suff = 'GB';
+        }
+
+        if ( $size > 1024 ) {
+            $size /= 1024;
+            $size_suff = 'TB';
+        }
+
+        $size = number_format($size, 2);
+
+        return $size . " $size_suff";
+    }	
 	
 	/**
      * a simple status message, no formatting except color.
