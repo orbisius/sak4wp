@@ -151,7 +151,7 @@ class Orbisius_WP_SAK_Controller_Module_Plugin_Manager extends Orbisius_WP_SAK_C
 		 
         $this->description = <<<EOF
 <h4>Plugin Manager</h4>
-<p>Allows you to manage plugins: bulk install, TODO: (de)activate, delete. Just paste the plugin's <!--strikewebsite link or --> zip file location.
+<p>Allows you to manage plugins: bulk install, TODO: (de)activate, delete. Just enter the plugin's WordPress.org page or a zip file location (web).
 Enter multiple links each on a new line. Currently, this module downloads and extracts the files. You will need to login and activate the plugins.
 
 <br/> Plugins will be extracted in: <strong>$this->target_dir</strong> <br/>
@@ -185,8 +185,7 @@ EOF;
     }
     
 	/**
-     * This is called via ajax and does some searching for WP.
-	 * Needs starting folder.
+     * This is called via ajax and downloads some plugins and extracts the zip files' contents into plugins folder.
      * The result is JSON
      */
     public function downloadAction() {	
@@ -203,17 +202,47 @@ EOF;
 		
         if (!empty($locations)) {
 			$plugins_dir = $this->target_dir;
+			$req_cnt = 0;
+			$limit = 10 * 1024 * 1024; // 10MB
+			$limit_fmt = Orbisius_WP_SAK_Util::formatFileSize($limit);
 		
 			foreach ($locations as $link) {
 				if (empty($link)) {
 					continue;
+				}				
+				
+				// If the link points to a plugin hosted by wordpress.org go and find the download link.
+				// otherwise we'll skip them because SAK4WP can find other random ZIP files or bad plugins
+				// which could break WP. There could be some www
+				if (preg_match('#https?://[w\.]*wordpress.org/(?:extend/)?plugins/#si', $link) 
+						&& !preg_match('#\.zip$#si', $link)) {
+					// let's load WP page
+					$result = Orbisius_WP_SAK_Util::makeHttpRequest($link);				
+
+					if (empty($result['error'])) {
+						$body_buff = $result['buffer'];
+						
+						// the download link may contain alphanumeric + some versioning.
+						// e.g. http://downloads.wordpress.org/plugin/orbisius-cyberstore.1.1.7.zip
+						if (preg_match('#(https?://downloads.wordpress.org/plugin/([\w-.]+).zip)#si', $body_buff, $matches)) {
+							$link = $matches[1];
+							$plugin_slug = $matches[2];
+							$result_html .= Orbisius_WP_SAK_Util::msg("Found Plugin Download Link: [$link] for plugin: [$plugin_slug]", 2);
+						}
+					} else {
+						$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Find Plugin Download Link: [$link]", 2);
+					}
+					
+					// let's give the server a chance to relax for a sec.
+					if (++$req_cnt % 5 == 0) {
+						sleep(1);
+					}
 				}
 				
 				$link_esc = esc_attr($link);
-				
-				// skip links not ending in .zip for now. TODO: parse html and extract .zip files.
-				if (!preg_match('#\.zip$#si', $link)) {
-					
+			
+				// skip links not ending in .zip for now.
+				if (!preg_match('#\.zip$#si', $link)) {									
 					$result_html .= Orbisius_WP_SAK_Util::msg("Skipping link: [$link_esc]. Reason: doesn't end in .zip");
 					
 					continue;
@@ -223,21 +252,32 @@ EOF;
 					
 					$result_html .= Orbisius_WP_SAK_Util::msg("Processing link: [$link_esc]", 2);
 					
-					$dl_status = Orbisius_WP_SAK_Util::downloadFile($link);
+					// Let's do a quick check
+					$remote_file_size = Orbisius_WP_SAK_Util::getRemoteFileSize($link);					
 					
-					if (empty($dl_status['status'])) {
-						$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]", 0);
-					} else {					
-						$file = $dl_status['file'];
-						$file_size = Orbisius_WP_SAK_Util::formatFileSize(filesize($file));
-						$result_html .= Orbisius_WP_SAK_Util::msg("Download OK: [$link_esc, $file_size]", 1);
+					// The max plugin size is 10MB					
+					if ($remote_file_size > $limit) {
+						$file_size_fmt = Orbisius_WP_SAK_Util::formatFileSize($remote_file_size);
+						$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc, $file_size_fmt]." 
+							. " Plugin file is bigger than $limit_fmt.", 0);
+					} else {			
+						$dl_status = Orbisius_WP_SAK_Util::downloadFile($link);
 						
-						$extract_status = Orbisius_WP_SAK_Util::extractArchiveFile($file, $plugins_dir);
-						
-						if (!empty($extract_status['status'])) {
-							$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting OK: [$link_esc]", 1);
-						} else {
-							$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting Failed: [$link_esc]", 0);
+						if (empty($dl_status['status'])) {
+							$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]", 0);
+						} else {					
+							$file = $dl_status['file'];
+							$file_size = filesize($file);
+							$file_size_fmt = Orbisius_WP_SAK_Util::formatFileSize($file_size);
+							$result_html .= Orbisius_WP_SAK_Util::msg("Download OK: [$link_esc, $file_size_fmt]", 1);
+							
+							$extract_status = Orbisius_WP_SAK_Util::extractArchiveFile($file, $plugins_dir);
+							
+							if (!empty($extract_status['status'])) {
+								$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting OK: [$link_esc]", 1);
+							} else {
+								$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting Failed: [$link_esc]", 0);
+							}
 						}
 					}
 					
@@ -959,6 +999,7 @@ class Orbisius_WP_SAK_Util {
         }
 
         $size = number_format($size, 2);
+		$size = preg_replace('#\.00$#', '', $size);
 
         return $size . " $size_suff";
     }	
@@ -987,7 +1028,27 @@ class Orbisius_WP_SAK_Util {
 		
         return $str;
     }
-		
+	
+	/**
+	* Since we are downloading files, it is a good idea to be smart about it.
+	* For example it doesn't make sense to download 10MB plugin and stress the server.
+	* @see http://stackoverflow.com/questions/2602612/php-remote-file-size-without-downloading-file
+	*/
+	public static function getRemoteFileSize($url) {
+		 $ch = curl_init($url);
+
+		 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		 curl_setopt($ch, CURLOPT_HEADER, true);
+		 curl_setopt($ch, CURLOPT_NOBODY, true);
+
+		 $data = curl_exec($ch);
+		 $size = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+
+		 curl_close($ch);
+		 
+		 return $size;
+	}
+	
 	/**
 	* Downloads a file from a given url. The file is saved in a tmp folder and the location is returned
 	* in the record

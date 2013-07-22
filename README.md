@@ -3,6 +3,7 @@ SAK4WP - Swiss Army Knife for WordPress
 
 Swiss Army Knife for WordPress is a standalone script which allows you to perform some recovery operations on your WordPress site.
 This script is intended to be used for a short time only and then removed in order to prevent security issues.
+If you do not remove SAK4WP the chance is very high that somebody will find out about that and compromise your site.
 
 Installation
 ------------
@@ -61,10 +62,10 @@ The versions that are older will be shown in red, the up-to-date ones will be sh
 
 Plugin Manager
 - This module allows you to manage plugins: bulk download and install, TODO: (de)activate, delete. 
-Just paste the plugin zip file location (web link) and the plugin will be downloaded and extracted in wp-content/plugins directory.
+Just enter the plugin's WordPress.org page or a zip file location (web) and the plugin will be downloaded and extracted into wp-content/plugins directory.
 The plugin will show which links are skipped and if they were successfully extracted. The file size of the downloaded file is shown.
-The plugin directory where the download plugin will be extract is shown. 
-Warning: If the plugin already exists its files will be overriden!
+The plugin directory where the download plugin will be extract is shown. Warning: If the plugin already exists its files will be overriden! 
+SAK4WP checks the remote file size before downloading the file. Plugins files larger than the limit (10MB) will be not be downloaded.
 
 Please fork and improve!
 
@@ -93,6 +94,14 @@ Future Ideas
 - Backup -> Files + Db; Send to Dropbox
 - Scan the folders for other WP installations -> manage multiple WP installs from 1 copy of the program or copy/move itself to another folder/site
 - DONE: Protect WP admin directory (basic auth)
+
+
+Requirements
+------------
+
+Installed and configured WordPress
+FTP client to upload SAK4WP
+Reminder to remove the SAK4WP after use to prevent being hacked.
 
 
 Support
