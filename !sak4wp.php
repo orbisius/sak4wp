@@ -331,7 +331,7 @@ EOF;
 						
 						if (empty($dl_status['status'])) {
 							$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]", 0);
-						} else {					
+						} else {
 							$file = $dl_status['file'];
 							$file_size = filesize($file);
 							$file_size_fmt = Orbisius_WP_SAK_Util::formatFileSize($file_size);
@@ -344,6 +344,11 @@ EOF;
 							} else {
 								$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting Failed: [$link_esc]", 0);
 							}
+							
+							// Let's remove the temporary file so it doesn't take too much space in the TMP folder.
+							// Note: if we start using downloadFile with 2nd parameter e.g. target dir
+							// this unlink idea may not be a good one.
+							unlink($file);
 						}
 					}
 					

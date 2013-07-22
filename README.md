@@ -72,6 +72,7 @@ Just enter the plugin's WordPress.org page or a zip file location (web) and the 
 The plugin will show which links are skipped and if they were successfully extracted. The file size of the downloaded file is shown.
 The plugin directory where the download plugin will be extract is shown. Warning: If the plugin already exists its files will be overriden! 
 SAK4WP checks the remote file size before downloading the file. Plugins files larger than the limit (10MB) will be not be downloaded.
+Temporary files from the download are deleted later so they don't take too much space in the TMP folder which should be cleaned on reboot anyways.
 
 Self Protect
 This module allows you to run SAK4WP more securely. The first time you access SAK4WP, it will save your IP and browser info.
