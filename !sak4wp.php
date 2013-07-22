@@ -508,7 +508,13 @@ EOF;
         $htpasswd_file = $this->htaccess_dir . '.htpasswd';
         $admin_url = admin_url('/');
 
-        $buff .= "<a href='$admin_url' target='_blank'>WordPress admin</a><br/><br/>\n";
+        $buff .= "<br/>Create Account<br/><form method='post'>\n";
+        $buff .= "<input type='hidden' name='cmd' value='create_htaccess' />\n";
+        $buff .= "User: <input type='text' name='user' value='' />\n";
+        $buff .= "Pass: <input type='text' name='pass' value='' />\n";
+        $buff .= "<input type='submit' name='submit' class='app-btn-primary' value='create' />\n";
+        $buff .= "</form>\n<p>Note: If the files already exist the new data will be appended.
+            If you leave either box empty random user/pass will be generated.</p>";
 
         if (!empty($_REQUEST['cmd'])) {
             if ($_REQUEST['cmd'] == 'create_htaccess') {
@@ -552,17 +558,6 @@ EOF;
             }
         } else {
             $buff .= "<span class='app-simple-alert-error'>File [$htaccess_file] doesn't exist</span>\n";
-        }
-
-        if (1) {
-            //$buff .= "<br/><a href='?page=mod_htaccess&cmd=create_htaccess'>create .htaccess file.</a>\n";
-            $buff .= "<br/>Create Account<br/><form method='post'>\n";
-            $buff .= "<input type='hidden' name='cmd' value='create_htaccess' />\n";
-            $buff .= "User: <input type='text' name='user' value='' />\n";
-            $buff .= "Pass: <input type='text' name='pass' value='' />\n";
-            $buff .= "<input type='submit' name='submit' class='app-btn-primary' value='create' />\n";
-            $buff .= "</form>\n<br/>Note: If the files already exist the new data will be appended.
-                If you leave either box empty random user/pass will be generated.";
         }
 
         // Let's show delete button if any if the files exists.
