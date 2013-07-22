@@ -99,9 +99,10 @@ Future Ideas
 Requirements
 ------------
 
-Installed and configured WordPress
-FTP client to upload SAK4WP
-Reminder to remove the SAK4WP after use to prevent being hacked.
+- Installed and configured WordPress
+- FTP client to upload SAK4WP
+- Reminder to remove the SAK4WP after use to prevent being hacked.
+- php_curl extension to be available
 
 
 Support
