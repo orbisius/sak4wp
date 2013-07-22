@@ -617,11 +617,18 @@ EOF;
  */
 class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends Orbisius_WP_SAK_Controller_Module {
     /**
-     *
+     * Gets the IP address that are blocked.
+	 * Limit Login Attempts saves them in WP db's options under: 'limit_login_lockouts' name
      */
     public function __construct() {
         $lockouts = get_option('limit_login_lockouts');
-        $this->lockouts = $lockouts;
+        $this->lockouts = $lockouts;		
+		$this->description = <<<EOF
+<h4>Limit Login Attempts Unblocker</h4>
+<p> This section allows you to unblock yourself or other IP address that were blocked by
+    <a href="http://wordpress.org/plugins/limit-login-attempts/" target="_blank" title="new/tab">Limit Login Attempts</a> plugin.
+</p>
+EOF;
     }
 
     /**
@@ -1335,14 +1342,8 @@ class Orbisius_WP_SAK_Controller {
 
                 break;
             case 'mod_unblock':
-                $descr = <<<BUFF_EOF
-<h4>Limit Login Attempts Unblocker</h4>
-<p> This section allows you to unblock yourself or other IP address that were blocked by
-    <a href="http://wordpress.org/plugins/limit-login-attempts/" target="_blank" title="new/tab">Limit Login Attempts</a> plugin.
-</p>
-BUFF_EOF;
-
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker();
+				$descr = $mod_obj->getInfo();
                 $my_ip = $mod_obj->getIP();
 
                 if ($mod_obj->isBlocked($my_ip)) {
