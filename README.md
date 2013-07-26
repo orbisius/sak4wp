@@ -74,6 +74,9 @@ The plugin directory where the download plugin will be extract is shown. Warning
 SAK4WP checks the remote file size before downloading the file. Plugins files larger than the limit (10MB) will be not be downloaded.
 Temporary files from the download are deleted later so they don't take too much space in the TMP folder which should be cleaned on reboot anyways.
 
+User Manager
+This module allows you to see user account & meta info. TODO: Create, delete users.
+
 Self Protect
 This module allows you to run SAK4WP more securely. The first time you access SAK4WP, it will save your IP and browser info.
 If somebody else accesses the file from a different IP or browser, he/she will be stopped.

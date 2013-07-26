@@ -205,6 +205,55 @@ EOF;
     }
 }
 
+
+/**
+ * Example Module - Handles ...
+ */
+class Orbisius_WP_SAK_Controller_Module_User_Manager extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>User Manager</h4>
+<p>This module allows you to see user account & meta info. TODO: Create, delete users.</p>
+EOF;
+    }
+
+    /**
+     *
+     */
+    public function run() {
+        $buff = '';
+
+		$data = get_users();
+
+        foreach ($data as $user_obj) {
+            $user_meta = get_user_meta($user_obj->ID);
+            $buff .= "<h4>User: $user_obj->user_login [$user_obj->user_email] (ID: $user_obj->ID)</h4>"
+                . '<pre>' . var_export($user_obj, 1) . "\n";
+
+            $buff .= "<strong>User Meta</strong>\n" .
+                var_export($user_meta, 1) . "\n";
+
+            $buff .= "</pre><hr />";
+        }
+        
+        $buff .= "Total User(s): " . count($data) . "\n";
+        $buff .= "<p class='results'></p>\n";
+
+        return $buff;
+    }
+
+    /**
+     * Sample Method
+     */
+    public function doSomething($text) {
+
+        return $text;
+    }
+}
+
 /**
  * Plugin_Manager Module - Allows you to manage plugins: bulk install, de/activate, delete
  */
@@ -239,7 +288,6 @@ EOF;
 		$download_list_buff = empty($_REQUEST['download_list_buff']) ? '' : trim($_REQUEST['download_list_buff']);
 		$download_list_buff_esc = esc_attr($download_list_buff);		
 
-		// Ajax
 		$buff .= "<br/><form method='post' id='module_form'>\n";
 		$buff .= "<input type='hidden' name='cmd' value='search' />\n";
 		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app-text-long' rows='15'>$download_list_buff_esc</textarea>\n";
@@ -1667,12 +1715,18 @@ class Orbisius_WP_SAK_Controller {
                 //$descr .= $mod_obj->run();
 
                 break;                
+			case 'mod_user_manager':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_User_Manager();
+                $descr = $mod_obj->getInfo();
+                $descr .= $mod_obj->run();
+
+                break;                 
 			case 'mod_plugin_manager':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Plugin_Manager();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
 
-                break;                 
+                break;
 			case 'mod_locate_wp':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Locate_WordPress();
                 $descr = $mod_obj->getInfo();
@@ -1849,6 +1903,7 @@ BUFF_EOF;
 				| <a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a>
 				| <a href="$script?page=mod_locate_wp" title="Searches for WordPress Installations starting for a given folder">Locate WordPress</a>
 				| <a href="$script?page=mod_plugin_manager" title="Searches and installs plugins">Plugin Manager</a>
+				| <a href="$script?page=mod_user_manager" title="Searches and installs plugins">User Manager</a>
 				<!--| <a href="$script?page=mod_self_protect" title="Self Protect">Self Protect</a>	-->
 			</li>
 
