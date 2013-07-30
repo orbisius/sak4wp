@@ -788,7 +788,15 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
      */
     public function __construct() {
         $lockouts = get_option('limit_login_lockouts');
+        $retries = get_option('limit_login_retries');
+		
         $this->lockouts = $lockouts;
+        $this->retries = $retries;
+
+		// ::SNOTE: fake IPs for testing
+		/*$this->lockouts['111'] = time();
+		$this->retries['111'] = 1;*/
+
 		$this->ip = Orbisius_WP_SAK_Util::getIP();
 		$this->description = <<<EOF
 <h4>Limit Login Attempts Unblocker</h4>
@@ -827,6 +835,7 @@ EOF;
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $params = $ctrl->getParams();
         $lockouts = $this->lockouts;
+        $retries = $this->retries;
 
         $ip = empty($params['ip']) ? '' : $params['ip'];
 
@@ -837,8 +846,10 @@ EOF;
         
         if (!empty($lockouts[$ip])) {
             unset($lockouts[$ip]);
+            unset($retries[$ip]);
 
             update_option('limit_login_lockouts', $lockouts);
+            update_option('limit_login_retries', $retries);
 
             $status['status'] = 1;
         } else {
@@ -874,10 +885,6 @@ EOF;
        $lockouts = $this->lockouts;
 
        $my_ip = $this->ip;
-
-       // ::STMP: fake IPs for testing
-       /*$lockouts['127.0.0.1'] = time();
-       $lockouts['124'] = time();*/
 
        if (!empty($lockouts)) {
             $cnt = 0;
