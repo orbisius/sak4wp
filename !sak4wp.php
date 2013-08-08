@@ -211,17 +211,35 @@ EOF;
  */
 class Orbisius_WP_SAK_Controller_Module_User_Manager extends Orbisius_WP_SAK_Controller_Module {
     /**
-     * Setups the object stuff and defines some descriptions
+     * Setups the object stuff and defines some descriptions.
+	 * If user ID is present it will call method so the method can execute before any content is out.
      */
     public function __construct() {
+		if (!empty($_REQUEST['user_id'])) {
+			$this->loginAs();
+		}
+	
         $this->description = <<<EOF
 <h4>User Manager</h4>
-<p>This module allows you to see user account & meta info. TODO: Create, delete users.</p>
+<p>This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.</p>
 EOF;
+
+		$current_user = wp_get_current_user();
+					
+		if (!empty($current_user->ID)) {
+			$this->description .= "<span class='app_logged_in app-simple-alert-success'>Currently Logged User: $current_user->display_name 
+				[$current_user->user_email] (ID: $current_user->ID)</span>";
+		} else {
+			$this->description .= "<span class='app_not_logged_in'>Currently Logged User: (none)</span>";
+		}
+		
+		$this->description .= "<br/>";		
     }
 
     /**
-     *
+     * Lists users and their meta info.
+	 * The user info is dumped on the screen. TODO: make it look pretty.
+	 * This listing also allows the user of SAK4WP to login as given user.
      */
     public function run() {
         $buff = '';
@@ -230,7 +248,8 @@ EOF;
 
         foreach ($data as $user_obj) {
             $user_meta = get_user_meta($user_obj->ID);
-            $buff .= "<h4>User: $user_obj->user_login [$user_obj->user_email] (ID: $user_obj->ID)</h4>"
+            $buff .= "<h4>User: $user_obj->user_login [$user_obj->user_email] (ID: $user_obj->ID)"
+                . " | <a href='?page=mod_user_manager&user_id=$user_obj->ID'>Login as this user</a> </h4>"
                 . '<pre>' . var_export($user_obj, 1) . "\n";
 
             $buff .= "<strong>User Meta</strong>\n" .
@@ -246,11 +265,15 @@ EOF;
     }
 
     /**
-     * Sample Method
+     * This method auto logins in the user with certain user ID (int)
+	 * After the user is logged in this will redirect again to the User Manager's page.
      */
-    public function doSomething($text) {
-
-        return $text;
+    public function loginAs() {
+		$user_id = empty($_REQUEST['user_id']) ? 0 : intval($_REQUEST['user_id']);
+		wp_set_auth_cookie( $user_id, false, is_ssl() );
+		
+		wp_redirect('?page=mod_user_manager&logged_in_as=' . $user_id);
+		exit;
     }
 }
 
@@ -1910,7 +1933,7 @@ BUFF_EOF;
 				| <a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a>
 				| <a href="$script?page=mod_locate_wp" title="Searches for WordPress Installations starting for a given folder">Locate WordPress</a>
 				| <a href="$script?page=mod_plugin_manager" title="Searches and installs plugins">Plugin Manager</a>
-				| <a href="$script?page=mod_user_manager" title="Searches and installs plugins">User Manager</a>
+				| <a href="$script?page=mod_user_manager" title="User Manager">User Manager</a>
 				<!--| <a href="$script?page=mod_self_protect" title="Self Protect">Self Protect</a>	-->
 			</li>
 

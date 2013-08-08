@@ -75,7 +75,7 @@ SAK4WP checks the remote file size before downloading the file. Plugins files la
 Temporary files from the download are deleted later so they don't take too much space in the TMP folder which should be cleaned on reboot anyways.
 
 User Manager
-This module allows you to see user account & meta info. TODO: Create, delete users.
+This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.
 
 Self Protect
 This module allows you to run SAK4WP more securely. The first time you access SAK4WP, it will save your IP and browser info.
