@@ -252,8 +252,8 @@ EOF;
                 . " | <a href='?page=mod_user_manager&user_id=$user_obj->ID'>Login as this user</a> </h4>"
                 . '<pre>' . var_export($user_obj, 1) . "\n";
 
-            $buff .= "<strong>User Meta</strong>\n" .
-                var_export($user_meta, 1) . "\n";
+            $buff .= "<br/><strong>User Meta</strong> (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>)\n" . // 
+                '<div class="toggle_info app_hide">' . var_export($user_meta, 1) . "</div>\n";
 
             $buff .= "</pre><hr />";
         }
@@ -2004,6 +2004,10 @@ BUFF_EOF;
 				// let's select the first input box
 				$('form').find('input[type=text],textarea,select').filter(':visible:first').focus();
 				
+				$('.toggle_info_trigger').on('click', function() {
+					$(this).siblings('.toggle_info').toggle();					
+				});
+				
 				// Plugin_Manager
                 $('#module_form').submit(function() {
 					$('.app-ajax-message').remove();
@@ -2541,6 +2545,10 @@ which makes them look bad or blend with the background.
 .app-simple-alert-notice {
     padding:3px;
     color: #FFEC8B;
+}
+
+.app_hide {
+    display:none;
 }
 
 BUFF_EOF;
