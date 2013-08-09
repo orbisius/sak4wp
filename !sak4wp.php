@@ -1966,6 +1966,7 @@ BUFF_EOF;
                 | Powered by <a href='$app_url' target='_blank' title='$app_name'>$app_short_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
 
         $host = ORBISIUS_WP_SAK_HOST;
+        $site_url = site_url('/');
         $admin_url = admin_url('/');
 		$ip = Orbisius_WP_SAK_Util::getIP();
 		$server_ip = Orbisius_WP_SAK_Util::getServerIP();
@@ -2002,7 +2003,16 @@ BUFF_EOF;
 		  </span>
 		</h3>
 
-        <p>Running on: <strong>{$host}</strong> | Your IP: $ip | Server IP: $server_ip | <a href='$admin_url' target='_blank'>Admin Area</a></p>
+        <p>Running on: <strong>{$host}</strong> | Your IP: $ip | Server IP: $server_ip
+			| <a href='$site_url' target='_blank'>Public Area</a>
+			| <a href='$admin_url' target='_blank'>Admin Area</a>
+			
+			<span class='app-align-right'>
+				  <a href="$script?page=help">Help</a>
+				| <a href="$script?page=donate">Donate</a></li>
+				| <a href="$script?page=about">About</a>
+			</span>
+		</p>
 
         <ul class="nav">
             <li class="active"><a href="$script">Dashboard</a></li>
@@ -2025,10 +2035,7 @@ BUFF_EOF;
                 <a href='#' class='app-question-box' title="The script will attempt to remove itself. After than it will try to redirect to
                     itself. So if you see the same script that means the self destruction didn't finish successfully.
                         In that case remove the file manually by using an FTP client.">?</a>
-            </li>
-            <li class='right'><a href="$script?page=about">About</a></li>
-            <li class='right'><a href="$script?page=donate">Donate</a></li>
-            <li class='right'><a href="$script?page=help">Help</a></li>
+            </li>            
         </ul>
 
         <!--<div class="navbar">
@@ -2555,7 +2562,11 @@ ul.nav li:last-child {
     border-right:0;
 }
 
-ul.nav li.right {
+.app-align-left {
+    float:left;
+}
+
+ul.nav li.right, .app-align-right {
     float:right;
 }
 
