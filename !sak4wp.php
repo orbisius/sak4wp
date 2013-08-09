@@ -772,7 +772,7 @@ EOF;
         global $wpdb;
 
         $results = $wpdb->get_results(
-            "SELECT ID, post_title, post_author, post_parent, meta_key, meta_value, post_date FROM $wpdb->posts p
+            "SELECT ID, post_title, post_name as slug, post_author, post_parent, meta_key, meta_value, post_date FROM $wpdb->posts p
                 LEFT JOIN $wpdb->term_relationships r ON (p.ID = r.object_id)
                 LEFT JOIN $wpdb->postmeta pm ON (p.ID = pm.post_id)
                 WHERE pm.meta_key = '_wp_page_template'
