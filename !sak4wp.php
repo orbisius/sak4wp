@@ -420,8 +420,10 @@ EOF;
 						if (empty($dl_status['status']) 
 								|| empty($dl_status['debug']['http_code']) 
 								|| $dl_status['debug']['http_code'] != 200) {
-							$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]. Request Info: <pre>" 
-								. var_export( $dl_status, 1) . "</pre>", 0);
+							$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]. 
+								Request Info: (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>)
+							<pre class='toggle_info app_hide'>" 
+								. var_export( $dl_status, 1) . "</pre>", 0);				
 						} else {
 							$file = $dl_status['file'];
 							$file_size = filesize($file);
@@ -2104,6 +2106,11 @@ BUFF_EOF;
 				// let's select the first input box
 				$('form').find('input[type=text],textarea,select').filter(':visible:first').focus();
 				
+				// always re-initialize the toggle buttons after an Ajax request.
+				$( document ).ajaxComplete(function( event,request, settings ) {
+				    Sak4wp.Util.setupToggleButtons();
+				});
+				
 				Sak4wp.Util.setupToggleButtons();
 				
 				// Plugin_Manager : Download links
@@ -2123,8 +2130,7 @@ BUFF_EOF;
                            $('.app-ajax-message').remove();
                 
                            if (json.status) {
-                              $(container).html(json.results);
-							  Sak4wp.Util.setupToggleButtons();
+                              $(container).html(json.results);							  
                            } else {
                               $(container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
                                   + json.message + "</span>");
