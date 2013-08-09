@@ -221,7 +221,8 @@ class Orbisius_WP_SAK_Controller_Module_User_Manager extends Orbisius_WP_SAK_Con
 	
         $this->description = <<<EOF
 <h4>User Manager</h4>
-<p>This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.</p>
+<p>This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.
+Administrators accounts are highlighted.</p>
 EOF;
 
 		$current_user = wp_get_current_user();
@@ -247,7 +248,9 @@ EOF;
 		$data = get_users();
 		$records = array();
 
-        foreach ($data as $user_obj) {
+		$highlight_admins = array();
+		
+        foreach ($data as $idx => $user_obj) {
 			$rec = (array) $user_obj->data;
 			
 			// Let's remove those fields because the table can't fit more than 5
@@ -263,14 +266,18 @@ EOF;
 
             $rec['ID'] .= " (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide meta</a>)\n" .
                 '<pre class="toggle_info app_hide">' . var_export($user_meta, 1) . "</pre>\n";
-			
+						
 			$records[] = $rec;
+			
+			if (user_can($user_obj->ID, 'manage_options' )) {
+				$highlight_admins[] = $idx;
+			}
         }
         
         $buff .= "<p class='results'></p>\n";
 
 		$ctrl = Orbisius_WP_SAK_Controller::getInstance();
-		$buff .= $ctrl->renderTable('Users: ' . count($data), '', $records);
+		$buff .= $ctrl->renderTable('Users: ' . count($data), '', $records, $highlight_admins);
 		
         return $buff;
     }

@@ -77,6 +77,7 @@ Plugin list can be retrieved from a text or HMTL file.
 
 User Manager
 This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.
+Administrators accounts are highlighted.
 
 Self Protect
 This module allows you to run SAK4WP more securely. The first time you access SAK4WP, it will save your IP and browser info.
