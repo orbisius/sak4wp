@@ -371,8 +371,10 @@ EOF;
 					$result = Orbisius_WP_SAK_Util::makeHttpRequest($link);				
 
 					$org_link_esc = esc_attr($link);
-					
-					if (empty($result['error'])) {
+
+					if (empty($result['debug']['http_code']) || $result['debug']['http_code'] != 200) {
+						$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Download Link: HTTP Code: " . $result['debug']['http_code'], 2);
+					} elseif (empty($result['error'])) {
 						$body_buff = $result['buffer'];
 						
 						// the download link may contain alphanumeric + some versioning.
@@ -414,9 +416,12 @@ EOF;
 							. " Plugin file is bigger than $limit_fmt.", 0);
 					} else {			
 						$dl_status = Orbisius_WP_SAK_Util::downloadFile($link);
-						
-						if (empty($dl_status['status'])) {
-							$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]", 0);
+
+						if (empty($dl_status['status']) 
+								|| empty($dl_status['debug']['http_code']) 
+								|| $dl_status['debug']['http_code'] != 200) {
+							$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]. Request Info: <pre>" 
+								. var_export( $dl_status, 1) . "</pre>", 0);
 						} else {
 							$file = $dl_status['file'];
 							$file_size = filesize($file);
@@ -1362,7 +1367,7 @@ class Orbisius_WP_SAK_Util {
 	*/	
 	public static function downloadFile($url, $target_dir = '') {
 		$status = 0;
-		$error = $file = '';
+		$error = $file = $debug = '';
 
 		// let's allow the script to run longer in case we download lots of files.
 		$old_time_limit = ini_get('max_execution_time');
@@ -1404,6 +1409,8 @@ class Orbisius_WP_SAK_Util {
 					}
 				}
 			}
+		    
+			$debug = curl_getinfo($ch);
 		   
 		    fclose($fp);
 			curl_close($ch);
@@ -1417,6 +1424,7 @@ class Orbisius_WP_SAK_Util {
 			'status' => $status,
 			'error' => $error,
 			'file' => $file,
+			'debug' => $debug,
 		);		
 		
 		set_time_limit($old_time_limit);
