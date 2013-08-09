@@ -256,20 +256,15 @@ EOF;
 			unset($rec['user_status']);
 			unset($rec['user_activation_key']);
 			
+			// This allows us to swich the user to a different one.
 			$rec['user_login'] .= " (<a href='?page=mod_user_manager&user_id=$user_obj->ID'>Login</a>)";
+					
+            $user_meta = get_user_meta($user_obj->ID);
+
+            $rec['ID'] .= " (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide meta</a>)\n" .
+                '<pre class="toggle_info app_hide">' . var_export($user_meta, 1) . "</pre>\n";
 			
 			$records[] = $rec;
-		
-            $user_meta = get_user_meta($user_obj->ID);
-            $buff .= "<h4>User: $user_obj->user_login [$user_obj->user_email] (ID: $user_obj->ID)"
-                . " | <a href='?page=mod_user_manager&user_id=$user_obj->ID'>Login as this user</a> </h4>"
-                . '<pre>' . var_export($user_obj, 1) . "\n";
-
-
-            $buff .= "<br/><strong>User Meta</strong> (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>)\n" . // 
-                '<div class="toggle_info app_hide">' . var_export($user_meta, 1) . "</div>\n";
-
-            $buff .= "</pre><hr />";
         }
         
         $buff .= "<p class='results'></p>\n";
