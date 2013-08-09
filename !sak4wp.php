@@ -314,7 +314,7 @@ EOF;
 		$download_list_buff = empty($_REQUEST['download_list_buff']) ? '' : trim($_REQUEST['download_list_buff']);
 		$download_list_buff_esc = esc_attr($download_list_buff);		
 
-		$buff .= "<br/><h4>Plugin List from Text File</h4>\n";
+		$buff .= "<br/><h4>Plugin List from Text/HTML File</h4>\n";
 		$buff .= "<p>Download Plugin list from a text file (e.g. from the public folder of your dropbox account, on your site etc.).</p>\n";
 		$buff .= "<form method='post' id='mod_plugin_manager_download_list_form'>\n";
 		$buff .= "<input type='text' name='download_list_url' id='download_list_url' class='app-text-long' value='$download_list_url_esc' />\n";
@@ -492,7 +492,7 @@ EOF;
 					id='add_to_download' class='app-btn-primary' >Add to Download</button>
 HTML_EOF;
 				
-				$result_html .= "<h4>Page Content (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>) </h4>\n";
+				$result_html .= "<h4>Page Content</h4> (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>) \n";
 				$result_html .= "<pre class='toggle_info app_hide'>";
 				$result_html .= esc_html($body_buff);
 				$result_html .= "</pre>";
