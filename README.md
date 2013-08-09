@@ -73,6 +73,7 @@ The plugin will show which links are skipped and if they were successfully extra
 The plugin directory where the download plugin will be extract is shown. Warning: If the plugin already exists its files will be overriden! 
 SAK4WP checks the remote file size before downloading the file. Plugins files larger than the limit (10MB) will be not be downloaded.
 Temporary files from the download are deleted later so they don't take too much space in the TMP folder which should be cleaned on reboot anyways.
+Plugin list can be retrieved from a text or HMTL file.
 
 User Manager
 This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.

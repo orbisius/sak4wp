@@ -308,11 +308,23 @@ EOF;
     public function run() {
         $buff = '';
 
+		$download_list_url = empty($_REQUEST['download_list_url']) ? '' : trim($_REQUEST['download_list_url']);	
+		$download_list_url_esc = esc_attr($download_list_url);		
+
 		$download_list_buff = empty($_REQUEST['download_list_buff']) ? '' : trim($_REQUEST['download_list_buff']);
 		$download_list_buff_esc = esc_attr($download_list_buff);		
 
-		$buff .= "<br/><form method='post' id='module_form'>\n";
-		$buff .= "<input type='hidden' name='cmd' value='search' />\n";
+		$buff .= "<br/><h4>Plugin List from Text File</h4>\n";
+		$buff .= "<p>Download Plugin list from a text file (e.g. from the public folder of your dropbox account, on your site etc.).</p>\n";
+		$buff .= "<form method='post' id='mod_plugin_manager_download_list_form'>\n";
+		$buff .= "<input type='text' name='download_list_url' id='download_list_url' class='app-text-long' value='$download_list_url_esc' />\n";
+		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download Plugin List' />\n";
+		$buff .= "</form>\n";
+		$buff .= "<p class='download_list_results'></p>\n";
+		
+		$buff .= "<br/><h4>Plugin Page Links</h4>\n";
+		$buff .= "<p>You can enter direct links to .zip files and/or plugin pages on WordPress.org only</p>\n";
+		$buff .= "<form method='post' id='mod_plugin_manager_download_plugins_form'>\n";
 		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app-text-long' rows='15'>$download_list_buff_esc</textarea>\n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download & Extract' />\n";
 		$buff .= "</form>\n";
@@ -434,6 +446,64 @@ EOF;
         } else {
 			$status = 1;
             $result_html = Orbisius_WP_SAK_Util::msg('No links have been entered or the entered ones do not end in .zip.', 2);
+        }
+		
+        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );   		
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
+    }
+	/**
+     * This is called via ajax and downloads some plugins and extracts the zip files' contents into plugins folder.
+     * The result is JSON
+     */
+    public function get_download_listAction() {	
+        $msg = $result_html = '';
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $params = $ctrl->getParams();
+
+        $download_list_url = empty($params['download_list_url']) ? '' : $params['download_list_url'];
+		
+        if (!empty($download_list_url)) {
+			$result = Orbisius_WP_SAK_Util::makeHttpRequest($download_list_url);				
+
+			$org_link_esc = esc_attr($link);
+			
+			if (empty($result['error'])) {
+				$plugin_list = array();
+				$body_buff = $result['buffer'];
+				
+				// Do we have links to WP plugins?
+				if (preg_match_all('#https?://[w\.]*wordpress.org/(?:extend/)?plugins/#si', $body_buff, $matches)) {
+					$plugin_list += $matches[0];
+				}
+				
+				// How about .zip files? direct downloads
+				if (preg_match_all('#https?://[^\s]+\.zip#si', $body_buff, $matches)) {
+					$plugin_list += $matches[0];
+				}
+				
+				$plugin_list = array_unique($plugin_list);
+				
+				$result_html .= "<textarea rows='5' cols='40' id='download_list_download_links'>";
+				$result_html .= join("\n", $plugin_list);
+				$result_html .= "</textarea>";
+				
+				$result_html .= <<<HTML_EOF
+				<button name='add_to_download' onclick='Sak4wp.Util.appendData("#download_list_download_links", "#download_list_buff");'
+					id='add_to_download' class='app-btn-primary' >Add to Download</button>
+HTML_EOF;
+				
+				$result_html .= "<h4>Page Content (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>) </h4>\n";
+				$result_html .= "<pre class='toggle_info app_hide'>";
+				$result_html .= esc_html($body_buff);
+				$result_html .= "</pre>";
+			} else {
+				$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Find Plugin Download Link: [$link]", 2);
+			}
+			
+            $status = 1;
+        } else {
+			$status = 1;
+            $result_html = Orbisius_WP_SAK_Util::msg('No link has been entered.', 2);
         }
 		
         $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );   		
@@ -1997,19 +2067,74 @@ BUFF_EOF;
         <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.2.min.js"></script>
         <script src="?js=1"></script>
 
-        <script>
-            var wpsak_json_cfg = { ajax_url : '$script' } ;
-
+        <script>		
+            var wpsak_json_cfg = { ajax_url : '$script' };
+			
+			var Sak4wp = {
+				Util : {
+					// This method adds data from one box to anther. The target box's content is preserved.
+					appendData : function (src, target) {						
+						$(target).val($(target).val() + String.fromCharCode(13) + $(src).val()); // new line
+					},
+					
+					/*
+					* Some buttons expose more content
+					*/
+					setupToggleButtons : function () {						
+						$('.toggle_info_trigger').on('click', function() {
+							if ($(this).siblings('.toggle_info').length) {
+								$(this).siblings('.toggle_info').toggle();
+							} else if ($(this).closest('.toggle_info').length) {
+								$(this).closest('.toggle_info').toggle();
+							}
+						});
+					}
+				}
+			};
+			
             jQuery(document).ready(function($) {
 				// let's select the first input box
 				$('form').find('input[type=text],textarea,select').filter(':visible:first').focus();
 				
-				$('.toggle_info_trigger').on('click', function() {
-					$(this).siblings('.toggle_info').toggle();					
-				});
+				Sak4wp.Util.setupToggleButtons();
+				
+				// Plugin_Manager : Download links
+                $('#mod_plugin_manager_download_list_form').submit(function() {
+					$('.app-ajax-message').remove();
+					var form = $(this);
+					var container = '.download_list_results';
+					
+                    $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
+				
+					$.ajax({
+                        type : "post",
+                        dataType : "json",
+                        url : wpsak_json_cfg.ajax_url, // contains all the necessary params
+                        data : $(form).serialize() + '&module=Plugin_Manager&action=get_download_list',
+                        success : function(json) {
+                           $('.app-ajax-message').remove();
+                
+                           if (json.status) {
+                              $(container).html(json.results);
+							  Sak4wp.Util.setupToggleButtons();
+                           } else {
+                              $(container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
+                                  + json.message + "</span>");
+                           }
+                        },
+                        error : function(jqXHR, text_status, error_thrown) {
+                            $('.app-ajax-message').remove();
+                
+                            alert("There was an error. " + text_status + ' ' + error_thrown);
+                        },
+                        
+                    }); // ajax
+
+                    return false;
+				}); // Plugin_Manager
 				
 				// Plugin_Manager
-                $('#module_form').submit(function() {
+                $('#mod_plugin_manager_download_plugins_form').submit(function() {
 					$('.app-ajax-message').remove();
 					var form = $(this);
 					var container = '.results';
