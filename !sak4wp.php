@@ -245,12 +245,26 @@ EOF;
         $buff = '';
 
 		$data = get_users();
+		$records = array();
 
         foreach ($data as $user_obj) {
+			$rec = (array) $user_obj->data;
+			
+			// Let's remove those fields because the table can't fit more than 5
+			unset($rec['user_url']);
+			unset($rec['user_pass']);
+			unset($rec['user_status']);
+			unset($rec['user_activation_key']);
+			
+			$rec['user_login'] .= " (<a href='?page=mod_user_manager&user_id=$user_obj->ID'>Login</a>)";
+			
+			$records[] = $rec;
+		
             $user_meta = get_user_meta($user_obj->ID);
             $buff .= "<h4>User: $user_obj->user_login [$user_obj->user_email] (ID: $user_obj->ID)"
                 . " | <a href='?page=mod_user_manager&user_id=$user_obj->ID'>Login as this user</a> </h4>"
                 . '<pre>' . var_export($user_obj, 1) . "\n";
+
 
             $buff .= "<br/><strong>User Meta</strong> (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>)\n" . // 
                 '<div class="toggle_info app_hide">' . var_export($user_meta, 1) . "</div>\n";
@@ -258,9 +272,11 @@ EOF;
             $buff .= "</pre><hr />";
         }
         
-        $buff .= "Total User(s): " . count($data) . "\n";
         $buff .= "<p class='results'></p>\n";
 
+		$ctrl = Orbisius_WP_SAK_Controller::getInstance();
+		$buff .= $ctrl->renderTable('Users: ' . count($data), '', $records);
+		
         return $buff;
     }
 
