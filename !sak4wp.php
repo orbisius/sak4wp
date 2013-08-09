@@ -222,7 +222,7 @@ class Orbisius_WP_SAK_Controller_Module_User_Manager extends Orbisius_WP_SAK_Con
         $this->description = <<<EOF
 <h4>User Manager</h4>
 <p>This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.
-Administrators accounts are highlighted.</p>
+Administrator accounts are highlighted.</p>
 EOF;
 
 		$current_user = wp_get_current_user();
