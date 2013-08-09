@@ -1441,7 +1441,7 @@ class Orbisius_WP_SAK_Util {
 			$status = unzip_file($archive_file, $target_directory);
 			
 			if (is_wp_error($status)) {
-				$error = $return->get_error_message();
+				$error = $status->get_error_message();
 			} else {
 				$status = 1;
 			}
