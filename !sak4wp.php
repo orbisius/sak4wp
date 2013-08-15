@@ -97,10 +97,14 @@ class Orbisius_WP_SAK_Controller_Module {
  * Self_Protect Module - Make sure that only one user can access SAK.
  */
 class Orbisius_WP_SAK_Controller_Module_Self_Protect extends Orbisius_WP_SAK_Controller_Module {
+	private $first_run_file;
+	
     /**
      * Setups the object stuff and defines some descriptions
      */
-    public function __construct() {     
+    public function __construct() {
+		$this->first_run_file = Orbisius_WP_SAK_Util::getWPUploadsDir() . '.ht-sak4wp-' . ORBISIUS_WP_SAK_HOST;
+		
         $this->description = <<<EOF
 <h4>Self Protect</h4>
 <p>
@@ -120,7 +124,7 @@ EOF;
 		$this->checkFirstRun();
 		
         return $buff;
-    }    
+    }  
 	
     /**
      * Checks if the script is access from a different IP or browser.
@@ -128,7 +132,7 @@ EOF;
      */
     public function checkFirstRun() {
 		// Creates a (host specific) file which stops people from accessing SAK4WP as the same time as you.
-        $first_run_file = Orbisius_WP_SAK_Util::getWPUploadsDir() . '.ht-sak4wp-' . ORBISIUS_WP_SAK_HOST;
+        $first_run_file = $this->first_run_file;
 
 		$ip = Orbisius_WP_SAK_Util::getIP();
 		$ua = empty($_SERVER['HTTP_USER_AGENT']) ? '' : $_SERVER['HTTP_USER_AGENT'];
@@ -154,6 +158,14 @@ EOF;
 		
         return true;
     }
+	
+	/**
+	* Removes the first run file. This file prevents other users from accessing the file.
+	* Even the browser has to match.
+	*/
+	public function clean() {
+		unlink($this->first_run_file);
+	}
 }
 
 /**
@@ -1762,6 +1774,9 @@ class Orbisius_WP_SAK_Controller {
             $img_buff = base64_decode($img_buff);
             $this->sendHeader(self::HEADER_IMAGE_PNG, $img_buff);
         } elseif (isset($params['destroy'])) {
+			$mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
+			$mod_obj->clean();
+			
             if (!unlink(__FILE__)) {
 				$this->doExit('Cannot self destroy. Please delete <strong>' . __FILE__ . '</strong> manually.');
             }
