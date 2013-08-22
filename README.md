@@ -45,6 +45,7 @@ Stats Module
 - Db version info, db config details parsed from wp-config.php
 - Shows if you are running an older or the latest WordPress version. Links to update and to the latest wp are provided. 
 - Disk space usage (linux only)
+- Shows phpinfo
 
 List Page Templates
 - This module allows you to see which page templates are use by your pages.
@@ -178,4 +179,3 @@ Author
 ------
 
 Svetoslav (Slavi) Marinov | twitter: http://twitter.com/orbisius | http://orbisius.com
-

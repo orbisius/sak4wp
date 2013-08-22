@@ -1,0 +1,13 @@
+
+SAK4WP Change Log
+=================
+
+* 1.0.2 (2013-08-22)
+Added phpinfo in Stats module
+Started entering change log
+
+* 1.0.1 (2013-08-22)
+Plugins can be automatically activated after unzipping
+
+* 1.0.0 (2013-08)
+Initial release

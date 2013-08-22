@@ -34,7 +34,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.0.1');
+define('ORBISIUS_WP_SAK_APP_VER', '1.0.2');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
@@ -1142,6 +1142,23 @@ EOF;
         );
         
         $buff .= $ctrl->renderKeyValueTable('WordPress Site Stats', $data);
+		
+		ob_start();
+		phpinfo();
+		$php_info = ob_get_contents();
+		ob_get_clean();
+		
+		// clear HTML buff around content and reduce heading tags to h4
+		$php_info = preg_replace('#.*?<body[^>]*>#si', '', $php_info);
+		$php_info = preg_replace('#</body>.*#si', '', $php_info);
+		$php_info = preg_replace('#<h\d#si', '<h4', $php_info);
+		$php_info = preg_replace('#</\d#si', '</h4', $php_info);
+		
+		$php_info = '<h3>PHP Info</h3>' 
+			. " (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>)\n"
+			. " <div class='toggle_info app_hide'>" . $php_info . '</div>';
+				
+		$buff .= $php_info;
 		
 		return $buff;
     }
