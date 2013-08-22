@@ -321,9 +321,8 @@ class Orbisius_WP_SAK_Controller_Module_Plugin_Manager extends Orbisius_WP_SAK_C
 		 
         $this->description = <<<EOF
 <h4>Plugin Manager</h4>
-<p>Allows you to manage plugins: bulk install, TODO: (de)activate, delete. Just enter the plugin's WordPress.org page or a zip file location (web).
-Enter multiple links each on a new line. Currently, this module downloads and extracts the files. You will need to login and activate the plugins.
-
+<p>This module allows you to manage plugins: bulk download, install, and activate plugins. TODO: (de)activate, delete. Just enter the plugin's WordPress.org page 
+    or a zip file location (web). Enter multiple links each on a new line. Warning: If the plugin already exists its files will be overriden! 
 <br/> Plugins will be extracted in: <strong>$this->target_dir</strong> <br/>
 
 $warning
@@ -356,6 +355,8 @@ EOF;
 		$buff .= "<p>You can enter direct links to .zip files and/or plugin pages on WordPress.org only</p>\n";
 		$buff .= "<form method='post' id='mod_plugin_manager_download_plugins_form'>\n";
 		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app-text-long' rows='15'>$download_list_buff_esc</textarea>\n";
+		$buff .= "<input type='checkbox' id='activate_plugins' name='activate_plugins' class='app-btn-primary' value='1' /> 
+                <label for='activate_plugins'>Activate plugin(s) after installation</label><br/>\n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download & Extract' />\n";
 		$buff .= "</form>\n";
 		
@@ -375,6 +376,7 @@ EOF;
         $params = $ctrl->getParams();
 
         $download_list_buff = empty($params['download_list_buff']) ? '' : trim($params['download_list_buff']);
+        $activate_plugins = empty($params['activate_plugins']) ? 0 : 1;
 
 		$locations = preg_split('#[\r\n]+#si', $download_list_buff); // let's split things by new lines.
 		$locations = array_map('trim', $locations); // no spaces
@@ -459,11 +461,22 @@ EOF;
 							$file_size = filesize($file);
 							$file_size_fmt = Orbisius_WP_SAK_Util::formatFileSize($file_size);
 							$result_html .= Orbisius_WP_SAK_Util::msg("Download OK: [$link_esc, $file_size_fmt]", 1);
-							
+
+                            // Here we're assuming that the plugin will be in a folder in the zip file.
 							$extract_status = Orbisius_WP_SAK_Util::extractArchiveFile($file, $plugins_dir);
 							
 							if (!empty($extract_status['status'])) {
-								$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting OK: [$link_esc]", 1);
+								$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting OK: [$link_esc] in plugins/{$extract_status['plugin_folder']}", 1);
+
+                                if ($activate_plugins) {
+                                    $act_status = Orbisius_WP_SAK_Util::doPluginAction($extract_status['main_plugin_file'], 1);
+
+                                    if (!empty($act_status['status'])) {
+                                        $result_html .= Orbisius_WP_SAK_Util::msg("The plugin was successfully activated.", 1);
+                                    } else {
+                                        $result_html .= Orbisius_WP_SAK_Util::msg("Plugin couldn't be activated. Error: " . $act_status['error'], 0);
+                                    }
+                                }
 							} else {
 								$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting Failed: [$link_esc]", 0);
 							}
@@ -488,6 +501,7 @@ EOF;
         $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );   		
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
     }
+
 	/**
      * This is called via ajax and downloads some plugins and extracts the zip files' contents into plugins folder.
      * The result is JSON
@@ -1462,36 +1476,180 @@ class Orbisius_WP_SAK_Util {
 		set_time_limit($old_time_limit);
 		
 		return $data;
-	}	
+	}
+
+    /**
+     * Activates or Deactivates a plugin.
+     *
+     * @param string $plugin_file - plugin's folder e.g. wp-content/plugins/like-gate/like-gate.php
+     * @param int $action - 0 - for deactivate, 1 - activation
+     * @return WP_Error in case of an error or true
+     */
+    static public function doPluginAction($plugin_file = '', $action = 1) {
+        $error = '';
+        $status = 0;
+
+        if (empty($plugin_file)) {
+            $data = array(
+                'status' => $status,
+                'error' => 'Plugin file not specified.',
+            );
+
+            return $data;
+        }
+
+        $result = empty($action)
+                    ? deactivate_plugins($plugin_file)
+                    : activate_plugin($plugin_file);
+
+        if (is_wp_error($result)) {
+            $error = $status->get_error_message();
+        } else {
+            $status = 1;
+        }
+
+        $data = array(
+            'status' => $status,
+            'error' => $error,
+        );
+
+		return $data;
+    }
+
+    /**
+     * This plugin scans the files in a folder and tries to get plugin data.
+     * The real plugin file will have Name, Description variables set.
+     * If the file doesn't have that info WP will prefill the data with empty values.
+     *
+     * @param string $folder - plugin's folder e.g. wp-content/plugins/like-gate/
+     * @return string wp-content/plugins/like-gate/like-gate.php or false if not found.
+     */
+    static public function findMainPluginFile($folder = '') {
+        $folder = trailingslashit($folder);
+        $files_arr = glob($folder . '*.php'); // list only php files.
+
+        foreach ($files_arr	as $file) {
+            $markup = $translate = false; // no need for extra stuff.
+            $data = get_plugin_data($file, $markup, $translate);
+
+            // Did we find the plugin? If yes, it'll have Name filled in.
+            if (!empty($data['Name'])) {
+                return $file;
+            }
+        }
+
+        return false;
+    }
 	
 	/**
-	* Downloads a file from a given url. The file is saved in a tmp folder and the location is returned
-	* in the record
+	 * Extracts a which was saved in a tmp folder. We're expecting the zip file to contain a folder first
+     * and then some contents
+     * @param string $archive_file a file in the tmp folder
+     * @param string $target_directory usually wp-content/plugins/
+     * @see http://www.phpconcept.net/pclzip/user-guide/54
+     * @see http://core.trac.wordpress.org/browser/tags/3.6/wp-admin/includes/file.php#L0
 	*/	
-	public static function extractArchiveFile($archive_file, $target_directory) {
+	static public function extractArchiveFile($archive_file, $target_directory) {
 		$status = 0;
-		$error = '';	
+		$error = $plugin_folder = $main_plugin_file = '';
 		
 		// Requires WP to be loaded.
-		include_once(ABSPATH . '/wp-admin/includes/file.php');
+		include_once(ABSPATH . 'wp-admin/includes/file.php');
+        include_once(ABSPATH . 'wp-admin/includes/class-pclzip.php');
 		
 		if (function_exists('WP_Filesystem')) {
 			WP_Filesystem();
 			
-			$status = unzip_file($archive_file, $target_directory);
+            $archive = new PclZip($archive_file);
+            $list = $archive->listContent(); // this contains all of the files and directories
+
+            /*
+            array(2) {
+              [0]=>
+              array(10) {
+                ["filename"]=>
+                string(7) "addons/"
+                ["stored_filename"]=>
+                string(7) "addons/"
+                ["size"]=>
+                int(0)
+                ["compressed_size"]=>
+                int(0)
+                ["mtime"]=>
+                int(1377115594)
+                ["comment"]=>
+                string(0) ""
+                ["folder"]=>
+                bool(true)
+                ["index"]=>
+                int(0)
+                ["status"]=>
+                string(2) "ok"
+                ["crc"]=>
+                int(0)
+              }
+              [1]=>
+              array(10) {
+                ["filename"]=>
+                string(39) "addons/!sak4wp-theme-troubleshooter.php"
+                ["stored_filename"]=>
+                string(39) "addons/!sak4wp-theme-troubleshooter.php"
+                ["size"]=>
+                int(2900)
+                ["compressed_size"]=>
+                int(1112)
+                ["mtime"]=>
+                int(1377116198)
+                ["comment"]=>
+                string(0) ""
+                ["folder"]=>
+                bool(false)
+                ["index"]=>
+                int(1)
+                ["status"]=>
+                string(2) "ok"
+                ["crc"]=>
+                int(-1530906934)
+              }
+            }
+            */
+            
+            // the first element should be the folder. e.g. like-gate.zip -> like-gate/ folder
+            // listContent returns an array and folder key should be true.
+            foreach ($list as $file_or_dir_rec) {
+                if (empty($file_or_dir_rec['filename'])
+                        || preg_match('#^(\.|__)#si', $file_or_dir_rec['filename'])) { // skip hidden or MAC files
+                    continue;
+                }
+
+                // We want to check if there is a folder at the root level (index=0).
+                if (!empty($file_or_dir_rec['folder']) && empty($file_or_dir_rec['index'])) {
+                    $plugin_folder = $file_or_dir_rec['filename'];
+                    break;
+                }
+            }
+
+            if (!empty($plugin_folder)) {
+                $status = unzip_file($archive_file, $target_directory);
+            } else {
+                $status = new WP_Error('100', "Cannot find plugin folder in the zip archive.");
+            }
 			
 			if (is_wp_error($status)) {
 				$error = $status->get_error_message();
 			} else {
 				$status = 1;
+                $main_plugin_file = self::findMainPluginFile( trailingslashit( trailingslashit($target_directory) . $plugin_folder) );
 			}
 		} else {
 			$error = 'WP_Filesystem is not loaded.';
-		}		
+		}
 		
 		$data = array(
             'status' => $status,
-            'error' => $error,			
+            'error' => $error,
+            'plugin_folder' => $plugin_folder,
+            'main_plugin_file' => $main_plugin_file,
         );
 		
 		return $data;

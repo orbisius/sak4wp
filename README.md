@@ -67,13 +67,13 @@ The versions that are older will be shown in red, the up-to-date ones will be sh
 TODO: autosuggest?
 
 Plugin Manager
-- This module allows you to manage plugins: bulk download and install, TODO: (de)activate, delete. 
+- This module allows you to manage plugins: bulk download, install, and activate plugins. TODO: (de)activate, delete. 
 Just enter the plugin's WordPress.org page or a zip file location (web) and the plugin will be downloaded and extracted into wp-content/plugins directory.
 The plugin will show which links are skipped and if they were successfully extracted. The file size of the downloaded file is shown.
 The plugin directory where the download plugin will be extract is shown. Warning: If the plugin already exists its files will be overriden! 
 SAK4WP checks the remote file size before downloading the file. Plugins files larger than the limit (10MB) will be not be downloaded.
 Temporary files from the download are deleted later so they don't take too much space in the TMP folder which should be cleaned on reboot anyways.
-Plugin list can be retrieved from a text or HMTL file.
+Plugin list can be retrieved from a text or HTML file.
 
 User Manager
 This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.
