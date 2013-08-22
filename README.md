@@ -84,11 +84,13 @@ This module allows you to run SAK4WP more securely. The first time you access SA
 If somebody else accesses the file from a different IP or browser, he/she will be stopped.
 The module doesn't require any configurations. It is always run before other modules.
 
+Addons
+Added !sak4wp-theme-troubleshooter.php plugin. For more info see addons/!sak4wp-theme-troubleshooter.php
 
 Please fork and improve!
 
-Future Ideas
-------------
+Future Ideas / TODO
+--------------------
 - Make it not to require WordPress to be present -> e.g. it can download and install WP
 - Manage Plugins - Activate/Deactivate/Deploy
 	Service to hold different plugin plugin configuration options e.g. a list of faviourite plugins
@@ -112,6 +114,36 @@ Future Ideas
 - Backup -> Files + Db; Send to Dropbox
 - Scan the folders for other WP installations -> manage multiple WP installs from 1 copy of the program or copy/move itself to another folder/site
 - DONE: Protect WP admin directory (basic auth)
+
+- Module: File Manager -> upload/download files, zip/unzip, (un)tar, check for large files, color large files with red > 1GB, process line per line
+
+	<?php
+	set_time_limit(5*60);
+	?>
+	<pre>
+	<?php
+		// > 100K
+		//echo `find /doc_root_dir/ -type f -size +100k -exec ls -lh {} \; | awk '{ print $9 ": " $5 }'`;
+		
+		// > 50MB
+		echo `find /doc_root_dir/ -type f -size +50000k -exec ls -lh {} \; | awk '{ print $9 ": " $5 }'`;
+	?>
+
+	it seems the syntax differs for differet OSs
+	http://www.cyberciti.biz/faq/find-large-files-linux/
+	
+	download can be limited with this
+		
+	# BEGIN BackUpWordPress
+	# This .htaccess file ensures that other people cannot download your backup files.
+
+	<IfModule mod_rewrite.c>
+		RewriteEngine On
+		RewriteCond %{QUERY_STRING} !key=26xafasfasfasff09e5
+		RewriteRule (.*) - [F]
+	</IfModule>
+
+	# END BackUpWordPress
 
 
 Requirements
