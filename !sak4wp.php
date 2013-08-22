@@ -1154,7 +1154,7 @@ EOF;
 		$php_info = preg_replace('#<h\d#si', '<h4', $php_info);
 		$php_info = preg_replace('#</\d#si', '</h4', $php_info);
 		
-		$php_info = '<h3>PHP Info</h3>' 
+		$php_info = '<h4>PHP Info</h4>' 
 			. " (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>)\n"
 			. " <div class='toggle_info app_hide'>" . $php_info . '</div>';
 				
