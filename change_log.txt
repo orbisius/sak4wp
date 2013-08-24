@@ -2,6 +2,11 @@
 SAK4WP Change Log
 =================
 
+* 1.0.3 (---)
+fix: download plugin list wasn't getting the whole plugin url
+added a method to partially read a file e.g. first 512 bytes.
+loading some WP's plugin if we have to activate/deactivate plugins
+
 * 1.0.2 (2013-08-22)
 Added phpinfo in Stats module
 Started entering change log
