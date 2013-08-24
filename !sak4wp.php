@@ -2194,7 +2194,7 @@ BUFF_EOF;
 <h4>Account</h4>
 <p>
     How would you like to be able to store all your plugin lists on the cloud?
-    Tweet about SAKWP to get a free account (when available).
+    Tweet about SAK4WP to get a free account (when available).
 </p>
 
 
