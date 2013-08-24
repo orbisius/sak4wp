@@ -535,7 +535,13 @@ EOF;
 				$plugin_list = array_unique($plugin_list);
 				
 				$result_html .= "Found link(s)<br/>";
-				$result_html .= "<textarea rows='5' cols='40' id='download_list_download_links' class='app_full_width'>";
+                
+                $result_html .= "(<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide retrieved content</a>) \n";
+				$result_html .= "<pre class='toggle_info app_hide'>";
+				$result_html .= esc_html($body_buff);
+				$result_html .= "</pre>";
+                
+				$result_html .= "<br/><textarea rows='5' cols='40' id='download_list_download_links' class='app_full_width'>";
 				$result_html .= join("\n", $plugin_list);
 				$result_html .= "</textarea>";
 				
@@ -544,10 +550,6 @@ EOF;
 					id='add_to_download' class='app-btn-secondary' >Add to Download</button>
 HTML_EOF;
 				
-				$result_html .= "<h4>Page Content</h4> (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>) \n";
-				$result_html .= "<pre class='toggle_info app_hide'>";
-				$result_html .= esc_html($body_buff);
-				$result_html .= "</pre>";
 			} else {
 				$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Find Plugin Download Link: [$link]", 2);
 			}
@@ -2349,8 +2351,9 @@ BUFF_EOF;
 			var Sak4wp = {
 				Util : {
 					// This method adds data from one box to anther. The target box's content is preserved.
-					appendData : function (src, target) {						
-						$(target).val($(target).val() + String.fromCharCode(13) + $(src).val()); // new line
+					appendData : function (src, target) {
+                        // we're adding a new line before and after the found links. The new lines will be later removed.
+						$(target).val($(target).val() + String.fromCharCode(13) + $(src).val() + String.fromCharCode(13)); // new line
 					},
 					
 					/*
