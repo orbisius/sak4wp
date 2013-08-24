@@ -346,7 +346,7 @@ EOF;
 		$buff .= "<br/><h4>Plugin List from Text/HTML File</h4>\n";
 		$buff .= "<p>Download Plugin list from a text file (e.g. from the public folder of your dropbox account, on your site etc.).</p>\n";
 		$buff .= "<form method='post' id='mod_plugin_manager_download_list_form'>\n";
-		$buff .= "<input type='text' name='download_list_url' id='download_list_url' class='app-text-long' value='$download_list_url_esc' />\n";
+		$buff .= "<input type='text' name='download_list_url' id='download_list_url' class='app_full_width' value='$download_list_url_esc' />\n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download Plugin List' />\n";
 		$buff .= "</form>\n";
 		$buff .= "<p class='download_list_results'></p>\n";
@@ -354,7 +354,7 @@ EOF;
 		$buff .= "<br/><h4>Plugin Page Links</h4>\n";
 		$buff .= "<p>You can enter direct links to .zip files and/or plugin pages on WordPress.org only</p>\n";
 		$buff .= "<form method='post' id='mod_plugin_manager_download_plugins_form'>\n";
-		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app-text-long' rows='15'>$download_list_buff_esc</textarea>\n";
+		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app_full_width' rows='15'>$download_list_buff_esc</textarea>\n";
 		$buff .= "<input type='checkbox' id='activate_plugins' name='activate_plugins' class='app-btn-primary' value='1' /> 
                 <label for='activate_plugins'>Activate plugin(s) after installation</label><br/>\n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download & Extract' />\n";
@@ -534,7 +534,8 @@ EOF;
 				
 				$plugin_list = array_unique($plugin_list);
 				
-				$result_html .= "<textarea rows='5' cols='40' id='download_list_download_links'>";
+				$result_html .= "Found link(s)<br/>";
+				$result_html .= "<textarea rows='5' cols='40' id='download_list_download_links' class='app_full_width'>";
 				$result_html .= join("\n", $plugin_list);
 				$result_html .= "</textarea>";
 				
@@ -589,7 +590,7 @@ EOF;
 
 		$buff .= "<br/><form method='post' id='mod_locate_wordpress_form'>\n";
 		$buff .= "<input type='hidden' name='cmd' value='search' />\n";
-		$buff .= "Start Folder:<br/><input type='text' name='start_folder' id='start_folder' value='$start_folder_esc' class='app-text-long' />\n";
+		$buff .= "Start Folder:<br/><input type='text' name='start_folder' id='start_folder' value='$start_folder_esc' class='app_full_width' />\n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Search' />\n";
 		$buff .= "</form>\n";
 		
@@ -2894,7 +2895,7 @@ which makes them look bad or blend with the background.
 }
 
 /* Form fields */
-.app-text-long {
+.app_full_width {
 	width:100%;
 }
 
