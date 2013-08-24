@@ -317,12 +317,12 @@ class Orbisius_WP_SAK_Controller_Module_Plugin_Manager extends Orbisius_WP_SAK_C
      */
     public function __construct() {
 		$this->target_dir = WP_PLUGIN_DIR;
-		$warning = Orbisius_WP_SAK_Util::msg("If the plugin already exists its files will be overriden!", 0);
+		$warning = Orbisius_WP_SAK_Util::msg("If the plugin already exists its files will be overridden!", 0);
 		 
         $this->description = <<<EOF
 <h4>Plugin Manager</h4>
 <p>This module allows you to manage plugins: bulk download, install, and activate plugins. TODO: (de)activate, delete. Just enter the plugin's WordPress.org page 
-    or a zip file location (web). Enter multiple links each on a new line. Warning: If the plugin already exists its files will be overriden! 
+    or a zip file location (web). Enter multiple links each on a new line. Warning: If the plugin already exists its files will be overridden!
 <br/> Plugins will be extracted in: <strong>$this->target_dir</strong> <br/>
 
 $warning
