@@ -354,7 +354,7 @@ EOF;
 		$buff .= "<br/><h4>Plugin Page Links</h4>\n";
 		$buff .= "<p>You can enter direct links to .zip files and/or plugin pages on WordPress.org only</p>\n";
 		$buff .= "<form method='post' id='mod_plugin_manager_download_plugins_form'>\n";
-		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app_full_width' rows='15'>$download_list_buff_esc</textarea>\n";
+		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app_full_width' rows='8'>$download_list_buff_esc</textarea>\n";
 		$buff .= "<input type='checkbox' id='activate_plugins' name='activate_plugins' class='app-btn-primary' value='1' /> 
                 <label for='activate_plugins'>Activate plugin(s) after installation</label><br/>\n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download & Extract' />\n";
