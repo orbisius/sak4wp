@@ -540,7 +540,7 @@ EOF;
 				
 				$result_html .= <<<HTML_EOF
 				<button name='add_to_download' onclick='Sak4wp.Util.appendData("#download_list_download_links", "#download_list_buff");'
-					id='add_to_download' class='app-btn-primary' >Add to Download</button>
+					id='add_to_download' class='app-btn-secondary' >Add to Download</button>
 HTML_EOF;
 				
 				$result_html .= "<h4>Page Content</h4> (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>) \n";
