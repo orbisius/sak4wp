@@ -523,7 +523,7 @@ EOF;
 				$body_buff = $result['buffer'];
 				
 				// Do we have links to WP plugins?
-				if (preg_match_all('#https?://[w\.]*wordpress.org/(?:extend/)?plugins/#si', $body_buff, $matches)) {
+				if (preg_match_all('#https?://[w\.]*wordpress.org/(?:extend/)?plugins/[\w-]+/?#si', $body_buff, $matches)) {
 					$plugin_list += $matches[0];
 				}
 				
@@ -1506,6 +1506,8 @@ class Orbisius_WP_SAK_Util {
         $error = '';
         $status = 0;
 
+        require_once(ABSPATH . '/wp-admin/includes/plugin.php');
+
         if (empty($plugin_file)) {
             $data = array(
                 'status' => $status,
@@ -1534,6 +1536,31 @@ class Orbisius_WP_SAK_Util {
     }
 
     /**
+     * Reads a file partially e.g. the first NN bytes.
+     *
+     * @param string $file
+     * @param int $len_bytes how much bytes to read
+     * @param int $seek_bytes should we start from the start?
+     * @return string
+     */
+    static function readFilePartially($file, $len_bytes = 512, $seek_bytes = 0) {
+        $buff = '';
+        
+        $file_handle = fopen($file, 'rb');
+
+        if (!empty($file_handle)) {
+            if ($seek_bytes > 0) {
+                fseek($file_handle, $seek_bytes);
+            }
+
+            $buff = fread($file_handle, $len_bytes);
+            fclose($file_handle);
+        }
+
+        return $buff;
+    }
+
+    /**
      * This plugin scans the files in a folder and tries to get plugin data.
      * The real plugin file will have Name, Description variables set.
      * If the file doesn't have that info WP will prefill the data with empty values.
@@ -1546,11 +1573,10 @@ class Orbisius_WP_SAK_Util {
         $files_arr = glob($folder . '*.php'); // list only php files.
 
         foreach ($files_arr	as $file) {
-            $markup = $translate = false; // no need for extra stuff.
-            $data = get_plugin_data($file, $markup, $translate);
+            $buff = self::readFilePartially($file);
 
             // Did we find the plugin? If yes, it'll have Name filled in.
-            if (!empty($data['Name'])) {
+            if (stripos($buff, 'Plugin Name') !== false) {
                 return $file;
             }
         }
