@@ -1,7 +1,7 @@
 <?php
 
 /**
-Swiss Army Knife for WordPress - a standalone script that allows you fix your WordPress installation and make some admin stuff.
+Swiss Army Knife for WordPress - standalone open source tool (GPL) that allows you to do system admin work on your WordPress site. Created by @orbisius
 You must remove it after the work is complete to avoid security issues.
 
 License: GPL (v2 or later)
@@ -10,7 +10,7 @@ Author Site: http://orbisius.com
 Product Site: http://sak4wp.com
 Copyright: All Rights Reserved.
 
-Disclaimer: By using this script you take full responsibility to remove it.
+Disclaimer: By using this tool you take full responsibility to remove it.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -1525,7 +1525,7 @@ class Orbisius_WP_SAK_Util {
                     : activate_plugin($plugin_file);
 
         if (is_wp_error($result)) {
-            $error = $status->get_error_message();
+            $error = $result->get_error_message();
         } else {
             $status = 1;
         }
@@ -2151,6 +2151,10 @@ BUFF_EOF;
 <p>If you have a suggestion submit a ticket at <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a> too.</p>
 
 <br/>
+<h4>Help Videos</h4>
+<p> Check out this YouTube playlist: <a href="http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw" target="_blank">http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw</p>
+
+<br/>
 <h4>Security</h4>
 <p>
     <strong>If you've found a security bug please <a href="http://orbisius.com/site/contact/" target="_blank">Contact us</a> right away!</strong>
@@ -2255,6 +2259,9 @@ BUFF_EOF;
 		  <span class="social_links">
 				  <a href="https://twitter.com/Orbisius" class=
 				  "twitter-follow-button" data-show-count="false">Follow @Orbisius</a>
+				  <a href="https://twitter.com/sak4wp" class=
+				  "twitter-follow-button" data-show-count="false">Follow @sak4wp</a>
+				  
 				  <script type="text/javascript">
 				  //<![CDATA[
 				  !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
@@ -2324,8 +2331,11 @@ BUFF_EOF;
 
       <div class="footer">
             &copy; Orbisius.com $year
-            <a href="https://twitter.com/Orbisius" class="twitter-follow-button"
-				  data-show-count="false">Follow @Orbisius</a> <script type="text/javascript">
+				<a href="https://twitter.com/Orbisius" class="twitter-follow-button"
+				  data-show-count="false">Follow @Orbisius</a> 
+				<a href="https://twitter.com/sak4wp" class=
+			  "twitter-follow-button" data-show-count="false">Follow @sak4wp</a>
+				<script type="text/javascript">
 					//<![CDATA[
 				  !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
 				  //]]>
