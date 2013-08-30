@@ -1,9 +1,9 @@
 SAK4WP - Swiss Army Knife for WordPress
 =======================================
 
-Swiss Army Knife for WordPress is a standalone script which allows you to perform some recovery operations on your WordPress site.
-This script is intended to be used for a short time only and then removed in order to prevent security issues.
-If you do not remove SAK4WP the chance is very high that somebody will find out about that and compromise your site.
+Swiss Army Knife for WordPress is a standalone tool which allows you to perform some recovery operations on your WordPress site.
+This tool is intended to be used for a short time only and then removed in order to prevent security issues.
+The tool records the current IP address and browser info and will not work with from any other IP or browser.
 
 Installation
 ------------
@@ -159,7 +159,18 @@ Requirements
 Support
 -------
 
-Please submit suggestions at github issue tracker: https://github.com/orbisius/sak4wp/issues
+Help Videos
+
+Check out this YouTube playlist: http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw
+
+
+
+Premium Support
+---------------
+
+If you want to get premium support for this product contact us to discuss your needs and a possible estimate.
+
+http://orbisius.com/site/contact/
 
 
 Disclaimer
