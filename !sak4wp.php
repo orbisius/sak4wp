@@ -2152,7 +2152,7 @@ BUFF_EOF;
 
 <br/>
 <h4>Help Videos</h4>
-<p> Check out this YouTube playlist: <a href="http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw" target="_blank">http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw</p>
+<p> Check out this YouTube playlist: <a href="http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw" target="_blank">http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw</a></p>
 
 <br/>
 <h4>Security</h4>
