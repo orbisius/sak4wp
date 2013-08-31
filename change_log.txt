@@ -2,6 +2,9 @@
 SAK4WP Change Log
 =================
 
+* 1.0.4 (TBD)
+
+
 * 1.0.3 (2013-08-30)
 fix: download plugin list wasn't getting the whole plugin url
 added a method to partially read a file e.g. first 512 bytes.
