@@ -12,3 +12,5 @@ wp-content/cache/
 wp-content/backups/
 sitemap.xml
 sitemap.xml.gz
+/wp-content/plugins/orbisius-cyberstore/nbproject/private/
+/nbproject/private/

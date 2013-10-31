@@ -808,6 +808,13 @@ EOF;
 	AuthGroupFile None
 	Require valid-user
 </FilesMatch>
+
+# Stop access to config file
+<files wp-config.php>
+	order allow,deny
+	deny from all
+</files>
+
 ######## SAK4WP_END ########
 
 BUFF;
