@@ -805,7 +805,7 @@ EOF;
 
 	AuthType Basic
 	AuthName "Protected Area"
-	AuthGroupFile None
+	##AuthGroupFile None
 	Require valid-user
 </FilesMatch>
 
@@ -827,7 +827,7 @@ BUFF;
 
 	AuthType Basic
 	AuthName "Protected Area"
-	AuthGroupFile None
+	##AuthGroupFile None
 	Require valid-user
 </FilesMatch>
 
