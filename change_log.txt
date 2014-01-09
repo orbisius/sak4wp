@@ -2,8 +2,13 @@
 SAK4WP Change Log
 =================
 
-* 1.0.4 (TBD)
+* 1.0.5 (TBD)
 
+* 1.0.4 (2014-01-09)
+* Replaced Bootstrap 2.x with 3.x
+* Using NetDNA as CDN
+* Removed CSS/JS that was printed by the tool. That reduced the its size a lot.
+* Fixed the menu so modules appear as submenu
 
 * 1.0.3 (2013-08-30)
 fix: download plugin list wasn't getting the whole plugin url
