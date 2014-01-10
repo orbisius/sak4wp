@@ -1396,7 +1396,7 @@ class Orbisius_WP_SAK_Util {
      * a simple status message, no formatting except color.
 	 * status is 0, 1 or 2
      */
-    function msg($msg, $status = 0, $use_simple_css = 0) {
+    static function msg($msg, $status = 0, $use_simple_css = 0) {
         $inline_css = '';
         
 		if ($status ==  1) {
