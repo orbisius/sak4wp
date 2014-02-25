@@ -2,7 +2,10 @@
 SAK4WP Change Log
 =================
 
-* 1.0.5 (TBD)
+* 1.0.5 (2014-02-25)
+* Shows total server's disk usage with nice coloring on the total disk size, usage and free space (df -h linux only)
+* Shows top processes (top -b -n 1 linux only)
+* Shows free memory (free -m linux only)
 
 * 1.0.4 (2014-01-09)
 * Replaced Bootstrap 2.x with 3.x

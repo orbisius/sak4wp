@@ -34,7 +34,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.0.4');
+define('ORBISIUS_WP_SAK_APP_VER', '1.0.5');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
@@ -1121,12 +1121,34 @@ EOF;
         $data['Max Upload File Size Limit'] = $this->get_max_upload_size() . 'MB';
         $data['Memory Limit'] = $this->get_memory_limit() . 'MB';
 
+		// Disk space usage
         $dir = dirname(__FILE__); // that's where the sak is installed.
         $disk_usage = `du -sh $dir`;
         $disk_usage = trim($disk_usage);
         $disk_usage = empty($disk_usage) ? 'N/A' : $disk_usage;
-        $data['Disk Space Usage'] = $disk_usage;
+        $data['Site Disk Space Usage (du -sh .)'] = $disk_usage;
 
+		// Free Disk space
+		$disk_free_space = `df --human-readable`;
+		$disk_free_space = trim($disk_free_space);
+		$disk_free_space = empty($disk_free_space) ? 'N/A' : '<pre>' . 
+		$disk_free_space = preg_replace('#(/dev/[\w/\-]+\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+\%?)(.*)#im'
+			, '<span class="du_line">$1<span class="du_total">$2</span>$3<span class="du_used">$4</span>$5<span class="du_free">$6</span>$7'
+			. '<span class="du_percent">$8</span>$9</span>', $disk_free_space) . '</pre>';
+		$data['Total Disk Usage (df --human-readable)'] = $disk_free_space;
+		
+		// Processes info
+		$cmd_buff = `top -b -n 1`;
+		$cmd_buff = trim($cmd_buff);
+		$cmd_buff = empty($cmd_buff) ? 'N/A' : '<textarea rows="4" style="width:100%;" readonly="readonly">' . $cmd_buff . '</textarea>';
+		$data['Processes Info (top -b -n 1)'] = $cmd_buff;
+		
+		// Free memory
+		$cmd_buff = `free -m`;
+		$cmd_buff = trim($cmd_buff);
+		$cmd_buff = empty($cmd_buff) ? 'N/A' : '<textarea rows="4" style="width:100%;" readonly="readonly">' . $cmd_buff . '</textarea>';
+		$data['Free Memory (free -m)'] = $cmd_buff;
+		
 		// lists 15 files and sorts them by size. e.g. 100K
 		$large_files = `du -ah $dir | sort -nr | head -n +15`;
         $large_files = trim($large_files);
@@ -2942,6 +2964,32 @@ which makes them look bad or blend with the background.
 
 .app_hide {
     display:none;
+}
+
+.du_line { 
+	background:yellow;
+	padding-top:3px;
+	padding-bottom:3px;
+}
+
+.du_total { 
+	color: #fff;
+	background:#428BCA;
+}
+
+.du_used { 
+	color: #fff;
+	background:red;
+}
+
+.du_free { 
+	color: #fff;
+	background:green;
+}
+
+.du_percent { 
+	color: #fff;
+	background:teal;
 }
 
 BUFF_EOF;
