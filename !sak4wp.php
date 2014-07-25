@@ -34,7 +34,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.0.5');
+define('ORBISIUS_WP_SAK_APP_VER', '1.0.6');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
@@ -217,6 +217,123 @@ EOF;
     }
 }
 
+
+/**
+ * Example Module - Handles ...
+ */
+class Orbisius_WP_SAK_Controller_Module_PostMeta extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>Post Meta</h4>
+<p>
+    This module allows you to view post meta information.
+</p>
+EOF;
+
+        $form_js_handler = <<<BUFF_EOF
+        // Orbisius_WP_SAK_Controller_Module_PostMeta
+        $('#mod_post_meta_form').submit(function() {
+            var form = $(this);
+            var container = '.results_container';
+
+            $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
+
+            $.ajax({
+                type : "post",
+                dataType : "json",
+                url : wpsak_json_cfg.ajax_url, // contains all the necessary params
+                data : $(form).serialize() + '&module=PostMeta&action=getPostMetaAjax',
+                success : function(json) {
+                   $('.app-ajax-message').remove();
+
+                   if (json.status) {
+                      $(container).html(json.results);
+                   } else {
+                      $(container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
+                          + json.message + "</span>");
+                   }
+                },
+                error : function(jqXHR, text_status, error_thrown) {
+                    $('.app-ajax-message').remove();
+
+                    alert("There was an error. " + text_status + ' ' + error_thrown);
+                },
+
+            }); // ajax
+
+            return false;
+        }); // Orbisius_WP_SAK_Controller_Module_PostMeta
+BUFF_EOF;
+
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $ctrl->enqeueOnDocumentReady($form_js_handler);
+    }
+
+    /**
+     *
+     */
+    public function run() {
+        $buff = '';
+
+        $post_id = empty($_REQUEST['post_id']) ? '' : $_REQUEST['post_id'];
+        $post_id_esc = esc_attr($post_id);
+
+        //$buff .= "<br/><h4>Plugin List from Text/HTML File</h4>\n";
+		$buff .= "<p>Enter Post ID</p>\n";
+		$buff .= "<form method='post' id='mod_post_meta_form'>\n";
+		$buff .= "<input type='hidden' id='cmd' name='cmd' value='get_post_meta' />\n";
+		$buff .= "<input type='text' id='post_id' name='post_id' value='$post_id_esc' />\n";
+		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Load Meta Data' />\n";
+		$buff .= "</form>\n";
+		$buff .= "<div id='results_container' class='results_container'></div>\n";
+
+        if (!empty($_REQUEST['cmd'])) {
+            if ($_REQUEST['cmd'] == 'get_post_meta') {
+                $post_id = empty($_REQUEST['post_id']) ? 0 : $_REQUEST['post_id'];
+
+                $buff .= $this->getMetaAsString($post_id);
+                $buff .= "<br/>";
+            }
+        }
+
+        return $buff;
+    }
+
+    /**
+     * This method is called when we have the module and action specified.
+     */
+    public function getPostMetaAjaxAction() {
+        $msg = '';
+        $result_html = '';
+        $status = 1;
+        
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $post_id = $ctrl->getIntVar('post_id');
+        $result_html .= $this->getMetaAsString($post_id);
+
+        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
+    }
+
+    /**
+     * Sample Method
+     */
+    public function getMetaAsString($post_id) {
+        $meta = get_post_meta($post_id);
+
+        // if the item is one element that means that it's one value
+        if (count($meta) == 1) {
+            $meta = $meta[0];
+        }
+        
+        $str = '<pre class="toggle_info000">' . var_export($meta, 1) . "</pre>\n";
+        
+        return $str;
+    }
+}
 
 /**
  * Example Module - Handles ...
@@ -1932,6 +2049,8 @@ class Orbisius_WP_SAK_Util {
 }
 
 class Orbisius_WP_SAK_Controller {
+    private $on_document_ready_assets = array();
+
     private function __construct() {
     }
 
@@ -1984,6 +2103,30 @@ class Orbisius_WP_SAK_Controller {
         }
         
         return self::$_instance;
+    }
+
+    /**
+     * Gets a variable from the request and removes any tags and trims spaces.
+     * That's of course if options are passed so the orignal value will be returned.
+     */
+    public function getVar($key, $default = '', $options = array()) {
+        $val = isset($_REQUEST[$key]) ? $_REQUEST[$key] : $default;
+
+        if (!isset($options['raw'])) {
+            $val = strip_tags($val);
+            $val = trim($val);
+        }
+
+        return $val;
+    }
+
+    /**
+     * Gets a variable and casts it to an INT
+     */
+    public function getIntVar($key, $default = 0) {
+        $val = isset($_REQUEST[$key]) ? intval($_REQUEST[$key]) : $default;
+
+        return $val;
     }
 
     /**
@@ -2046,8 +2189,8 @@ class Orbisius_WP_SAK_Controller {
         $params = $this->params;
         
 		if (!empty($params['module']) && !empty($params['action'])) {
-            $action = $params['action'];
             $module = $params['module'];
+            $action = $params['action'];
 
             // e.g. Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker
             $module_class = 'Orbisius_WP_SAK_Controller_Module_' . $module;
@@ -2138,8 +2281,16 @@ class Orbisius_WP_SAK_Controller {
                 $descr .= $mod_obj->run();
 
                 break;
+
             case 'mod_unblock':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker();
+				$descr = $mod_obj->getInfo();
+				$descr .= $mod_obj->run();
+
+                break;
+
+            case 'mod_post_meta':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_PostMeta();
 				$descr = $mod_obj->getInfo();
 				$descr .= $mod_obj->run();
 
@@ -2325,6 +2476,7 @@ BUFF_EOF;
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#">Modules <span class="caret"></span></a>
 				<ul class="dropdown-menu">
 					<li><a href="$script?page=mod_stats" title="Lists WordPress Site Stats.">Stats</a></li>
+					<li><a href="$script?page=mod_post_meta" title="Pulls Post Meta info from posts or pages">Post Meta</a></li>
 					<li><a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list">Unblock</a></li>
 					<li><a href="$script?page=mod_list_page_templates" title="Lists Page Templates">Page Templates</a></li>
 					<li><a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a></li>
@@ -2382,9 +2534,19 @@ BUFF_EOF;
 BUFF_EOF;
 		echo $buff;
 	}
-	
+
+    /**
+     *
+     * @param str $buffer
+     * @param bool $render_in_footer
+     */
+    public function enqeueOnDocumentReady($buffer) {
+        $this->on_document_ready_assets[] = $buffer;
+    }
+
 	public function displayFooter() {
         $script = ORBISIUS_WP_SAK_APP_SCRIPT;
+        $on_document_ready_assets_str = join("\n\n", $this->on_document_ready_assets);
         
 		$buff = <<<BUFF_EOF
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
@@ -2419,6 +2581,8 @@ BUFF_EOF;
 			};
 			
             jQuery(document).ready(function($) {
+                $on_document_ready_assets_str
+
 				// let's select the first input box
 				$('form').find('input[type=text],textarea,select').filter(':visible:first').focus();
 				
