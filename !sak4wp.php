@@ -320,7 +320,6 @@ BUFF_EOF;
         $ids = array_map('intval', $ids);
 
         foreach ($ids as $post_id) {
-            $result_html .= "ID: $post_id<br/>\n";
             $result_html .= $this->getMetaAsString($post_id);
         }
 
@@ -332,14 +331,21 @@ BUFF_EOF;
      * Sample Method
      */
     public function getMetaAsString($post_id) {
+        $str = '';
+        $post = get_post($post_id);
         $meta = get_post_meta($post_id);
+        $author_meta = !empty($post->post_author)
+                ? get_user_meta($post->post_author)
+                : null;
 
         // if the item is one element that means that it's one value
         if (count($meta) == 1) {
             $meta = $meta[0];
         }
         
-        $str = '<pre class="toggle_info000">' . var_export($meta, 1) . "</pre>\n";
+        $str .= '<h3>Post/Page ID: ' . $post_id . '</h3><pre class="toggle_info000">' . var_export($post, 1) . "</pre>\n";
+        $str .= '<h3>Post/Page Meta</h3><pre class="toggle_info000">' . var_export($meta, 1) . "</pre>\n";
+        $str .= '<h3>Author Meta</h3><pre class="toggle_info000">' . var_export($author_meta, 1) . "</pre>\n";
         
         return $str;
     }

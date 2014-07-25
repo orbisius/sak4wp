@@ -4,6 +4,7 @@ SAK4WP Change Log
 
 * 1.0.6 (2014-07-25)
 * Added PostMeta module which retrieves meta information for a post/page or multiple posts, pages separated by comma
+* The meta information also contains some post info and author info.
 * Added some methods to be able to *inject* javascript into onDocumentReady JS block
 * Added getVar and getIntVar methods in the controller for accessing request variables securely.
 
