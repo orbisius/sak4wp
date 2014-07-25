@@ -282,11 +282,11 @@ BUFF_EOF;
         $post_id_esc = esc_attr($post_id);
 
         //$buff .= "<br/><h4>Plugin List from Text/HTML File</h4>\n";
-		$buff .= "<p>Enter Post ID</p>\n";
 		$buff .= "<form method='post' id='mod_post_meta_form'>\n";
 		$buff .= "<input type='hidden' id='cmd' name='cmd' value='get_post_meta' />\n";
-		$buff .= "<input type='text' id='post_id' name='post_id' value='$post_id_esc' />\n";
-		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Load Meta Data' />\n";
+		$buff .= "ID: <input type='text' id='post_id' name='post_id' value='$post_id_esc' /> \n";
+		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Load Meta Data' />\n<br/>";
+        $buff .= "Example: 1 OR 1, 2, 3\n";
 		$buff .= "</form>\n";
 		$buff .= "<div id='results_container' class='results_container'></div>\n";
 
@@ -311,8 +311,18 @@ BUFF_EOF;
         $status = 1;
         
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
-        $post_id = $ctrl->getIntVar('post_id');
-        $result_html .= $this->getMetaAsString($post_id);
+        $post_ids_list = $ctrl->getVar('post_id'); // could be 1 or more IDs
+
+        $ids = explode(',', $post_ids_list);
+        $ids = array_map('trim', $ids);
+        $ids = array_filter($ids); // non empty ones
+        $ids = array_unique($ids);
+        $ids = array_map('intval', $ids);
+
+        foreach ($ids as $post_id) {
+            $result_html .= "ID: $post_id<br/>\n";
+            $result_html .= $this->getMetaAsString($post_id);
+        }
 
         $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);

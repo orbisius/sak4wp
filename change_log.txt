@@ -2,6 +2,11 @@
 SAK4WP Change Log
 =================
 
+* 1.0.6 (2014-07-25)
+* Added PostMeta module which retrieves meta information for a post/page or multiple posts, pages separated by comma
+* Added some methods to be able to *inject* javascript into onDocumentReady JS block
+* Added getVar and getIntVar methods in the controller for accessing request variables securely.
+
 * 1.0.5 (2014-02-25)
 * Shows total server's disk usage with nice coloring on the total disk size, usage and free space (df -h linux only)
 * Shows top processes (top -b -n 1 linux only)
