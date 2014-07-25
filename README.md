@@ -89,6 +89,11 @@ This module allows you to run SAK4WP more securely. The first time you access SA
 If somebody else accesses the file from a different IP or browser, he/she will be stopped.
 The module doesn't require any configurations. It is always run before other modules.
 
+PostMeta
+The PostMeta module retrieves meta information for a given post/page or multiple posts, pages separated by comma
+The meta information also contains post and author info.
+
+
 Addons
 Added !sak4wp-theme-troubleshooter.php plugin. For more info see addons/!sak4wp-theme-troubleshooter.php
 
