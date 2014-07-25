@@ -286,7 +286,7 @@ BUFF_EOF;
 		$buff .= "<input type='hidden' id='cmd' name='cmd' value='get_post_meta' />\n";
 		$buff .= "ID: <input type='text' id='post_id' name='post_id' value='$post_id_esc' /> \n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Load Meta Data' />\n<br/>";
-        $buff .= "Example: 1 OR 1, 2, 3\n";
+        $buff .= "Examples: <br/>- Enter ID e.g. 1 <br/>- OR 1, 2, 3 <br/>- OR even a page slug e.g. my-service-page\n";
 		$buff .= "</form>\n";
 		$buff .= "<div id='results_container' class='results_container'></div>\n";
 
@@ -317,9 +317,20 @@ BUFF_EOF;
         $ids = array_map('trim', $ids);
         $ids = array_filter($ids); // non empty ones
         $ids = array_unique($ids);
-        $ids = array_map('intval', $ids);
 
         foreach ($ids as $post_id) {
+            // If the user has entered a slug we'll use it to get the post ID
+            if (!is_numeric($post_id)) {
+                $post = get_page_by_path($post_id);
+
+                if (empty($post)) {
+                    $result_html .= Orbisius_WP_SAK_Util::msg('Path: [' . esc_attr($post_id) . '] was not found. Skipping. <br/>', 0);
+                    continue;
+                }
+
+                $post_id = $post->ID;
+            }
+
             $result_html .= $this->getMetaAsString($post_id);
         }
 
@@ -338,12 +349,19 @@ BUFF_EOF;
                 ? get_user_meta($post->post_author)
                 : null;
 
+        $link_str = '';
+
+        if (!empty($post)) {
+            $link = get_permalink($post_id);
+            $link_str = "<a href='$link' target='_blank'>View</a>";
+        }
+
         // if the item is one element that means that it's one value
         if (count($meta) == 1) {
             $meta = $meta[0];
         }
         
-        $str .= '<h3>Post/Page ID: ' . $post_id . '</h3><pre class="toggle_info000">' . var_export($post, 1) . "</pre>\n";
+        $str .= "<h3>Post/Page ID: $post_id ($link_str)</h3><pre>" . var_export($post, 1) . "</pre>\n";
         $str .= '<h3>Post/Page Meta</h3><pre class="toggle_info000">' . var_export($meta, 1) . "</pre>\n";
         $str .= '<h3>Author Meta</h3><pre class="toggle_info000">' . var_export($author_meta, 1) . "</pre>\n";
         

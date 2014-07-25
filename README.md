@@ -92,7 +92,7 @@ The module doesn't require any configurations. It is always run before other mod
 PostMeta
 The PostMeta module retrieves meta information for a given post/page or multiple posts, pages separated by comma
 The meta information also contains post and author info.
-
+The search can also be done using post/page slug.
 
 Addons
 Added !sak4wp-theme-troubleshooter.php plugin. For more info see addons/!sak4wp-theme-troubleshooter.php
