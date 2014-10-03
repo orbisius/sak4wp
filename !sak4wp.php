@@ -34,7 +34,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.0.6');
+define('ORBISIUS_WP_SAK_APP_VER', '1.0.7');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
@@ -136,7 +136,7 @@ EOF;
 
 		$ip = Orbisius_WP_SAK_Util::getIP();
 		$ua = empty($_SERVER['HTTP_USER_AGENT']) ? '' : $_SERVER['HTTP_USER_AGENT'];
-        
+
 		if (file_exists($first_run_file)) {
 			$data = Orbisius_WP_SAK_Util_File::read($first_run_file, Orbisius_WP_SAK_Util_File::UNSERIALIZE);
 			
@@ -543,7 +543,7 @@ EOF;
 			foreach ($locations as $link) {
 				if (empty($link)) {
 					continue;
-				}				
+				}
 				
 				// If the link points to a plugin hosted by wordpress.org go and find the download link.
 				// otherwise we'll skip them because SAK4WP can find other random ZIP files or bad plugins
@@ -1315,6 +1315,8 @@ EOF;
         $data['Comment Meta Rows(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->commentmeta");
         $data['Posts'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'post'");
         $data['Pages'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'page'");
+        $data['Custom Posts'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE "
+                . "(p.post_type != 'page' AND p.post_type != 'post')");
         $data['Attachments'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'attachment'");
         $data['Options Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->options");
         $data['Link(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->links");
@@ -1735,6 +1737,10 @@ class Orbisius_WP_SAK_Util {
     static function readFilePartially($file, $len_bytes = 512, $seek_bytes = 0) {
         $buff = '';
         
+		if (!file_exists($file)) {
+            return false;
+        }
+		
         $file_handle = fopen($file, 'rb');
 
         if (!empty($file_handle)) {

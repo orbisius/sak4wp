@@ -2,13 +2,17 @@
 SAK4WP Change Log
 =================
 
-* 1.0.6 (2014-07-25)
+= 1.0.7 (2014-10-03) =
+* Added count for custom post types in Stats module.
+
+= 1.0.6 (2014-07-25) =
 * Added PostMeta module which retrieves meta information for a post/page or multiple posts, pages separated by comma
 * The meta information also contains some post info and author info.
 * The search can also be done using post/page slug.
 * Added link to the page/post
 * Added some methods to be able to *inject* javascript into onDocumentReady JS block
 * Added getVar and getIntVar methods in the controller for accessing request variables securely.
+* Video demo: https://www.youtube.com/watch?v=GnrOLxsMhK4&feature=youtu.be
 
 * 1.0.5 (2014-02-25)
 * Shows total server's disk usage with nice coloring on the total disk size, usage and free space (df -h linux only)
