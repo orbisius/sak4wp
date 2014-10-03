@@ -98,6 +98,12 @@ Video demo: https://www.youtube.com/watch?v=GnrOLxsMhK4&feature=youtu.be
 Addons
 Added !sak4wp-theme-troubleshooter.php plugin. For more info see addons/!sak4wp-theme-troubleshooter.php
 
+Troubleshooting
+If you see an error e.g. SAK4WP: Error this could be caused because you're accessing the !sak4wp from a different IP address or web browser. Because the tool gives enormous control it only allows connections from the same brower and IP address. If any of these are different you'll see the error message.
+
+if you need to access the SAK4WP you can delete this file: /wp-content/uploads/.ht-sak4wp-yoursite.com
+
+
 Please fork and improve!
 
 Future Ideas / TODO
