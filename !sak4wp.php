@@ -34,7 +34,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.0.7');
+define('ORBISIUS_WP_SAK_APP_VER', '1.0.8');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
@@ -1105,7 +1105,7 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
 		$this->ip = Orbisius_WP_SAK_Util::getIP();
 		$this->description = <<<EOF
 <h4>Limit Login Attempts Unblocker</h4>
-<p> This section allows you to unblock yourself or other IP address that were blocked by
+<p> This section allows you to unblock yourself or another IP address that was blocked by
     <a href="http://wordpress.org/plugins/limit-login-attempts/" target="_blank" title="new/tab">Limit Login Attempts</a> plugin.
 </p>
 EOF;
@@ -1204,7 +1204,8 @@ EOF;
                 }
                 
                 $t = date('r', $ts);
-                $ip_who_is_link = "<a href='http://who.is/whois-ip/ip-address/$ip/' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you";
+                //$ip_who_is_link = "<a href='http://who.is/whois-ip/ip-address/$ip/' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you";
+                $ip_who_is_link = "<a href='http://ipduh.com/ip/?$ip' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you";
                 $when_blocked = $t;
                 $action = "<a href='javascript:void(0);' class='mod_limit_login_attempts_blocked_ip' data-ip='$ip'>Unblock</a>";
 

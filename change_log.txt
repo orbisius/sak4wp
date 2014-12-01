@@ -2,6 +2,10 @@
 SAK4WP Change Log
 =================
 
+= 1.0.8 (2014-10-03) =
+* Using ipduh.com to do IP whois instead of who.is ticket #1
+* Added and FAQ section to answer SAK4WP: Error situation
+
 = 1.0.7 (2014-10-03) =
 * Added count for custom post types in Stats module.
 

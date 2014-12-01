@@ -181,6 +181,19 @@ Check out this YouTube playlist: http://www.youtube.com/playlist?list=PLfGsyhWLt
 
 
 
+FAQ
+-------
+
+Q1: I am getting SAK4WP: Error
+A1: 
+If you're getting SAK4WP: Error this means that the tool cannot verify you.
+It intentially doesn't provide more info in case the tool is accessed by a hacker.
+The reason for the error could be that your IP has changed and/or you're using a different browser etc.
+
+Solution: using (S)FTP go to wp-content/uploads and and delete a file that starts with ".ht-sak4wp-"
+This should allow give you access.
+
+
 Premium Support
 ---------------
 
