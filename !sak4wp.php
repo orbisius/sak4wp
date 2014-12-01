@@ -2370,7 +2370,7 @@ BUFF_EOF;
 <p><a href="$app_url" target="_blank">$app_url</a></p>
 
 <br/>
-<h4>Project Page on GitHub Page</h4>
+<h4>Project Page on GitHub</h4>
 <p><a href="https://github.com/orbisius/sak4wp/" target="_blank">https://github.com/orbisius/sak4wp/</a></p>
 
 <br/>
