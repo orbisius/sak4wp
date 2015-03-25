@@ -28,14 +28,14 @@ including but not limited to any indirect, punitive, special, incidental or cons
 damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses.
 The entire risk as to the quality and performance of the Software is borne by you. Should the Software prove defective, you and not the
 Licensor assume the entire cost of any service and repair.
-
 */
 
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.0.8');
+define('ORBISIUS_WP_SAK_APP_VER', '1.0.9');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
+define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
 // this stops WP Super Cache and W3 Total Cache from caching
@@ -1077,6 +1077,77 @@ EOF;
             }
 
             $buff .= $ctrl->renderTable('', '', $results);
+        }
+
+        return $buff;
+    }
+}
+/**
+ * This module handles lists page templates.
+ */
+class Orbisius_WP_SAK_Controller_Module_Db_Dump extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>Db Dump</h4>
+<p>This module allows you to dump the database into a nice file and provides download links.
+</p>
+EOF;
+    }
+
+    /**
+     *
+     */
+    public function run() {
+        $buff = '';
+        $exp_params = array();
+
+        $buff .= "<p><br/><a href='?page=mod_db_dump&cmd=export_sql' class='btn btn-primary'>Export (sql)</a> | \n";
+        $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_gz' class='btn btn-primary'>Export (sql.gz)</a></p>\n";
+
+        if ( !empty( $_REQUEST['cmd'] ) ) {
+            $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
+            $data = $mod_obj->read_wp_config();
+
+            if ( $_REQUEST['cmd'] == 'export_sql' ) {
+                $exp_params[] = '--single-transaction';
+                $exp_params[] = '--hex-blob';
+
+                $exp_params[] = '-h' . escapeshellarg( $data['db_host'] );
+                $exp_params[] = '-u' . escapeshellarg( $data['db_user'] );
+                $exp_params[] = '-p' . escapeshellarg( $data['db_pass'] );
+                $exp_params[] = escapeshellarg( $data['db_name'] ); // keep it last!
+
+                $target_sql = 'sa4wp-db-export-' 
+                        . ORBISIUS_WP_SAK_HOST
+                        . '-'
+                        . date('Y-m-d')
+                        . '-'
+                        . preg_replace( '#[^\w-]#si', '', microtime() ) // no spaces and sh*t
+                        . '.sql';
+                
+                $target_sql = escapeshellarg( $target_sql );
+
+                $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql;
+
+                $result = `$cmd 2>&1`;
+
+                $buff .= "<br/>" . $cmd;
+                $buff .= "<br/>Result: " . $result;
+            }
+        }
+
+        $folder = ORBISIUS_WP_SAK_APP_BASE_DIR;
+        $files_arr = glob($folder . '/sa4wp-db-export-*.*'); // list only sa4kwp exported files.
+
+        foreach ($files_arr as $file) {
+            $file_base_name = basename($file);
+            $dl_link = site_url($file_base_name);
+            $size = filesize($file);
+            $size_fmt = Orbisius_WP_SAK_Util::formatFileSize($size);
+            $buff .= "<br/>&nbsp; <a href='$dl_link'>$file_base_name ($size_fmt)</a>";
         }
 
         return $buff;
@@ -2336,6 +2407,13 @@ class Orbisius_WP_SAK_Controller {
 				$descr .= $mod_obj->run();
 
                 break;
+
+            case 'mod_db_dump':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Db_Dump();
+				$descr = $mod_obj->getInfo();
+				$descr .= $mod_obj->run();
+
+                break;
             
             case '':
             case 'home':
@@ -2518,6 +2596,7 @@ BUFF_EOF;
 				<ul class="dropdown-menu">
 					<li><a href="$script?page=mod_stats" title="Lists WordPress Site Stats.">Stats</a></li>
 					<li><a href="$script?page=mod_post_meta" title="Pulls Post Meta info from posts or pages">Post Meta</a></li>
+					<li><a href="$script?page=mod_db_dump" title="Pulls Post Meta info from posts or pages">Db Dump</a></li>
 					<li><a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list">Unblock</a></li>
 					<li><a href="$script?page=mod_list_page_templates" title="Lists Page Templates">Page Templates</a></li>
 					<li><a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a></li>
