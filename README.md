@@ -95,8 +95,15 @@ The meta information also contains post and author info.
 The search can also be done using post/page slug.
 Video demo: https://www.youtube.com/watch?v=GnrOLxsMhK4&feature=youtu.be
 
+Site Packager
+- Export the whole site in .tar or .tar.gz format with a single click
+- Can run in background (linux only)
+- Shows disk usage.
+- Automatically skips some files (logs, cache files etc, previously created archives by SAK4WP)
+
 Db Export
-This module allows you to dump the database into a nice sql file (gzip compression optional) and provides download links.
+- This module allows you to dump the database into a nice sql file (gzip compression optional) and provides download links.
+- Can run in background (linux only)
 
 Addons
 Added !sak4wp-theme-troubleshooter.php plugin. For more info see addons/!sak4wp-theme-troubleshooter.php

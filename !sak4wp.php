@@ -1191,8 +1191,9 @@ EOF;
         }
 
         $folder = ORBISIUS_WP_SAK_APP_BASE_DIR;
-        $files_arr = glob($folder . '/sa4wp-db-export-*.*'); // list only sa4kwp exported files.
+        $files_arr = glob($folder . '/' . $db_export_file_prefix . '*.*'); // list only sa4kwp exported files.
 
+        // @todo: email the db archive as attachment.
         foreach ($files_arr as $file) {
             $file_base_name = basename($file);
             $delete_link = '?page=mod_db_dump&cmd=delete_file&file=' . urlencode($file_base_name);
@@ -1206,6 +1207,146 @@ EOF;
 
         set_time_limit($old_time_limit);
         
+        return $buff;
+    }
+}
+
+/**
+ * This module handles lists page templates.
+ */
+class Orbisius_WP_SAK_Controller_Module_Site_Packager extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>Site Packager</h4>
+<p>This module allows you to compress (tar or tar.gz) all of the site files.
+</p>
+EOF;
+    }
+
+    /**
+     *
+     */
+    public function run() {
+        $buff = '';
+        $exp_params = array();
+        $db_export_file_prefix = 'sa4wp-site-packager-';
+
+        $dir = ORBISIUS_WP_SAK_APP_BASE_DIR;
+
+        $buff .= "<p><br/><a href='?page=mod_site_packager&cmd=export_sql' class='btn btn-primary'>Export (tar)</a> | \n";
+        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_bg' class='btn btn-primary'>Export (tar) background</a> | \n";
+        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz' class='btn btn-primary'>Export (tar.gz)</a> | \n";
+        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz_bg' class='btn btn-primary'>Export (tar.gz) background</a></p>\n";
+
+        $du = `du -sh $dir 2>&1 `;
+        $du = trim($du);
+        
+        $buff .= "<br/>\n";
+        $buff .= "Disk Usage: " . $du;
+
+        $buff .= "<br/>Note: if the site is large please use background option with (tar) (linux only).\n";
+
+        if ( !empty( $_REQUEST['cmd'] ) ) {
+            if ( preg_match('#export#si', $_REQUEST['cmd'] ) ) {
+                $archive_type = preg_match('#gz#si', $_REQUEST['cmd']) ? '.tar.gz' : '.tar';
+
+                $target_dir = ORBISIUS_WP_SAK_APP_BASE_DIR . '/';
+                $output_file = $db_export_file_prefix
+                        . ORBISIUS_WP_SAK_HOST
+                        . '-'
+                        . date( 'Ymd_his' )
+                        . '-'
+                        . time()
+                        . '-'
+                        . sha1( microtime() )
+                        . $archive_type;
+
+                $output_log_file = $output_file . '.log';
+                $output_error_log_file = $output_file . '.error.log';
+
+                $exclude_items = array(
+                     'Maildir/*',
+                     'logs/*',
+                     'tmp/*',
+                     $db_export_file_prefix . '*',
+                     $db_export_file_prefix . '*.*',
+                     'sess_*', // php session files
+                     '*.log',
+                     '*.cache',
+                     $output_file,
+                     $output_log_file,
+                     $output_error_log_file,
+                     '__MACOSX', // mac
+                     '.DS_Store', // mac
+                );
+
+                $ex_arr = array();
+
+                foreach ($exclude_items as $line) {
+                     $ex_arr[] = "--exclude=" . escapeshellarg($line);
+                     $ex_arr[] = "--exclude=" . escapeshellarg('*/'. $line);
+                }
+
+                $ex_str = join(' ', $ex_arr);
+
+                // fixes: "file changed as we read it" due to creation of the log and gz file
+                // src: http://www.ensode.net/roller/dheffelfinger/entry/tar_failing_with_error_message
+                $flags .= ' --ignore-failed-read ';
+
+                // Are we creating a tar or tar.gz file
+                $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
+
+                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $target_dir $flags $ex_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
+
+                // @TODO: download only tables that are specific to the selected install!
+                // see http://qSandbox.com db dump for ideas.
+                // let's allow the script to run longer in case we download lots of files.
+                $old_time_limit = ini_get('max_execution_time');
+                set_time_limit(600);
+
+                if ( preg_match('#bg#si', $_REQUEST['cmd'] ) ) {
+                    $cmd .= ' &';
+                }
+
+                //$result = '';
+                $result = `$cmd`;
+
+                $buff .= "<pre>";
+                $buff .= "<br/>CMD: [$cmd]";
+                $buff .= " / Result: [$result]";
+                $buff .= "</pre>";
+            } elseif ( // delete file
+                        preg_match('#delete_file#si', $_REQUEST['cmd'] )
+                        && !empty($_REQUEST['file'])
+                        && preg_match('#^' . preg_quote($db_export_file_prefix) . '#si', $_REQUEST['file'] )
+                    ) {
+                $file = ORBISIUS_WP_SAK_APP_BASE_DIR . '/' . $_REQUEST['file'];
+
+                if (file_exists($file)) {
+                    unlink( $file);
+                }
+            }
+        }
+
+        $folder = ORBISIUS_WP_SAK_APP_BASE_DIR;
+        $files_arr = glob($folder . '/' . $db_export_file_prefix . '*.*'); // list only sa4kwp exported files.
+
+        foreach ($files_arr as $file) {
+            $file_base_name = basename($file);
+            $delete_link = '?page=mod_site_packager&cmd=delete_file&file=' . urlencode($file_base_name);
+            $dl_link = site_url($file_base_name);
+            $size = filesize($file);
+            $size_fmt = Orbisius_WP_SAK_Util::formatFileSize($size);
+            $buff .= "<br/><a href='$delete_link' class='btn btn-sm btn-danger'>[X]</a> ";
+            $buff .= "<a href='$dl_link'>$file_base_name ($size_fmt)</a>";
+            $buff .= "<br/>";
+        }
+
+        set_time_limit($old_time_limit);
+
         return $buff;
     }
 }
@@ -2470,6 +2611,13 @@ class Orbisius_WP_SAK_Controller {
 				$descr .= $mod_obj->run();
 
                 break;
+
+            case 'mod_site_packager':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Site_Packager();
+				$descr = $mod_obj->getInfo();
+				$descr .= $mod_obj->run();
+
+                break;
             
             case '':
             case 'home':
@@ -2652,7 +2800,8 @@ BUFF_EOF;
 				<ul class="dropdown-menu">
 					<li><a href="$script?page=mod_stats" title="Lists WordPress Site Stats.">Stats</a></li>
 					<li><a href="$script?page=mod_post_meta" title="Pulls Post Meta info from posts or pages">Post Meta</a></li>
-					<li><a href="$script?page=mod_db_dump" title="Pulls Post Meta info from posts or pages">Db Dump</a></li>
+					<li><a href="$script?page=mod_db_dump" title="Export current site db">Db Dump</a></li>
+					<li><a href="$script?page=mod_site_packager" title="Archive your site">Site Packager</a></li>
 					<li><a href="$script?page=mod_unblock" title="Unblocks your IP from Limit Login Attempts ban list">Unblock</a></li>
 					<li><a href="$script?page=mod_list_page_templates" title="Lists Page Templates">Page Templates</a></li>
 					<li><a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a></li>
