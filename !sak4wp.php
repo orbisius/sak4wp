@@ -1105,7 +1105,11 @@ EOF;
         $exp_params = array();
 
         $buff .= "<p><br/><a href='?page=mod_db_dump&cmd=export_sql' class='btn btn-primary'>Export (sql)</a> | \n";
-        $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_gz' class='btn btn-primary'>Export (sql.gz)</a></p>\n";
+        $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_bg' class='btn btn-primary'>Export (sql) background</a> | \n";
+        $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_gz' class='btn btn-primary'>Export (sql.gz)</a> | \n";
+        $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_gz_bg' class='btn btn-primary'>Export (sql.gz) background</a></p>\n";
+
+        $buff .= "<br/>Note: if the db is large please use background option (linux only).\n";
 
         if ( !empty( $_REQUEST['cmd'] ) ) {
             $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
@@ -1141,17 +1145,30 @@ EOF;
             $old_time_limit = ini_get('max_execution_time');
             set_time_limit(600);
             $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
-            $result = `$cmd 2>&1`; // bg???
+
+            $cmd .= ' 2>&1';
+
+            if ( $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
+                $cmd .= ' &';
+            }
+
+            $result = `$cmd`;
 
             $buff .= "<pre>";
             $buff .= "<br/>CMD: [$cmd]";
             $buff .= " / Result: [$result]";
             $buff .= "</pre>";
 
-            if ( $_REQUEST['cmd'] == 'export_sql_gz' ) {
+            if ( $_REQUEST['cmd'] == 'export_sql_gz' || $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
                 // @see http://unix.stackexchange.com/questions/46786/how-to-tell-gzip-to-keep-original-file
                 $gz_cmd = "gzip < $target_sql_esc > $target_sql_gz_esc";
-                $gz_result = `$gz_cmd 2>&1`; // bg???
+                $gz_cmd .= ' 2>&1';
+
+                if ( $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
+                    $gz_cmd .= ' &';
+                }
+
+                $gz_result = `$gz_cmd`;
 
                 $buff .= "<pre>";
                 $buff .= "<br/>gzip CMD: [$gz_cmd]";
