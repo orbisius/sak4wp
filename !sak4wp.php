@@ -1103,6 +1103,7 @@ EOF;
     public function run() {
         $buff = '';
         $exp_params = array();
+        $db_export_file_prefix = 'sa4wp-db-export-';
 
         $buff .= "<p><br/><a href='?page=mod_db_dump&cmd=export_sql' class='btn btn-primary'>Export (sql)</a> | \n";
         $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_bg' class='btn btn-primary'>Export (sql) background</a> | \n";
@@ -1112,68 +1113,80 @@ EOF;
         $buff .= "<br/>Note: if the db is large please use background option (linux only).\n";
 
         if ( !empty( $_REQUEST['cmd'] ) ) {
-            $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
-            $data = $mod_obj->read_wp_config();
-            
-            $exp_params[] = '--single-transaction';
-            $exp_params[] = '--hex-blob';
+            if ( preg_match('#export#si', $_REQUEST['cmd'] ) ) {
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
+                $data = $mod_obj->read_wp_config();
 
-            $exp_params[] = '-h' . escapeshellarg( $data['db_host'] );
-            $exp_params[] = '-u' . escapeshellarg( $data['db_user'] );
-            $exp_params[] = '-p' . escapeshellarg( $data['db_pass'] );
-            $exp_params[] = escapeshellarg( $data['db_name'] ); // keep it last!
+                $exp_params[] = '--single-transaction';
+                $exp_params[] = '--hex-blob';
 
-            $target_sql = 'sa4wp-db-export-' 
-                    . ORBISIUS_WP_SAK_HOST
-                    . '-'
-                    . date( 'Ymd_his' )
-                    . '-'
-                    . time()
-                    . '-'
-                    . sha1( $data['db_name'] . microtime() )
-                    //. preg_replace( '#[^\w-]#si', '', microtime() ) // no spaces and sh*t
-                    . '.sql';
+                $exp_params[] = '-h' . escapeshellarg( $data['db_host'] );
+                $exp_params[] = '-u' . escapeshellarg( $data['db_user'] );
+                $exp_params[] = '-p' . escapeshellarg( $data['db_pass'] );
+                $exp_params[] = escapeshellarg( $data['db_name'] ); // keep it last!
 
-            $target_sql_esc = escapeshellarg( $target_sql );
-            
-            $target_sql_gz = $target_sql . '.gz';
-            $target_sql_gz_esc = escapeshellarg( $target_sql_gz );
+                $target_sql = $db_export_file_prefix
+                        . ORBISIUS_WP_SAK_HOST
+                        . '-'
+                        . date( 'Ymd_his' )
+                        . '-'
+                        . time()
+                        . '-'
+                        . sha1( $data['db_name'] . microtime() )
+                        //. preg_replace( '#[^\w-]#si', '', microtime() ) // no spaces and sh*t
+                        . '.sql';
 
-            // @TODO: download only tables that are specific to the selected install!
-            // see http://qSandbox.com db dump for ideas.
-            // let's allow the script to run longer in case we download lots of files.
-            $old_time_limit = ini_get('max_execution_time');
-            set_time_limit(600);
-            $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
+                $target_sql_esc = escapeshellarg( $target_sql );
 
-            $cmd .= ' 2>&1';
+                $target_sql_gz = $target_sql . '.gz';
+                $target_sql_gz_esc = escapeshellarg( $target_sql_gz );
 
-            if ( $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
-                $cmd .= ' &';
-            }
+                // @TODO: download only tables that are specific to the selected install!
+                // see http://qSandbox.com db dump for ideas.
+                // let's allow the script to run longer in case we download lots of files.
+                $old_time_limit = ini_get('max_execution_time');
+                set_time_limit(600);
+                $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
 
-            $result = `$cmd`;
-
-            $buff .= "<pre>";
-            $buff .= "<br/>CMD: [$cmd]";
-            $buff .= " / Result: [$result]";
-            $buff .= "</pre>";
-
-            if ( $_REQUEST['cmd'] == 'export_sql_gz' || $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
-                // @see http://unix.stackexchange.com/questions/46786/how-to-tell-gzip-to-keep-original-file
-                $gz_cmd = "gzip < $target_sql_esc > $target_sql_gz_esc";
-                $gz_cmd .= ' 2>&1';
+                $cmd .= ' 2>&1';
 
                 if ( $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
-                    $gz_cmd .= ' &';
+                    $cmd .= ' &';
                 }
 
-                $gz_result = `$gz_cmd`;
+                $result = `$cmd`;
 
                 $buff .= "<pre>";
-                $buff .= "<br/>gzip CMD: [$gz_cmd]";
-                $buff .=  " / Result: [$gz_result]";
+                $buff .= "<br/>CMD: [$cmd]";
+                $buff .= " / Result: [$result]";
                 $buff .= "</pre>";
+
+                if ( $_REQUEST['cmd'] == 'export_sql_gz' || $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
+                    // @see http://unix.stackexchange.com/questions/46786/how-to-tell-gzip-to-keep-original-file
+                    $gz_cmd = "gzip < $target_sql_esc > $target_sql_gz_esc";
+                    $gz_cmd .= ' 2>&1';
+
+                    if ( $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
+                        $gz_cmd .= ' &';
+                    }
+
+                    $gz_result = `$gz_cmd`;
+
+                    $buff .= "<pre>";
+                    $buff .= "<br/>gzip CMD: [$gz_cmd]";
+                    $buff .=  " / Result: [$gz_result]";
+                    $buff .= "</pre>";
+                }
+            } elseif ( // delete file
+                        preg_match('#delete_file#si', $_REQUEST['cmd'] )
+                        && !empty($_REQUEST['file'])
+                        && preg_match('#^' . preg_quote($db_export_file_prefix) . '#si', $_REQUEST['file'] )
+                    ) {
+                $file = ORBISIUS_WP_SAK_APP_BASE_DIR . '/' . $_REQUEST['file'];
+
+                if (file_exists($file)) {
+                    unlink( $file);
+                }
             }
         }
 
@@ -1182,10 +1195,13 @@ EOF;
 
         foreach ($files_arr as $file) {
             $file_base_name = basename($file);
+            $delete_link = '?page=mod_db_dump&cmd=delete_file&file=' . urlencode($file_base_name);
             $dl_link = site_url($file_base_name);
             $size = filesize($file);
             $size_fmt = Orbisius_WP_SAK_Util::formatFileSize($size);
-            $buff .= "<br/>&nbsp; <a href='$dl_link'>$file_base_name ($size_fmt)</a>";
+            $buff .= "<br/><a href='$delete_link' class='btn btn-sm btn-danger'>[X]</a> ";
+            $buff .= "<a href='$dl_link'>$file_base_name ($size_fmt)</a>";
+            $buff .= "<br/>";
         }
 
         set_time_limit($old_time_limit);
