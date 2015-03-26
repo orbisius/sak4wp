@@ -1299,7 +1299,14 @@ EOF;
                 // Are we creating a tar or tar.gz file
                 $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
 
-                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $target_dir $flags $ex_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
+                // We want the directory prefix that goes into the archive to be
+                // the folder name and not the full system path.
+                // e.g. /var/www/vhosts/etc/aaaaa/htdocs
+                // we'll go 1 level up and zip the folder that way and later come back to the current dir.
+                $dir2compress = basename($target_dir);
+                $cur_dir = getcwd();
+                chdir(dirname($target_dir));
+                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $dir2compress $flags $ex_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
 
                 // @TODO: download only tables that are specific to the selected install!
                 // see http://qSandbox.com db dump for ideas.
@@ -1313,6 +1320,7 @@ EOF;
 
                 //$result = '';
                 $result = `$cmd`;
+                chdir($cur_dir);
 
                 $buff .= "<pre>";
                 $buff .= "<br/>CMD: [$cmd]";
