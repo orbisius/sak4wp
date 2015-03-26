@@ -1103,7 +1103,7 @@ EOF;
     public function run() {
         $buff = '';
         $exp_params = array();
-        $db_export_file_prefix = 'sa4wp-db-export-';
+        $db_export_file_prefix = '!sak4wp-db-export-';
 
         $buff .= "<p><br/><a href='?page=mod_db_dump&cmd=export_sql' class='btn btn-primary'>Export (sql)</a> | \n";
         $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_bg' class='btn btn-primary'>Export (sql) background</a> | \n";
@@ -1232,7 +1232,7 @@ EOF;
     public function run() {
         $buff = '';
         $exp_params = array();
-        $db_export_file_prefix = 'sa4wp-site-packager-';
+        $db_export_file_prefix = '!sak4wp-site-packager-';
 
         $dir = ORBISIUS_WP_SAK_APP_BASE_DIR;
 
