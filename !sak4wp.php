@@ -1268,6 +1268,8 @@ EOF;
                 $output_error_log_file = $output_file . '.error.log';
 
                 $exclude_items = array(
+                     '!sak4wp.php', // sak4wp is not necessary in the pkg
+                     '.ht-sak4wp*',
                      'Maildir/*',
                      'logs/*',
                      'tmp/*',
