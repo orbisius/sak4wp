@@ -1141,19 +1141,21 @@ EOF;
             $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
             $result = `$cmd 2>&1`; // bg???
 
+            $buff .= "<pre>";
+            $buff .= "<br/>CMD: [$cmd]";
+            $buff .= " / Result: [$result]";
+            $buff .= "</pre>";
+
             if ( $_REQUEST['cmd'] == 'export_sql_gz' ) {
                 // @see http://unix.stackexchange.com/questions/46786/how-to-tell-gzip-to-keep-original-file
                 $gz_cmd = "gzip < $target_sql_esc > $target_sql_gz_esc";
                 $gz_result = `$gz_cmd 2>&1`; // bg???
-            }
 
-            $buff .= "<pre>";
-            $buff .= "<br/>CMD: [$cmd]";
-            $buff .= " / Result: [$result]";
-            
-            $buff .= "<br/>GZip CMD: [$gz_cmd]";
-            $buff .=  " / Result: [$gz_result]";
-            $buff .= "</pre>";
+                $buff .= "<pre>";
+                $buff .= "<br/>gzip CMD: [$gz_cmd]";
+                $buff .=  " / Result: [$gz_result]";
+                $buff .= "</pre>";
+            }
         }
 
         $folder = ORBISIUS_WP_SAK_APP_BASE_DIR;
