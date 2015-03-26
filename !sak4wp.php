@@ -1135,6 +1135,8 @@ EOF;
             $target_sql_gz = $target_sql . '.gz';
             $target_sql_gz_esc = escapeshellarg( $target_sql_gz );
 
+            // @TODO: download only tables that are specific to the selected install!
+            // see http://qSandbox.com db dump for ideas.
             // let's allow the script to run longer in case we download lots of files.
             $old_time_limit = ini_get('max_execution_time');
             set_time_limit(600);
