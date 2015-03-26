@@ -1110,33 +1110,50 @@ EOF;
         if ( !empty( $_REQUEST['cmd'] ) ) {
             $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
             $data = $mod_obj->read_wp_config();
+            
+            $exp_params[] = '--single-transaction';
+            $exp_params[] = '--hex-blob';
 
-            if ( $_REQUEST['cmd'] == 'export_sql' ) {
-                $exp_params[] = '--single-transaction';
-                $exp_params[] = '--hex-blob';
+            $exp_params[] = '-h' . escapeshellarg( $data['db_host'] );
+            $exp_params[] = '-u' . escapeshellarg( $data['db_user'] );
+            $exp_params[] = '-p' . escapeshellarg( $data['db_pass'] );
+            $exp_params[] = escapeshellarg( $data['db_name'] ); // keep it last!
 
-                $exp_params[] = '-h' . escapeshellarg( $data['db_host'] );
-                $exp_params[] = '-u' . escapeshellarg( $data['db_user'] );
-                $exp_params[] = '-p' . escapeshellarg( $data['db_pass'] );
-                $exp_params[] = escapeshellarg( $data['db_name'] ); // keep it last!
+            $target_sql = 'sa4wp-db-export-' 
+                    . ORBISIUS_WP_SAK_HOST
+                    . '-'
+                    . date( 'Ymd_his' )
+                    . '-'
+                    . time()
+                    . '-'
+                    . sha1( $data['db_name'] . microtime() )
+                    //. preg_replace( '#[^\w-]#si', '', microtime() ) // no spaces and sh*t
+                    . '.sql';
 
-                $target_sql = 'sa4wp-db-export-' 
-                        . ORBISIUS_WP_SAK_HOST
-                        . '-'
-                        . date('Y-m-d')
-                        . '-'
-                        . preg_replace( '#[^\w-]#si', '', microtime() ) // no spaces and sh*t
-                        . '.sql';
-                
-                $target_sql = escapeshellarg( $target_sql );
+            $target_sql_esc = escapeshellarg( $target_sql );
+            
+            $target_sql_gz = $target_sql . '.gz';
+            $target_sql_gz_esc = escapeshellarg( $target_sql_gz );
 
-                $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql;
+            // let's allow the script to run longer in case we download lots of files.
+            $old_time_limit = ini_get('max_execution_time');
+            set_time_limit(600);
+            $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
+            $result = `$cmd 2>&1`; // bg???
 
-                $result = `$cmd 2>&1`;
-
-                $buff .= "<br/>" . $cmd;
-                $buff .= "<br/>Result: " . $result;
+            if ( $_REQUEST['cmd'] == 'export_sql_gz' ) {
+                // @see http://unix.stackexchange.com/questions/46786/how-to-tell-gzip-to-keep-original-file
+                $gz_cmd = "gzip < $target_sql_esc > $target_sql_gz_esc";
+                $gz_result = `$gz_cmd 2>&1`; // bg???
             }
+
+            $buff .= "<pre>";
+            $buff .= "<br/>CMD: [$cmd]";
+            $buff .= " / Result: [$result]";
+            
+            $buff .= "<br/>GZip CMD: [$gz_cmd]";
+            $buff .=  " / Result: [$gz_result]";
+            $buff .= "</pre>";
         }
 
         $folder = ORBISIUS_WP_SAK_APP_BASE_DIR;
@@ -1150,6 +1167,8 @@ EOF;
             $buff .= "<br/>&nbsp; <a href='$dl_link'>$file_base_name ($size_fmt)</a>";
         }
 
+        set_time_limit($old_time_limit);
+        
         return $buff;
     }
 }
