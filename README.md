@@ -143,6 +143,7 @@ Future Ideas / TODO
 - DONE: Protect WP admin directory (basic auth)
 - Check if WP is setup to use https .. and SAK4WP is not accessed via https -> show a warning or redirect
 - Add a favicon
+- Add site title to the SAK4WP so when printting content it'll show the tested site
 
 - Module: File Manager -> upload/download files, zip/unzip, (un)tar, check for large files, color large files with red > 1GB, process line per line
 
