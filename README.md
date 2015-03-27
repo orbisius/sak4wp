@@ -141,6 +141,7 @@ Future Ideas / TODO
 - Backup -> Files + Db; Send to Dropbox
 - Scan the folders for other WP installations -> manage multiple WP installs from 1 copy of the program or copy/move itself to another folder/site
 - DONE: Protect WP admin directory (basic auth)
+- Check if WP is setup to use https .. and SAK4WP is not accessed via https -> show a warning or redirect
 
 - Module: File Manager -> upload/download files, zip/unzip, (un)tar, check for large files, color large files with red > 1GB, process line per line
 
