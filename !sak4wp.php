@@ -1241,11 +1241,19 @@ EOF;
         $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz' class='btn btn-primary'>Export (tar.gz)</a> | \n";
         $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz_bg' class='btn btn-primary'>Export (tar.gz) background</a></p>\n";
 
+        // Site disk usage
         $du = `du -sh $dir 2>&1 `;
         $du = trim($du);
-        
         $buff .= "<br/>\n";
-        $buff .= "Disk Usage: " . $du;
+        $buff .= "Site Disk Usage: " . $du;
+
+        // Uploads disk usage
+        $upload_dir_rec = wp_upload_dir();
+        $upload_dir = $upload_dir_rec['basedir'];
+        $du = `du -sh $upload_dir 2>&1 `;
+        $du = trim($du);
+        $buff .= "<br/>\n";
+        $buff .= "Disk Usage (uploads): " . $du;
 
         $buff .= "<br/>Note: if the site is large please use background option with (tar) (linux only).\n";
 
@@ -1620,7 +1628,7 @@ EOF;
 		
 		// clear HTML buff around content and reduce heading tags to h4
 		$php_info = preg_replace('#.*?<body[^>]*>#si', '', $php_info);
-		$php_info = preg_replace('#</body>.*#si', '', $php_info);
+		$php_info = preg_replace('#</body.*#si', '', $php_info);
 		$php_info = preg_replace('#<h\d#si', '<h4', $php_info);
 		$php_info = preg_replace('#</\d#si', '</h4', $php_info);
 		
