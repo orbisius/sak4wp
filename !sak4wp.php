@@ -1236,10 +1236,10 @@ EOF;
 
         $dir = ORBISIUS_WP_SAK_APP_BASE_DIR;
 
-        $buff .= "<p><br/><a href='?page=mod_site_packager&cmd=export_sql' class='btn btn-primary'>Export (tar)</a> | \n";
-        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_bg' class='btn btn-primary'>Export (tar) background</a> | \n";
-        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz' class='btn btn-primary'>Export (tar.gz)</a> | \n";
-        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz_bg' class='btn btn-primary'>Export (tar.gz) background</a></p>\n";
+        $buff .= "<p><br/><a href='?page=mod_site_packager&cmd=export_sql' class='btn btn-primary'>Archive (tar)</a> | \n";
+        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_bg' class='btn btn-primary'>Archive (tar) background</a> | \n";
+        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz' class='btn btn-primary'>Archive (tar.gz)</a> | \n";
+        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz_bg' class='btn btn-primary'>Archive (tar.gz) background</a></p>\n";
 
         // Site disk usage
         $du = `du -sh $dir 2>&1 `;
