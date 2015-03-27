@@ -100,10 +100,14 @@ Site Packager
 - Can run in background (linux only)
 - Shows disk usage.
 - Automatically skips some files (logs, cache files etc, previously created archives by SAK4WP)
+- TODO: (o) backup only current WordPress site. i.e. wp-* + index.php + .htaccess all else no
+
 
 Db Export
 - This module allows you to dump the database into a nice sql file (gzip compression optional) and provides download links.
 - Can run in background (linux only)
+- Parse wp-config.php line by line and not using regex to avoid any commented out lines
+- Backup only current site's tables.
 
 Addons
 Added !sak4wp-theme-troubleshooter.php plugin. For more info see addons/!sak4wp-theme-troubleshooter.php
