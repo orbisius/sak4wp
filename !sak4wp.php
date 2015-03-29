@@ -1170,7 +1170,7 @@ EOF;
                 $file_suffix = 'full';
 
                 // Backup only tables that belong to the current site.
-                if ( !empty($_REQUEST['backup_type']) && $_REQUEST['backup_type'] == 'site_only' ) {
+                if ( empty($_REQUEST['backup_type']) && $_REQUEST['backup_type'] == 'site_only' ) {
                     $x = esc_sql($wpdb->prefix); // JIC
                     $table_names = $wpdb->get_col("SHOW TABLES LIKE '$x%'");
 
@@ -1355,6 +1355,7 @@ EOF;
         if ( !empty( $_REQUEST['cmd'] ) ) {
             $archive_start = empty($_REQUEST['archive_start']) || $_REQUEST['archive_start'] == 'do_not_add_folder' ? 'do_not_add_folder' : 'add_cur_folder';
 
+            $ex_arr = array();
             $dir2compress = './';
             $dir2chdir = './';
             $cur_dir = getcwd();
@@ -1370,7 +1371,7 @@ EOF;
                 $file_suffix = 'full';
 
                 // Let's make tar include only some files.
-                if ( $_REQUEST['backup_type'] == 'site_only' ) {
+                if ( empty($_REQUEST['backup_type']) || $_REQUEST['backup_type'] == 'site_only' ) {
                    // http://php.net/manual/en/function.tempnam.php
                    $tmp_file = tempnam(sys_get_temp_dir(), '!sak4wp-site-pkg-');
                    Orbisius_WP_SAK_Util_File::get_wp_files($dir2compress, $tmp_file);
@@ -1391,8 +1392,7 @@ EOF;
 
                 $output_log_file = $output_file . '.log';
                 $output_error_log_file = $output_file . '.error.log';
-
-                $ex_arr = array();
+                
                 $exclude_items = array(
                      '!sak4wp.php', // sak4wp is not necessary in the pkg
                      '.ht-sak4wp*',
@@ -1431,7 +1431,7 @@ EOF;
 
                 // Are we creating a tar or tar.gz file
                 $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
-                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $dir2compress $flags $inc_str $ex_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
+                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $dir2compress $flags $ex_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
 
                 if ( ! empty( $_REQUEST['bg'] ) ) {
                     $cmd .= ' &';
