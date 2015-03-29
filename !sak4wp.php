@@ -1211,6 +1211,11 @@ EOF;
 
                 $result = `$cmd`;
 
+                // No need for an empty file
+                if (file_exists($output_error_log_file) && filesize($output_error_log_file) == 0) {
+                    unlink($output_error_log_file);
+                }
+
                 $buff .= "<pre>";
                 $buff .= "<br/>CMD: [$cmd]";
                 $buff .= " / Result: [$result]";
@@ -1435,6 +1440,11 @@ EOF;
                 $result = '';
                 $result = `$cmd`;
                 chdir($cur_dir);
+
+                // No need for an empty file
+                if (file_exists($output_error_log_file) && filesize($output_error_log_file) == 0) {
+                    unlink($output_error_log_file);
+                }
 
                 $buff .= "<pre>";
                 $buff .= "<br/>CMD: [$cmd]";

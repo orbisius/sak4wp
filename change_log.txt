@@ -12,6 +12,7 @@ SAK4WP Change Log
 * Improved db export module. Using a nice form with more options + option to dump only site's tables.
 * Added suffix full or site_only to the site packager and db export modules.
 * Refactored db export module to pipe the mysqldump to a gz file using | gzip -c
+* Deleting empty error log files
 
 = 1.0.9 (2015-03-26) =
 * Added Db Export module
