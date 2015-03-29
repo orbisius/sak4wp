@@ -1164,18 +1164,7 @@ EOF;
                 $exp_params[] = '-p' . escapeshellarg( $data['db_pass'] );
                 $exp_params[] = escapeshellarg( $data['db_name'] ); // keep it last!
 
-                $target_sql = $db_export_file_prefix
-                        . ORBISIUS_WP_SAK_HOST
-                        . '-'
-                        . date( 'Ymd_his' )
-                        . '-ts-'
-                        . time()
-                        . '-'
-                        . sha1( microtime() )
-                        . '.sql';
-
-                $output_error_log_file = $target_sql . '.error.log';
-                $target_sql_esc = escapeshellarg( $target_sql );
+                $file_suffix = 'full';
 
                 // Backup only tables that belong to the current site.
                 if ( !empty($_REQUEST['backup_type']) && $_REQUEST['backup_type'] == 'site_only' ) {
@@ -1186,7 +1175,23 @@ EOF;
                         $table_names = array_map('escapeshellarg', $table_names); // JIC
                         $exp_params[] = ' ' . join(' ', $table_names);
                     }
+
+                    $file_suffix = 'site_only';
                 }
+
+                $target_sql = $db_export_file_prefix
+                        . ORBISIUS_WP_SAK_HOST
+                        . '-'
+                        . date( 'Ymd_his' )
+                        . '-ts-'
+                        . time()
+                        . '-'
+                        . sha1( microtime() )
+                        . '-' . $file_suffix
+                        . '.sql';
+
+                $output_error_log_file = $target_sql . '.error.log';
+                $target_sql_esc = escapeshellarg( $target_sql );
 
                 $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
                 $cmd .= ' 2>' . escapeshellarg($output_error_log_file);
@@ -1362,7 +1367,17 @@ EOF;
 
             if ( preg_match('#export#si', $_REQUEST['cmd'] ) ) {
                 $archive_type = preg_match('#gz#si', $_REQUEST['cmd']) ? '.tar.gz' : '.tar';
-                
+                $file_suffix = 'full';
+
+                // Let's make tar include only some files.
+                if ( $_REQUEST['backup_type'] == 'site_only' ) {
+                   // http://php.net/manual/en/function.tempnam.php
+                   $tmp_file = tempnam(sys_get_temp_dir(), '!sak4wp-site-pkg-');
+                   Orbisius_WP_SAK_Util_File::get_wp_files($dir2compress, $tmp_file);
+                   $ex_arr[] = '--files-from=' . escapeshellarg($tmp_file);
+                   $file_suffix = 'site_only';
+                }
+
                 $output_file = $db_export_file_prefix
                         . ORBISIUS_WP_SAK_HOST
                         . '-'
@@ -1371,6 +1386,7 @@ EOF;
                         . time()
                         . '-'
                         . sha1( microtime() )
+                        . '-' . $file_suffix
                         . $archive_type;
 
                 $output_log_file = $output_file . '.log';
@@ -1401,14 +1417,6 @@ EOF;
                 foreach ($exclude_items as $line) {
                      $ex_arr[] = "--exclude=" . escapeshellarg($line);
                      $ex_arr[] = "--exclude=" . escapeshellarg('*/'. $line);
-                }
-
-                // Let's make tar include only some files.
-                if ( $_REQUEST['backup_type'] == 'site_only' ) {
-                   // http://php.net/manual/en/function.tempnam.php
-                   $tmp_file = tempnam(sys_get_temp_dir(), '!sak4wp-site-pkg-');
-                   Orbisius_WP_SAK_Util_File::get_wp_files($dir2compress, $tmp_file);
-                   $ex_arr[] = '--files-from=' . escapeshellarg($tmp_file);
                 }
 
                 if ( ! empty( $_REQUEST['verify'] ) ) {
