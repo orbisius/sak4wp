@@ -1342,7 +1342,7 @@ EOF;
                 . "Archive includes files from current dir (start with ./) </label>\n";
 
         $buff .= sprintf("<br/><label><input type='radio' id='archive_start1' name='archive_start' value='add_cur_folder' /> "
-                . "Archive includes current the folder [%s]</label>\n", basename($target_dir));
+                . "Archive includes current folder [%s]</label>\n", basename($target_dir));
 
         $buff .= "<br/><br/><strong>Backup Type</strong>\n";
 		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only (smaller size; backups are ignored)</label>\n";
