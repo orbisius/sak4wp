@@ -1248,10 +1248,24 @@ EOF;
         $buff .= "<form method='post' id='mod_site_packager_form'>\n";
 		$buff .= "<input type='hidden' id='cmd' name='cmd' value='mod_site_packager' />\n";
 
-        $buff .= "<br /><strong>Stats</strong>\n";
+        $buff .= "<br /><strong>Stats / Info</strong>\n";
 
         $dir = ORBISIUS_WP_SAK_APP_BASE_DIR;
-        
+
+        $bin_check = array(
+            'find',
+            'tar',
+            'du',
+        );
+
+        foreach ($bin_check as $bin_file) {
+            $tmp_res = `$bin_file --help`;
+
+            if (preg_match('#help#si', $tmp_res)) {
+                $buff .= "<br/> $bin_file found";
+            }
+        }
+
          // Site disk usage
         $du = `du -sh $dir 2>&1 `;
         $du = trim($du);

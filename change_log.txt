@@ -4,6 +4,11 @@ SAK4WP Change Log
 
 = 1.1.0 (2015-03-??) =
 * Added disk usage of uploads dir
+* Improved Site Packager
+* - Selectively put the current folder in the archive or not
+* - Archiving only current WordPress site's files wp-* + index.php + .htaccess
+* added app_50_width, app_80_width and app_90_width css classes
+* Added a check if the used binaries (tar, du) exist
 
 = 1.0.9 (2015-03-26) =
 * Added Db Export module
