@@ -9,6 +9,7 @@ SAK4WP Change Log
 * - Archiving only current WordPress site's files wp-* + index.php + .htaccess
 * added app_50_width, app_80_width and app_90_width css classes
 * Added a check if the used binaries (tar, du) exist
+* Improved db export module. Using a nice form with more options + option to dump only site's tables.
 
 = 1.0.9 (2015-03-26) =
 * Added Db Export module

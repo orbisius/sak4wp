@@ -1105,15 +1105,48 @@ EOF;
         $exp_params = array();
         $db_export_file_prefix = '!sak4wp-db-export-';
 
-        $buff .= "<p><br/><a href='?page=mod_db_dump&cmd=export_sql' class='btn btn-primary'>Export (sql)</a> | \n";
-        $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_bg' class='btn btn-primary'>Export (sql) background</a> | \n";
-        $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_gz' class='btn btn-primary'>Export (sql.gz)</a> | \n";
-        $buff .= "<a href='?page=mod_db_dump&cmd=export_sql_gz_bg' class='btn btn-primary'>Export (sql.gz) background</a></p>\n";
+        // @TODO: download only tables that are specific to the selected install!
+        // see http://qSandbox.com db dump for ideas.
+        // let's allow the script to run longer in case we download lots of files.
+        $old_time_limit = ini_get('max_execution_time');
+        set_time_limit(600);
 
-        $buff .= "<br/>Note: if the db is large please use background option (linux only).\n";
+		$buff .= "<form method='post' id='mod_db_export_form'>\n";
+		$buff .= "<input type='hidden' id='page' name='page' value='mod_db_dump' />\n";
+
+        $buff .= "<br /><strong>Stats / Info</strong>\n";
+
+		$dir = ORBISIUS_WP_SAK_APP_BASE_DIR;
+
+        $bin_check = array(
+            'mysql',
+            'mysqldump',
+            'find',
+            'tar',
+            'du',
+            'gzip',
+        );
+
+        foreach ($bin_check as $bin_file) {
+            $tmp_res = `$bin_file --help`;
+
+            if (preg_match('#help|usage#si', $tmp_res)) {
+                $buff .= "<br/> $bin_file found";
+            } else {
+				$buff .= "<br/> $bin_file NOT found";
+			}
+        }
+
+        $buff .= "<br/><br/><strong>Archive Type</strong>\n";
+		$buff .= "<br/><label><input type='radio' id='cmd1' name='cmd' value='dump_sql' checked='checked' /> Archive (tar)</label>\n";
+		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='dump_sql_gz' /> Archive (tar.gz)</label>\n";
+		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
+
+		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
+		$buff .= "</form>\n";
 
         if ( !empty( $_REQUEST['cmd'] ) ) {
-            if ( preg_match('#export#si', $_REQUEST['cmd'] ) ) {
+            if ( preg_match('#dump_sql#si', $_REQUEST['cmd'] ) ) {
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
                 $data = $mod_obj->read_wp_config();
 
@@ -1129,28 +1162,19 @@ EOF;
                         . ORBISIUS_WP_SAK_HOST
                         . '-'
                         . date( 'Ymd_his' )
-                        . '-'
+                        . '-ts-'
                         . time()
                         . '-'
-                        . sha1( $data['db_name'] . microtime() )
-                        //. preg_replace( '#[^\w-]#si', '', microtime() ) // no spaces and sh*t
+                        . sha1( microtime() )
                         . '.sql';
 
+                $output_error_log_file = $target_sql . '.error.log';
                 $target_sql_esc = escapeshellarg( $target_sql );
-
-                $target_sql_gz = $target_sql . '.gz';
-                $target_sql_gz_esc = escapeshellarg( $target_sql_gz );
-
-                // @TODO: download only tables that are specific to the selected install!
-                // see http://qSandbox.com db dump for ideas.
-                // let's allow the script to run longer in case we download lots of files.
-                $old_time_limit = ini_get('max_execution_time');
-                set_time_limit(600);
+                
                 $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
+                $cmd .= ' 2>' . escapeshellarg($output_error_log_file);
 
-                $cmd .= ' 2>&1';
-
-                if ( $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
+                if ( !empty( $_REQUEST['bg'] ) ) {
                     $cmd .= ' &';
                 }
 
@@ -1161,7 +1185,11 @@ EOF;
                 $buff .= " / Result: [$result]";
                 $buff .= "</pre>";
 
-                if ( $_REQUEST['cmd'] == 'export_sql_gz' || $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
+                if ( preg_match('#gz#si', $_REQUEST['cmd'] ) ) {
+                    $target_sql_gz = $target_sql . '.gz';
+                    $target_sql_gz_log = $target_sql . '.gz.log';
+                    $target_sql_gz_esc = escapeshellarg( $target_sql_gz );
+
                     // @see http://unix.stackexchange.com/questions/46786/how-to-tell-gzip-to-keep-original-file
                     $gz_cmd = "gzip < $target_sql_esc > $target_sql_gz_esc";
                     $gz_cmd .= ' 2>&1';
@@ -1246,7 +1274,7 @@ EOF;
         $db_export_file_prefix = '!sak4wp-site-packager-';
 
         $buff .= "<form method='post' id='mod_site_packager_form'>\n";
-		$buff .= "<input type='hidden' id='cmd' name='cmd' value='mod_site_packager' />\n";
+		$buff .= "<input type='hidden' id='page' name='page' value='mod_site_packager' />\n";
 
         $buff .= "<br /><strong>Stats / Info</strong>\n";
 
@@ -1256,14 +1284,17 @@ EOF;
             'find',
             'tar',
             'du',
+            'gzip',
         );
 
         foreach ($bin_check as $bin_file) {
             $tmp_res = `$bin_file --help`;
 
-            if (preg_match('#help#si', $tmp_res)) {
+            if (preg_match('#help|usage#si', $tmp_res)) {
                 $buff .= "<br/> $bin_file found";
-            }
+            } else {
+				$buff .= "<br/> $bin_file NOT found";
+			}
         }
 
          // Site disk usage
@@ -1319,7 +1350,7 @@ EOF;
                         . ORBISIUS_WP_SAK_HOST
                         . '-'
                         . date( 'Ymd_his' )
-                        . '-'
+                        . '-ts-'
                         . time()
                         . '-'
                         . sha1( microtime() )
