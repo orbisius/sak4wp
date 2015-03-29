@@ -1264,7 +1264,7 @@ class Orbisius_WP_SAK_Controller_Module_Site_Packager extends Orbisius_WP_SAK_Co
     public function __construct() {
         $this->description = <<<EOF
 <h4>Site Packager</h4>
-<p>This module allows you to compress the current site (full or partially) in tar or tar.gz formats.
+<p>This module allows you to compress the current site (whole site or partially) in tar or tar.gz formats.
 </p>
 EOF;
     }
