@@ -12,12 +12,13 @@ SAK4WP Change Log
 * Improved db export module. Using a nice form with more options + option to dump only site's tables.
 * Added suffix full or site_only to the site packager and db export modules.
 * Refactored db export module to pipe the mysqldump to a gz file using | gzip -c
-* Deleting empty error log files
+* Deleting empty error log files (only if not in bg)
 * Added Db Export module
 * Export in .sql + .gz compression
 * Delete the exported sql
 * Added Site Packager -> export the whole site in .tar or .tar.gz format
 * Added sa4wp exclusion list
+* Added a special method: is_wp_backup_resource to filter out backups residing in WP folders
 
 = 1.0.8 (2014-10-03) =
 * Using ipduh.com to do IP whois instead of who.is ticket #1

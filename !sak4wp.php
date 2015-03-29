@@ -1148,7 +1148,7 @@ EOF;
 		$buff .= "<br/><label><input type='radio' id='backup_type2' name='backup_type' value='full' /> Full (all files)</label>\n";
 
         $buff .= "<br/><br/><strong>Misc</strong>\n";
-		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
+		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only) (recommended for larger sites > 100MB)</label>\n";
 
 		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
 		$buff .= "</form>\n";
@@ -1211,8 +1211,8 @@ EOF;
 
                 $result = `$cmd`;
 
-                // No need for an empty file
-                if (file_exists($output_error_log_file) && filesize($output_error_log_file) == 0) {
+                // No need for an empty file only if NOT running in bg
+                if (empty($_REQUEST['bg']) && file_exists($output_error_log_file) && filesize($output_error_log_file) == 0) {
                     unlink($output_error_log_file);
                 }
 
@@ -1342,11 +1342,11 @@ EOF;
                 . "Archive includes current the folder [%s]</label>\n", basename($target_dir));
 
         $buff .= "<br/><br/><strong>Backup Type</strong>\n";
-		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only (smaller size)</label>\n";
+		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only (smaller size; backups are ignored)</label>\n";
 		$buff .= "<br/><label><input type='radio' id='backup_type2' name='backup_type' value='full' /> Full (all files)</label>\n";
 
         $buff .= "<br/><br/><strong>Misc</strong>\n";
-		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
+		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only) (recommended for larger sites > 100MB)</label>\n";
 		$buff .= "<br/><label><input type='checkbox' id='verify' name='verify' value='1' /> Verify archive (output saved in the log file)</label>\n";
 
 		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
@@ -1364,9 +1364,17 @@ EOF;
                 $dir2compress = basename($target_dir);
                 $dir2chdir = dirname($target_dir);
                 chdir($dir2chdir);
+
+                // This is passed as 1st param to the tar command
+                // if archivig current folder and using text file no need to specify folder. I think.
+                $cmd_params_arr[] = $dir2compress;
             }
 
             if ( preg_match('#export#si', $_REQUEST['cmd'] ) ) {
+                // fixes: "file changed as we read it" due to creation of the log and gz file
+                // src: http://www.ensode.net/roller/dheffelfinger/entry/tar_failing_with_error_message
+                $cmd_params_arr[] = ' --ignore-failed-read';
+
                 // On Windows tar zcvf produces this error: tar: Cannot use compressed or remote archives
                 // If we need gzip on Windows we can do it in 2 steps.
                 // 1. tar
@@ -1406,9 +1414,11 @@ EOF;
                      'tmp/*',
                      'sess_*', // php session files
                      '*.cache',
-                     'wp-content/backupbuddy*',
+
+                     // there is another function to get backups: is_wp_backup_resource
+                     'wp-content/uploads/backupbuddy*',
+                     'wp-content/backupwordpress*',
                      'wp-snapshots/*', // Duplicator
-                     '*wp-content/backupwordpress*',
                      '__MACOSX', // mac
                      '.DS_Store', // mac
                      $db_export_file_prefix . '*',
@@ -1420,22 +1430,21 @@ EOF;
 
                 foreach ($exclude_items as $line) {
                      $cmd_params_arr[] = "--exclude=" . escapeshellarg($line);
+                     $cmd_params_arr[] = "--exclude=" . escapeshellarg($line . '/*');
                      $cmd_params_arr[] = "--exclude=" . escapeshellarg('*/'. $line);
+                     $cmd_params_arr[] = "--exclude=" . escapeshellarg('./'. $line);
                 }
 
-                if ( ! empty( $_REQUEST['verify'] ) ) {
+                // Verify only tar files.
+                if ( ! empty( $_REQUEST['verify'] ) && preg_match( '#\.tar$#si', $archive_type ) ) {
                     $cmd_params_arr[] = '--verify';
                 }
 
                 $cmd_param_str = join(' ', $cmd_params_arr);
 
-                // fixes: "file changed as we read it" due to creation of the log and gz file
-                // src: http://www.ensode.net/roller/dheffelfinger/entry/tar_failing_with_error_message
-                $flags .= ' --ignore-failed-read ';
-
                 // Are we creating a tar or tar.gz file
                 $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
-                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $dir2compress $flags $cmd_param_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
+                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $cmd_param_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
 
                 if ( ! empty( $_REQUEST['bg'] ) ) {
                     $cmd .= ' &';
@@ -1444,13 +1453,15 @@ EOF;
                 $result = `$cmd`;
                 chdir($cur_dir);
 
-                // No need for an empty file
-                if (file_exists($output_log_file) && filesize($output_log_file) == 0) {
-                    unlink($output_log_file);
-                }
+                if (empty($_REQUEST['bg'])) {
+                    // No need for an empty file only if NOT running in bg
+                    if (file_exists($output_log_file) && filesize($output_log_file) == 0) {
+                        unlink($output_log_file);
+                    }
 
-                if (file_exists($output_error_log_file) && filesize($output_error_log_file) == 0) {
-                    unlink($output_error_log_file);
+                    if (file_exists($output_error_log_file) && filesize($output_error_log_file) == 0) {
+                        unlink($output_error_log_file);
+                    }
                 }
 
                 $buff .= "<pre>";
@@ -1907,6 +1918,32 @@ class Orbisius_WP_SAK_Util_File {
     }
 
     /**
+     *
+     * @param str $file
+     * @return int
+     */
+    public static function is_wp_backup_resource($file) {
+       $is_backup_res = 0;
+
+       $exclude_list = array(
+           'wp-snapshots', // Duplicator
+           'wp-content/backup',
+           'wp-content/uploads/backup',
+           '.log',
+           '.bak',
+       );
+
+        foreach ($exclude_list as $exclude_file) {
+            if (stripos($file, $exclude_file) !== false) {
+                $is_backup_res = 1;
+                break;
+            }
+        }
+
+        return $is_backup_res;
+    }
+
+    /**
     * Finds all WP related files from a given directory.
     * the result is either returned as an array OR saved in txt file
     * which can later be used when using tar --files-from=files.txt
@@ -1940,6 +1977,11 @@ class Orbisius_WP_SAK_Util_File {
            $file = str_replace('\\', '/', $file); // win -> linux slashes
            $file = ltrim($file, './'); // rm leading ./
            $file = preg_replace('#^' . preg_quote($start_folder) . '[./]*#si', '', $file);
+
+           if (self::is_wp_backup_resource($file)) {
+               unset($files[$idx]);
+               continue;
+           }
 
            if ($file == 'htaccess') { // restore the dot
                $file = '.' . $file;
