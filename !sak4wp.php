@@ -1206,7 +1206,10 @@ EOF;
                 $cmd .= ' 2>' . $output_error_log_file_esc;
 
                 if ( !empty( $_REQUEST['bg'] ) ) {
-                    $cmd .= ' &';
+                    // creating a .done file to let the user know that the archiving has finished. Cool, eh?
+                    //$done_file_esc = escapeshellarg( $target_sql . '.done' );
+                    //$cmd = "(($cmd) && (touch $done_file_esc)) &";
+                    $cmd .= " &";
                 }
 
                 $result = `$cmd`;
@@ -1391,7 +1394,8 @@ EOF;
                    $file_suffix = 'site_only';
                 }
 
-                $output_file = $db_export_file_prefix
+                $output_file = $target_dir
+                        . $db_export_file_prefix
                         . ORBISIUS_WP_SAK_HOST
                         . '-'
                         . date( 'Ymd_his' )
@@ -1404,6 +1408,7 @@ EOF;
 
                 $output_log_file = $output_file . '.log';
                 $output_error_log_file = $output_file . '.error.log';
+                $output_done_file = $output_file . '.done';
                 
                 $exclude_items = array(
                      '!sak4wp.php', // sak4wp is not necessary in the pkg
@@ -1423,9 +1428,18 @@ EOF;
                      '.DS_Store', // mac
                      $db_export_file_prefix . '*',
                      $db_export_file_prefix . '*.*',
+
+                     // full paths
                      $output_file,
                      $output_log_file,
+                     $output_done_file,
                      $output_error_log_file,
+
+                     // just names
+                     basename($output_file),
+                     basename($output_log_file),
+                     basename($output_done_file),
+                     basename($output_error_log_file),
                 );
 
                 foreach ($exclude_items as $line) {
@@ -1442,15 +1456,26 @@ EOF;
 
                 $cmd_param_str = join(' ', $cmd_params_arr);
 
+                $output_file_esc = escapeshellarg( $output_file );
+                $output_log_file_esc = escapeshellarg( $output_log_file );
+                $output_error_log_file_esc = escapeshellarg( $output_error_log_file );
+
                 // Are we creating a tar or tar.gz file
                 $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
-                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $cmd_param_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
+                $cmd = "tar $tar_main_cmd_arg $output_file_esc $cmd_param_str > $output_log_file_esc 2> $output_error_log_file_esc";
 
                 if ( ! empty( $_REQUEST['bg'] ) ) {
-                    $cmd .= ' &';
+                    // @note: for some weird reason I can't fork the process and execute a task after it finishes.
+                    // This is strange! I wanted to know if the tar has finished.
+                    // creating a .done file to let the user know that the archiving has finished. Cool, eh?
+                    /*$output_done_file_esc = escapeshellarg( $output_file . '.done' );
+                    $cmd = "($cmd ; touch $output_done_file_esc) &";*/
+                    $cmd .= " &";
                 }
 
-                $result = `$cmd`;
+//                $result = `$cmd`;
+                $ret_val = 0;
+                system($cmd, $ret_val);
                 chdir($cur_dir);
 
                 if (empty($_REQUEST['bg'])) {

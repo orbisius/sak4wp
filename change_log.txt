@@ -19,6 +19,7 @@ SAK4WP Change Log
 * Added Site Packager -> export the whole site in .tar or .tar.gz format
 * Added sa4wp exclusion list
 * Added a special method: is_wp_backup_resource to filter out backups residing in WP folders
+* Attempted to add .done after finishing the tar but it's not working for some reason.
 
 = 1.0.8 (2014-10-03) =
 * Using ipduh.com to do IP whois instead of who.is ticket #1
