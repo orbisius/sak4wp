@@ -1101,6 +1101,7 @@ EOF;
      *
      */
     public function run() {
+        global $wpdb;
         $buff = '';
         $exp_params = array();
         $db_export_file_prefix = '!sak4wp-db-export-';
@@ -1142,6 +1143,10 @@ EOF;
 		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='dump_sql_gz' /> Archive (tar.gz)</label>\n";
 		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
 
+        $buff .= "<br/><br/><strong>Backup Type</strong>\n";
+		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only</label>\n";
+		$buff .= "<br/><label><input type='radio' id='backup_type2' name='backup_type' value='full' /> Full (all files)</label>\n";
+
 		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
 		$buff .= "</form>\n";
 
@@ -1152,6 +1157,7 @@ EOF;
 
                 $exp_params[] = '--single-transaction';
                 $exp_params[] = '--hex-blob';
+                $exp_params[] = '--skip-add-drop-table';
 
                 $exp_params[] = '-h' . escapeshellarg( $data['db_host'] );
                 $exp_params[] = '-u' . escapeshellarg( $data['db_user'] );
@@ -1170,7 +1176,18 @@ EOF;
 
                 $output_error_log_file = $target_sql . '.error.log';
                 $target_sql_esc = escapeshellarg( $target_sql );
-                
+
+                // Backup only tables that belong to the current site.
+                if ( !empty($_REQUEST['backup_type']) && $_REQUEST['backup_type'] == 'site_only' ) {
+                    $x = esc_sql($wpdb->prefix); // JIC
+                    $table_names = $wpdb->get_col("SHOW TABLES LIKE '$x%'");
+
+                    if (!empty($table_names)) {
+                        $table_names = array_map('escapeshellarg', $table_names); // JIC
+                        $exp_params[] = ' ' . join(' ', $table_names);
+                    }
+                }
+
                 $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
                 $cmd .= ' 2>' . escapeshellarg($output_error_log_file);
 
