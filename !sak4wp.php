@@ -1122,20 +1122,21 @@ EOF;
         $bin_check = array(
             'mysql',
             'mysqldump',
-            'find',
-            'tar',
-            'du',
             'gzip',
         );
 
         foreach ($bin_check as $bin_file) {
             $tmp_res = `$bin_file --help`;
 
+            $buff .= "<ul class='app-no-bullets-list app-no-padding'>\n";
+
             if (preg_match('#help|usage#si', $tmp_res)) {
-                $buff .= "<br/> $bin_file found";
+                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file found", 1) . "</li>";
             } else {
-				$buff .= "<br/> $bin_file NOT found";
+                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file NOT found", 0) . "</li>";
 			}
+
+            $buff .= "</ul>\n";
         }
 
         $buff .= "<br/><br/><strong>Archive Type</strong>\n";
@@ -1305,18 +1306,22 @@ EOF;
         $bin_check = array(
             'find',
             'tar',
-            'du',
             'gzip',
+            'du',
         );
 
         foreach ($bin_check as $bin_file) {
             $tmp_res = `$bin_file --help`;
+            
+            $buff .= "<ul class='app-no-bullets-list app-no-padding'>\n";
 
             if (preg_match('#help|usage#si', $tmp_res)) {
-                $buff .= "<br/> $bin_file found";
+                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file found", 1) . "</li>";
             } else {
-				$buff .= "<br/> $bin_file NOT found";
+                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file NOT found", 0) . "</li>";
 			}
+
+            $buff .= "</ul>\n";
         }
 
          // Site disk usage
@@ -3642,6 +3647,18 @@ which makes them look bad or blend with the background.
 
 .app_hide {
     display:none;
+}
+
+ul.app-no-bullets-list {
+    list-style-type: none;
+}
+
+.app-no-padding {
+    padding:0;
+}
+
+.app-no-margin {
+    margin:0;
 }
 
 .du_line { 
