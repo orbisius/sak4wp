@@ -148,6 +148,7 @@ Future Ideas / TODO
 - Check if WP is setup to use https .. and SAK4WP is not accessed via https -> show a warning or redirect
 - Add a favicon
 - Add site title to the SAK4WP so when printting content it'll show the tested site
+- Log viewer -> scan for *.log and either offer them for download or show last 20 lines
 
 - Module: File Manager -> upload/download files, zip/unzip, (un)tar, check for large files, color large files with red > 1GB, process line per line
 
