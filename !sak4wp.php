@@ -1347,7 +1347,7 @@ EOF;
 
         $buff .= "<br/><br/><strong>Misc</strong>\n";
 		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
-		$buff .= "<br/><label><input type='checkbox' id='verify' name='verify' value='1' /> Verify archive (outout saved in the log file)</label>\n";
+		$buff .= "<br/><label><input type='checkbox' id='verify' name='verify' value='1' /> Verify archive (output saved in the log file)</label>\n";
 
 		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
 		$buff .= "</form>\n";
