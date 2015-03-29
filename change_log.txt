@@ -2,7 +2,7 @@
 SAK4WP Change Log
 =================
 
-= 1.1.0 (2015-03-??) =
+= 1.0.9 (2015-03-??) =
 * Added disk usage of uploads dir
 * Improved Site Packager
 * - Selectively put the current folder in the archive or not
@@ -13,8 +13,6 @@ SAK4WP Change Log
 * Added suffix full or site_only to the site packager and db export modules.
 * Refactored db export module to pipe the mysqldump to a gz file using | gzip -c
 * Deleting empty error log files
-
-= 1.0.9 (2015-03-26) =
 * Added Db Export module
 * Export in .sql + .gz compression
 * Delete the exported sql
