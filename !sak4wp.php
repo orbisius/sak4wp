@@ -1273,6 +1273,8 @@ EOF;
      *
      */
     public function run() {
+        $buff = '';
+
         // @TODO: download only tables that are specific to the selected install!
         // see http://qSandbox.com db dump for ideas.
         // let's allow the script to run longer in case we download lots of files.
@@ -1284,8 +1286,6 @@ EOF;
         // e.g. /var/www/vhosts/etc/aaaaa/htdocs
         // we'll go 1 level up and zip the folder that way and later come back to the current dir.
         $target_dir = ORBISIUS_WP_SAK_APP_BASE_DIR . '/';
-
-        $buff = '';
         $db_export_file_prefix = '!sak4wp-site-packager-';
 
         $buff .= "<form method='post' id='mod_site_packager_form'>\n";
@@ -1332,7 +1332,7 @@ EOF;
 
         $buff .= "<br/><br/><strong>Archive Type</strong>\n";
 		$buff .= "<br/><label><input type='radio' id='cmd1' name='cmd' value='export_sql' checked='checked' /> Archive (tar)</label>\n";
-		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='export_sql_gz' /> Archive (tar.gz)</label>\n";
+		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='export_sql_gz' /> Archive (tar.gz - linux only)</label>\n";
 
         $buff .= "<br/><br/><strong>Archive Folder Prefix</strong>\n";
         $buff .= "<br/><label><input type='radio' id='archive_start2' name='archive_start' value='do_not_add_folder' checked='checked' /> "
@@ -1367,7 +1367,11 @@ EOF;
             }
 
             if ( preg_match('#export#si', $_REQUEST['cmd'] ) ) {
-                $archive_type = preg_match('#gz#si', $_REQUEST['cmd']) ? '.tar.gz' : '.tar';
+                // On Windows tar zcvf produces this error: tar: Cannot use compressed or remote archives
+                // If we need gzip on Windows we can do it in 2 steps.
+                // 1. tar
+                // 2. gzip $gz_cmd = "gzip < $target_sql_esc > $target_sql_gz_esc";
+                $archive_type = preg_match('#gz#si', $_REQUEST['cmd']) && !Orbisius_WP_SAK_Util::isWindows() ? '.tar.gz' : '.tar';
                 $file_suffix = 'full';
 
                 // Let's make tar include only some files.
@@ -1437,7 +1441,6 @@ EOF;
                     $cmd .= ' &';
                 }
 
-                $result = '';
                 $result = `$cmd`;
                 chdir($cur_dir);
 
@@ -1959,13 +1962,22 @@ class Orbisius_WP_SAK_Util_File {
 */
 class Orbisius_WP_SAK_Util {
 	public static $curl_options = array(
-        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows; U; Windows NT 5.1; pl; rv:1.9) Gecko/2008052906 Firefox/3.0',
+        CURLOPT_USERAGENT => 'SAK4WP/1.0',
         CURLOPT_AUTOREFERER => true,
         CURLOPT_COOKIEFILE => '',
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_TIMEOUT => 400,
-	);	
+        CURLOPT_TIMEOUT => 600,
+	);
+
+    /**
+     * Orbisius_WP_SAK_Util::isWindows()
+     * @return bool
+     */
+    public static function isWindows() {
+        $yes = stristr(PHP_OS, 'WIN');
+        return $yes;
+    }
 
     /**
      * Gets IP. This may require checking some $_SERVER variables ... if the user is using a proxy.
