@@ -1230,18 +1230,29 @@ EOF;
      *
      */
     public function run() {
+        // @TODO: download only tables that are specific to the selected install!
+        // see http://qSandbox.com db dump for ideas.
+        // let's allow the script to run longer in case we download lots of files.
+        $old_time_limit = ini_get('max_execution_time');
+        set_time_limit(600);
+
+        // We want the directory prefix that goes into the archive to be
+        // the folder name and not the full system path.
+        // e.g. /var/www/vhosts/etc/aaaaa/htdocs
+        // we'll go 1 level up and zip the folder that way and later come back to the current dir.
+        $target_dir = ORBISIUS_WP_SAK_APP_BASE_DIR . '/';
+
         $buff = '';
-        $exp_params = array();
         $db_export_file_prefix = '!sak4wp-site-packager-';
 
+        $buff .= "<form method='post' id='mod_site_packager_form'>\n";
+		$buff .= "<input type='hidden' id='cmd' name='cmd' value='mod_site_packager' />\n";
+
+        $buff .= "<br /><strong>Stats</strong>\n";
+
         $dir = ORBISIUS_WP_SAK_APP_BASE_DIR;
-
-        $buff .= "<p><br/><a href='?page=mod_site_packager&cmd=export_sql' class='btn btn-primary'>Archive (tar)</a> | \n";
-        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_bg' class='btn btn-primary'>Archive (tar) background</a> | \n";
-        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz' class='btn btn-primary'>Archive (tar.gz)</a> | \n";
-        $buff .= "<a href='?page=mod_site_packager&cmd=export_sql_gz_bg' class='btn btn-primary'>Archive (tar.gz) background</a></p>\n";
-
-        // Site disk usage
+        
+         // Site disk usage
         $du = `du -sh $dir 2>&1 `;
         $du = trim($du);
         $buff .= "<br/>\n";
@@ -1255,13 +1266,41 @@ EOF;
         $buff .= "<br/>\n";
         $buff .= "Disk Usage (uploads): " . $du;
 
-        $buff .= "<br/>Note: if the site is large please use background option with (tar) (linux only).\n";
+        $buff .= "<br/><br/><strong>Archive Type</strong>\n";
+		$buff .= "<br/><label><input type='radio' id='cmd1' name='cmd' value='export_sql' checked='checked' /> Archive (tar)</label>\n";
+		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='export_sql_gz' /> Archive (tar.gz)</label>\n";
+		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
+		$buff .= "<br/><label><input type='checkbox' id='verify' name='verify' value='1' /> Verify archive (outout saved in the log file)</label>\n";
+
+        $buff .= "<br/><label><input type='radio' id='archive_start2' name='archive_start' value='do_not_add_folder' checked='checked' /> "
+                . "Archive includes files from current dir (start with ./) </label>\n";
+
+        $buff .= sprintf("<br/><label><input type='radio' id='archive_start1' name='archive_start' value='add_cur_folder' /> "
+                . "Archive includes current the folder [%s]</label>\n", basename($target_dir));
+
+        $buff .= "<br/><br/><strong>Backup Type</strong>\n";
+		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only</label>\n";
+		$buff .= "<br/><label><input type='radio' id='backup_type2' name='backup_type' value='full' /> Full (all files)</label>\n";
+
+		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
+		$buff .= "</form>\n";
 
         if ( !empty( $_REQUEST['cmd'] ) ) {
+            $archive_start = empty($_REQUEST['archive_start']) || $_REQUEST['archive_start'] == 'do_not_add_folder' ? 'do_not_add_folder' : 'add_cur_folder';
+
+            $dir2compress = './';
+            $dir2chdir = './';
+            $cur_dir = getcwd();
+            
+            if ($archive_start == 'add_cur_folder') {
+                $dir2compress = basename($target_dir);
+                $dir2chdir = dirname($target_dir);
+                chdir($dir2chdir);
+            }
+
             if ( preg_match('#export#si', $_REQUEST['cmd'] ) ) {
                 $archive_type = preg_match('#gz#si', $_REQUEST['cmd']) ? '.tar.gz' : '.tar';
-
-                $target_dir = ORBISIUS_WP_SAK_APP_BASE_DIR . '/';
+                
                 $output_file = $db_export_file_prefix
                         . ORBISIUS_WP_SAK_HOST
                         . '-'
@@ -1275,29 +1314,43 @@ EOF;
                 $output_log_file = $output_file . '.log';
                 $output_error_log_file = $output_file . '.error.log';
 
+                $ex_arr = array();
                 $exclude_items = array(
                      '!sak4wp.php', // sak4wp is not necessary in the pkg
                      '.ht-sak4wp*',
                      'Maildir/*',
+                     '*.log',
                      'logs/*',
                      'tmp/*',
+                     'sess_*', // php session files
+                     '*.cache',
+                     'wp-content/backupbuddy*',
+                     'wp-snapshots/*', // Duplicator
+                     '*wp-content/backupwordpress*',
+                     '__MACOSX', // mac
+                     '.DS_Store', // mac
                      $db_export_file_prefix . '*',
                      $db_export_file_prefix . '*.*',
-                     'sess_*', // php session files
-                     '*.log',
-                     '*.cache',
                      $output_file,
                      $output_log_file,
                      $output_error_log_file,
-                     '__MACOSX', // mac
-                     '.DS_Store', // mac
                 );
-
-                $ex_arr = array();
 
                 foreach ($exclude_items as $line) {
                      $ex_arr[] = "--exclude=" . escapeshellarg($line);
                      $ex_arr[] = "--exclude=" . escapeshellarg('*/'. $line);
+                }
+
+                // Let's make tar include only some files.
+                if ( $_REQUEST['backup_type'] == 'site_only' ) {
+                   // http://php.net/manual/en/function.tempnam.php
+                   $tmp_file = tempnam(sys_get_temp_dir(), '!sak4wp-site-pkg-');
+                   Orbisius_WP_SAK_Util_File::get_wp_files($dir2compress, $tmp_file);
+                   $ex_arr[] = '--files-from=' . escapeshellarg($tmp_file);
+                }
+
+                if ( ! empty( $_REQUEST['verify'] ) ) {
+                    $ex_arr[] = '--verify';
                 }
 
                 $ex_str = join(' ', $ex_arr);
@@ -1308,27 +1361,13 @@ EOF;
 
                 // Are we creating a tar or tar.gz file
                 $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
+                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $dir2compress $flags $inc_str $ex_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
 
-                // We want the directory prefix that goes into the archive to be
-                // the folder name and not the full system path.
-                // e.g. /var/www/vhosts/etc/aaaaa/htdocs
-                // we'll go 1 level up and zip the folder that way and later come back to the current dir.
-                $dir2compress = basename($target_dir);
-                $cur_dir = getcwd();
-                chdir(dirname($target_dir));
-                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $dir2compress $flags $ex_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
-
-                // @TODO: download only tables that are specific to the selected install!
-                // see http://qSandbox.com db dump for ideas.
-                // let's allow the script to run longer in case we download lots of files.
-                $old_time_limit = ini_get('max_execution_time');
-                set_time_limit(600);
-
-                if ( preg_match('#bg#si', $_REQUEST['cmd'] ) ) {
+                if ( ! empty( $_REQUEST['bg'] ) ) {
                     $cmd .= ' &';
                 }
 
-                //$result = '';
+                $result = '';
                 $result = `$cmd`;
                 chdir($cur_dir);
 
@@ -1784,6 +1823,56 @@ class Orbisius_WP_SAK_Util_File {
 
         return $buff;
     }
+
+    /**
+    * Finds all WP related files from a given directory.
+    * the result is either returned as an array OR saved in txt file
+    * which can later be used when using tar --files-from=files.txt
+     * Usage: Orbisius_WP_SAK_Util_File::get_wp_files();
+    * @param str $start_folder
+    * @param str $target_file
+    * @return array or bool when file is saved.
+    */
+   public static function get_wp_files($start_folder = '.', $target_file = '') {
+       $start_folder = str_replace('\\', '/', $start_folder); // win -> linux slashes
+       $start_folder = rtrim($start_folder, '/');
+       $result = `find $start_folder -name "wp-*" -print`; // only one type of extensions is search not OR search; sometimes it puts files that match wp-
+       $result = trim($result); // rm last empty line
+       $files = preg_split('#[\r\n]+#si', $result);
+       $files = preg_grep('#^'.preg_quote($start_folder) . '[./\\\]*wp-#si', $files); // there could be a starting ./ & make sure they all start with wp-
+
+       $auto_append_files = array(
+           '.htaccess',
+           'index.php',
+       );
+
+       $x = rtrim($start_folder, '/') . '/';
+
+       foreach ($auto_append_files as $file) {
+           if (is_file( $x . $file)) {
+               $files[] = $x . $file;
+           }
+       }
+
+       foreach ($files as $idx => $file) {
+           $file = str_replace('\\', '/', $file); // win -> linux slashes
+           $file = ltrim($file, './'); // rm leading ./
+           $file = preg_replace('#^' . preg_quote($start_folder) . '[./]*#si', '', $file);
+
+           if ($file == 'htaccess') { // restore the dot
+               $file = '.' . $file;
+           }
+
+           $files[$idx] = $file;
+       }
+
+       if (!empty($target_file)) {
+           $stat = file_put_contents($target_file, join("\n", $files), LOCK_EX);
+           return $stat;
+       }
+
+       return $files;
+   }
 }
 
 /**
@@ -3405,6 +3494,18 @@ which makes them look bad or blend with the background.
 }
 
 /* Form fields */
+.app_50_width {
+	width:50%;
+}
+
+.app_80_width {
+	width:80%;
+}
+
+.app_90_width {
+	width:90%;
+}
+
 .app_full_width {
 	width:100%;
 }
