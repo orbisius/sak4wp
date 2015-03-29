@@ -1355,7 +1355,7 @@ EOF;
         if ( !empty( $_REQUEST['cmd'] ) ) {
             $archive_start = empty($_REQUEST['archive_start']) || $_REQUEST['archive_start'] == 'do_not_add_folder' ? 'do_not_add_folder' : 'add_cur_folder';
 
-            $ex_arr = array();
+            $cmd_params_arr = array();
             $dir2compress = './';
             $dir2chdir = './';
             $cur_dir = getcwd();
@@ -1375,7 +1375,7 @@ EOF;
                    // http://php.net/manual/en/function.tempnam.php
                    $tmp_file = tempnam(sys_get_temp_dir(), '!sak4wp-site-pkg-');
                    Orbisius_WP_SAK_Util_File::get_wp_files($dir2compress, $tmp_file);
-                   $ex_arr[] = '--files-from=' . escapeshellarg($tmp_file);
+                   $cmd_params_arr[] = '--files-from=' . escapeshellarg($tmp_file);
                    $file_suffix = 'site_only';
                 }
 
@@ -1415,15 +1415,15 @@ EOF;
                 );
 
                 foreach ($exclude_items as $line) {
-                     $ex_arr[] = "--exclude=" . escapeshellarg($line);
-                     $ex_arr[] = "--exclude=" . escapeshellarg('*/'. $line);
+                     $cmd_params_arr[] = "--exclude=" . escapeshellarg($line);
+                     $cmd_params_arr[] = "--exclude=" . escapeshellarg('*/'. $line);
                 }
 
                 if ( ! empty( $_REQUEST['verify'] ) ) {
-                    $ex_arr[] = '--verify';
+                    $cmd_params_arr[] = '--verify';
                 }
 
-                $ex_str = join(' ', $ex_arr);
+                $cmd_param_str = join(' ', $cmd_params_arr);
 
                 // fixes: "file changed as we read it" due to creation of the log and gz file
                 // src: http://www.ensode.net/roller/dheffelfinger/entry/tar_failing_with_error_message
@@ -1431,7 +1431,7 @@ EOF;
 
                 // Are we creating a tar or tar.gz file
                 $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
-                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $dir2compress $flags $ex_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
+                $cmd = "tar $tar_main_cmd_arg $target_dir$output_file $dir2compress $flags $cmd_param_str > $target_dir$output_log_file 2> $target_dir$output_error_log_file";
 
                 if ( ! empty( $_REQUEST['bg'] ) ) {
                     $cmd .= ' &';
@@ -1442,6 +1442,10 @@ EOF;
                 chdir($cur_dir);
 
                 // No need for an empty file
+                if (file_exists($output_log_file) && filesize($output_log_file) == 0) {
+                    unlink($output_log_file);
+                }
+
                 if (file_exists($output_error_log_file) && filesize($output_error_log_file) == 0) {
                     unlink($output_error_log_file);
                 }
