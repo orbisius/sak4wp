@@ -1142,11 +1142,13 @@ EOF;
         $buff .= "<br/><br/><strong>Archive Type</strong>\n";
 		$buff .= "<br/><label><input type='radio' id='cmd1' name='cmd' value='dump_sql' checked='checked' /> Archive (tar)</label>\n";
 		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='dump_sql_gz' /> Archive (tar.gz)</label>\n";
-		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
 
         $buff .= "<br/><br/><strong>Backup Type</strong>\n";
 		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only</label>\n";
 		$buff .= "<br/><label><input type='radio' id='backup_type2' name='backup_type' value='full' /> Full (all files)</label>\n";
+
+        $buff .= "<br/><br/><strong>Misc</strong>\n";
+		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
 
 		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
 		$buff .= "</form>\n";
@@ -1341,9 +1343,8 @@ EOF;
         $buff .= "<br/><br/><strong>Archive Type</strong>\n";
 		$buff .= "<br/><label><input type='radio' id='cmd1' name='cmd' value='export_sql' checked='checked' /> Archive (tar)</label>\n";
 		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='export_sql_gz' /> Archive (tar.gz)</label>\n";
-		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
-		$buff .= "<br/><label><input type='checkbox' id='verify' name='verify' value='1' /> Verify archive (outout saved in the log file)</label>\n";
 
+        $buff .= "<br/><br/><strong>Archive Folder Prefix</strong>\n";
         $buff .= "<br/><label><input type='radio' id='archive_start2' name='archive_start' value='do_not_add_folder' checked='checked' /> "
                 . "Archive includes files from current dir (start with ./) </label>\n";
 
@@ -1351,8 +1352,12 @@ EOF;
                 . "Archive includes current the folder [%s]</label>\n", basename($target_dir));
 
         $buff .= "<br/><br/><strong>Backup Type</strong>\n";
-		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only</label>\n";
+		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only (smaller size)</label>\n";
 		$buff .= "<br/><label><input type='radio' id='backup_type2' name='backup_type' value='full' /> Full (all files)</label>\n";
+
+        $buff .= "<br/><br/><strong>Misc</strong>\n";
+		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only)</label>\n";
+		$buff .= "<br/><label><input type='checkbox' id='verify' name='verify' value='1' /> Verify archive (outout saved in the log file)</label>\n";
 
 		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
 		$buff .= "</form>\n";
