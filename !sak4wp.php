@@ -1170,7 +1170,7 @@ EOF;
                 $file_suffix = 'full';
 
                 // Backup only tables that belong to the current site.
-                if ( empty($_REQUEST['backup_type']) && $_REQUEST['backup_type'] == 'site_only' ) {
+                if ( empty($_REQUEST['backup_type']) || $_REQUEST['backup_type'] == 'site_only' ) {
                     $x = esc_sql($wpdb->prefix); // JIC
                     $table_names = $wpdb->get_col("SHOW TABLES LIKE '$x%'");
 
