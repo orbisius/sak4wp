@@ -1140,8 +1140,8 @@ EOF;
         }
 
         $buff .= "<br/><br/><strong>Archive Type</strong>\n";
-		$buff .= "<br/><label><input type='radio' id='cmd1' name='cmd' value='dump_sql' checked='checked' /> Archive (tar)</label>\n";
-		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='dump_sql_gz' /> Archive (tar.gz)</label>\n";
+		$buff .= "<br/><label><input type='radio' id='cmd1' name='cmd' value='dump_sql' checked='checked' /> Archive (sql)</label>\n";
+		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='dump_sql_gz' /> Archive (sql.gz)</label>\n";
 
         $buff .= "<br/><br/><strong>Backup Type</strong>\n";
 		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only</label>\n";
@@ -1193,11 +1193,17 @@ EOF;
                         . '-' . $file_suffix
                         . '.sql';
 
-                $output_error_log_file = $target_sql . '.error.log';
+                if ( preg_match('#gz#si', $_REQUEST['cmd'] ) ) {
+                    $exp_params[] = '| gzip -c';
+                    $target_sql .= '.gz';
+                }
+
                 $target_sql_esc = escapeshellarg( $target_sql );
+                $output_error_log_file = $target_sql . '.error.log';
+                $output_error_log_file_esc = escapeshellarg($output_error_log_file);
 
                 $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
-                $cmd .= ' 2>' . escapeshellarg($output_error_log_file);
+                $cmd .= ' 2>' . $output_error_log_file_esc;
 
                 if ( !empty( $_REQUEST['bg'] ) ) {
                     $cmd .= ' &';
@@ -1209,27 +1215,6 @@ EOF;
                 $buff .= "<br/>CMD: [$cmd]";
                 $buff .= " / Result: [$result]";
                 $buff .= "</pre>";
-
-                if ( preg_match('#gz#si', $_REQUEST['cmd'] ) ) {
-                    $target_sql_gz = $target_sql . '.gz';
-                    $target_sql_gz_log = $target_sql . '.gz.log';
-                    $target_sql_gz_esc = escapeshellarg( $target_sql_gz );
-
-                    // @see http://unix.stackexchange.com/questions/46786/how-to-tell-gzip-to-keep-original-file
-                    $gz_cmd = "gzip < $target_sql_esc > $target_sql_gz_esc";
-                    $gz_cmd .= ' 2>&1';
-
-                    if ( $_REQUEST['cmd'] == 'export_sql_gz_bg' ) {
-                        $gz_cmd .= ' &';
-                    }
-
-                    $gz_result = `$gz_cmd`;
-
-                    $buff .= "<pre>";
-                    $buff .= "<br/>gzip CMD: [$gz_cmd]";
-                    $buff .=  " / Result: [$gz_result]";
-                    $buff .= "</pre>";
-                }
             } elseif ( // delete file
                         preg_match('#delete_file#si', $_REQUEST['cmd'] )
                         && !empty($_REQUEST['file'])
