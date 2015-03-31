@@ -1892,10 +1892,20 @@ class Orbisius_WP_SAK_Util_File {
     const FILE_APPEND = 8;
 
     /**
+     * Attempts to find the path to a binary by iterating over several cases.
+     *
      * Usage: Orbisius_WP_SAK_Util_File::getBinary();
      * @param str $file
+     * borrowed from SAK4WP
      */
     public static function getBinary($file) {
+        $file_esc = escapeshellcmd($file);
+
+        // hmm, what did we receive? that required escaping?
+        if ($file != $file_esc) {
+            return false;
+        }
+
         $options = $output_arr = array();
         $return_var = false;
 
@@ -1904,6 +1914,8 @@ class Orbisius_WP_SAK_Util_File {
         $options[] = "/usr/bin/$file";
         $options[] = "/usr/local/bin/$file";
         $options[] = "/usr/sbin/$file";
+
+        $options = array_unique($options);
 
         foreach ($options as $file) {
             $cmd = "$file --help 2>&1";
