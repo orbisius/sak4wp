@@ -41,15 +41,15 @@ define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 // this stops WP Super Cache and W3 Total Cache from caching
 define( 'WP_CACHE', false );
 
-/*error_reporting(E_ALL);
-ini_set('display_errors', 1);*/
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 try {
     $ctrl = Orbisius_WP_SAK_Controller::getInstance();
     $ctrl->init();
 
     $ctrl->preRun();
-    
+
     // This WP load may fail which we'll check()
     include_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wp-load.php');
 
@@ -57,11 +57,11 @@ try {
     $ctrl->run();
     $ctrl->postRun();
 } catch (Exception $e) {
-    
+
 }
 
 /**
- * 
+ *
  */
 class Orbisius_WP_SAK_Controller_Module {
     protected $description = '';
@@ -98,13 +98,13 @@ class Orbisius_WP_SAK_Controller_Module {
  */
 class Orbisius_WP_SAK_Controller_Module_Self_Protect extends Orbisius_WP_SAK_Controller_Module {
 	private $first_run_file;
-	
+
     /**
      * Setups the object stuff and defines some descriptions
      */
     public function __construct() {
 		$this->first_run_file = Orbisius_WP_SAK_Util::getWPUploadsDir() . '.ht-sak4wp-' . ORBISIUS_WP_SAK_HOST;
-		
+
         $this->description = <<<EOF
 <h4>Self Protect</h4>
 <p>
@@ -120,12 +120,12 @@ EOF;
      */
     public function run() {
         $buff = '';
-		
+
 		$this->checkFirstRun();
-		
+
         return $buff;
-    }  
-	
+    }
+
     /**
      * Checks if the script is access from a different IP or browser.
 	 * It dies with an error
@@ -139,26 +139,26 @@ EOF;
 
 		if (file_exists($first_run_file)) {
 			$data = Orbisius_WP_SAK_Util_File::read($first_run_file, Orbisius_WP_SAK_Util_File::UNSERIALIZE);
-			
+
 			// If any of the recorded info is different, we don't want to deal with that person.
-			if (empty($data) || $data['ip'] != $ip || $data['ua'] != $ua) {			
+			if (empty($data) || $data['ip'] != $ip || $data['ua'] != $ua) {
 				$ctrl = Orbisius_WP_SAK_Controller::getInstance();
 				$ctrl->doExit('Error');
 			}
 		} else {
 			$creation_time = time();
-		
+
 			$data['ua'] = $ua;
 			$data['ip'] = $ip;
 			$data['creation_time'] = $creation_time;
 			$data['hash'] = sha1($ua . $ip . $creation_time . ORBISIUS_WP_SAK_HOST);
-			
+
 			Orbisius_WP_SAK_Util_File::write($first_run_file, $data, Orbisius_WP_SAK_Util_File::SERIALIZE);
 		}
-		
+
         return true;
     }
-	
+
 	/**
 	* Removes the first run file. This file prevents other users from accessing the file.
 	* Even the browser has to match.
@@ -175,7 +175,7 @@ class Orbisius_WP_SAK_Controller_Module_Example extends Orbisius_WP_SAK_Controll
     /**
      * Setups the object stuff and defines some descriptions
      */
-    public function __construct() {     
+    public function __construct() {
         $this->description = <<<EOF
 <h4>Example</h4>
 <p>This module allows you to ...
@@ -184,7 +184,7 @@ EOF;
     }
 
     /**
-     * 
+     *
      */
     public function run() {
         $buff = '';
@@ -192,27 +192,27 @@ EOF;
         if (!empty($_REQUEST['cmd'])) {
             if ($_REQUEST['cmd'] == 'command') {
                 $text = empty($_REQUEST['text']) ? substr(sha1(mt_rand(100, 1000) . time()), 0, 6) : trim($_REQUEST['text']);
-				
+
                 $this->doSomething($text);
 
                 $buff .= "<br/>";
             }
         }
-		
+
         // Let's show delete button if any if the files exists.
         if ($ht_files_exist) {
             $buff .= "<p><br/><a href='?page=mod_htaccess&cmd=delete_htaccess' class='app-module-self-destroy-button'
                     onclick='return confirm('Are you sure?', '');'>delete .htaccess & .htpasswd files.</a></p>\n";
         }
-        
+
         return $buff;
     }
-    
+
     /**
      * Sample Method
      */
     public function doSomething($text) {
-        
+
         return $text;
     }
 }
@@ -309,7 +309,7 @@ BUFF_EOF;
         $msg = '';
         $result_html = '';
         $status = 1;
-        
+
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $post_ids_list = $ctrl->getVar('post_id'); // could be 1 or more IDs
 
@@ -360,11 +360,11 @@ BUFF_EOF;
         if (count($meta) == 1) {
             $meta = $meta[0];
         }
-        
+
         $str .= "<h3>Post/Page ID: $post_id ($link_str)</h3><pre>" . var_export($post, 1) . "</pre>\n";
         $str .= '<h3>Post/Page Meta</h3><pre class="toggle_info000">' . var_export($meta, 1) . "</pre>\n";
         $str .= '<h3>Author Meta</h3><pre class="toggle_info000">' . var_export($author_meta, 1) . "</pre>\n";
-        
+
         return $str;
     }
 }
@@ -381,7 +381,7 @@ class Orbisius_WP_SAK_Controller_Module_User_Manager extends Orbisius_WP_SAK_Con
 		if (!empty($_REQUEST['user_id'])) {
 			$this->loginAs();
 		}
-	
+
         $this->description = <<<EOF
 <h4>User Manager</h4>
 <p>This module allows you to see user account, user meta info, to log in as a user without knowing their password. TODO: Create, delete users.
@@ -389,15 +389,15 @@ Administrator accounts are highlighted.</p>
 EOF;
 
 		$current_user = wp_get_current_user();
-					
+
 		if (!empty($current_user->ID)) {
-			$this->description .= "<span class='app_logged_in app-simple-alert-success'>Currently Logged User: $current_user->display_name 
+			$this->description .= "<span class='app_logged_in app-simple-alert-success'>Currently Logged User: $current_user->display_name
 				[$current_user->user_email] (ID: $current_user->ID)</span>";
 		} else {
 			$this->description .= "<span class='app_not_logged_in'>Currently Logged User: (none)</span>";
 		}
-		
-		$this->description .= "<br/>";		
+
+		$this->description .= "<br/>";
     }
 
     /**
@@ -412,36 +412,36 @@ EOF;
 		$records = array();
 
 		$highlight_admins = array();
-		
+
         foreach ($data as $idx => $user_obj) {
 			$rec = (array) $user_obj->data;
-			
+
 			// Let's remove those fields because the table can't fit more than 5
 			unset($rec['user_url']);
 			unset($rec['user_pass']);
 			unset($rec['user_status']);
 			unset($rec['user_activation_key']);
-			
+
 			// This allows us to swich the user to a different one.
 			$rec['user_login'] .= " (<a href='?page=mod_user_manager&user_id=$user_obj->ID'>Login</a>)";
-					
+
             $user_meta = get_user_meta($user_obj->ID);
 
             $rec['ID'] .= " (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide meta</a>)\n" .
                 '<pre class="toggle_info app_hide">' . var_export($user_meta, 1) . "</pre>\n";
-						
+
 			$records[] = $rec;
-			
+
 			if (user_can($user_obj->ID, 'manage_options' )) {
 				$highlight_admins[] = $idx;
 			}
         }
-        
+
         $buff .= "<p class='results'></p>\n";
 
 		$ctrl = Orbisius_WP_SAK_Controller::getInstance();
 		$buff .= $ctrl->renderTable('Users: ' . count($data), '', $records, $highlight_admins);
-		
+
         return $buff;
     }
 
@@ -452,7 +452,7 @@ EOF;
     public function loginAs() {
 		$user_id = empty($_REQUEST['user_id']) ? 0 : intval($_REQUEST['user_id']);
 		wp_set_auth_cookie( $user_id, false, is_ssl() );
-		
+
 		wp_redirect('?page=mod_user_manager&logged_in_as=' . $user_id);
 		exit;
     }
@@ -469,30 +469,30 @@ class Orbisius_WP_SAK_Controller_Module_Plugin_Manager extends Orbisius_WP_SAK_C
     public function __construct() {
 		$this->target_dir = WP_PLUGIN_DIR;
 		$warning = Orbisius_WP_SAK_Util::msg("If the plugin already exists its files will be overridden!", 0);
-		 
+
         $this->description = <<<EOF
 <h4>Plugin Manager</h4>
-<p>This module allows you to manage plugins: bulk download, install, and activate plugins. TODO: (de)activate, delete. Just enter the plugin's WordPress.org page 
+<p>This module allows you to manage plugins: bulk download, install, and activate plugins. TODO: (de)activate, delete. Just enter the plugin's WordPress.org page
     or a zip file location (web). Enter multiple links each on a new line. Warning: If the plugin already exists its files will be overridden!
 <br/> Plugins will be extracted in: <strong>$this->target_dir</strong> <br/>
 
 $warning
 </p>
 EOF;
-		
+
     }
 
     /**
-     * 
+     *
      */
     public function run() {
         $buff = '';
 
-		$download_list_url = empty($_REQUEST['download_list_url']) ? '' : trim($_REQUEST['download_list_url']);	
-		$download_list_url_esc = esc_attr($download_list_url);		
+		$download_list_url = empty($_REQUEST['download_list_url']) ? '' : trim($_REQUEST['download_list_url']);
+		$download_list_url_esc = esc_attr($download_list_url);
 
 		$download_list_buff = empty($_REQUEST['download_list_buff']) ? '' : trim($_REQUEST['download_list_buff']);
-		$download_list_buff_esc = esc_attr($download_list_buff);		
+		$download_list_buff_esc = esc_attr($download_list_buff);
 
 		$buff .= "<br/><h4>Plugin List from Text/HTML File</h4>\n";
 		$buff .= "<p>Download Plugin list from a text file (e.g. from the public folder of your dropbox account, on your site etc.).</p>\n";
@@ -501,27 +501,27 @@ EOF;
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download Plugin List' />\n";
 		$buff .= "</form>\n";
 		$buff .= "<p class='download_list_results'></p>\n";
-		
+
 		$buff .= "<br/><h4>Plugin Page Links</h4>\n";
 		$buff .= "<p>You can enter direct links to .zip files and/or plugin pages on WordPress.org only</p>\n";
 		$buff .= "<form method='post' id='mod_plugin_manager_download_plugins_form'>\n";
 		$buff .= "<textarea name='download_list_buff' id='download_list_buff' class='app_full_width' rows='8'>$download_list_buff_esc</textarea>\n";
-		$buff .= "<input type='checkbox' id='activate_plugins' name='activate_plugins' class='app-btn-primary' value='1' /> 
+		$buff .= "<input type='checkbox' id='activate_plugins' name='activate_plugins' class='app-btn-primary' value='1' />
                 <label for='activate_plugins'>Activate plugin(s) after installation</label><br/>\n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Download & Extract' />\n";
 		$buff .= "</form>\n";
-		
+
         //$buff .= "<p><br/><a href='?page=mod_locate_wp&cmd=search' class='app-btn-primary mod_search_for_wordpress'>Search</a></p>\n";
         $buff .= "<p class='results'></p>\n";
-        
+
         return $buff;
     }
-    
+
 	/**
      * This is called via ajax and downloads some plugins and extracts the zip files' contents into plugins folder.
      * The result is JSON
      */
-    public function downloadAction() {	
+    public function downloadAction() {
         $msg = '';
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $params = $ctrl->getParams();
@@ -532,26 +532,26 @@ EOF;
 		$locations = preg_split('#[\r\n]+#si', $download_list_buff); // let's split things by new lines.
 		$locations = array_map('trim', $locations); // no spaces
 		$locations = array_unique($locations); // only unique links
-		$locations = array_filter($locations); // skip empty lines		
-		
+		$locations = array_filter($locations); // skip empty lines
+
         if (!empty($locations)) {
 			$plugins_dir = $this->target_dir;
 			$req_cnt = 0;
 			$limit = 10 * 1024 * 1024; // 10MB
 			$limit_fmt = Orbisius_WP_SAK_Util::formatFileSize($limit);
-		
+
 			foreach ($locations as $link) {
 				if (empty($link)) {
 					continue;
 				}
-				
+
 				// If the link points to a plugin hosted by wordpress.org go and find the download link.
 				// otherwise we'll skip them because SAK4WP can find other random ZIP files or bad plugins
 				// which could break WP. There could be some www
-				if (preg_match('#https?://[w\.]*wordpress.org/(?:extend/)?plugins/#si', $link) 
+				if (preg_match('#https?://[w\.]*wordpress.org/(?:extend/)?plugins/#si', $link)
 						&& !preg_match('#\.zip$#si', $link)) {
 					// let's load WP page
-					$result = Orbisius_WP_SAK_Util::makeHttpRequest($link);				
+					$result = Orbisius_WP_SAK_Util::makeHttpRequest($link);
 
 					$org_link_esc = esc_attr($link);
 
@@ -559,7 +559,7 @@ EOF;
 						$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Download Link: HTTP Code: " . $result['debug']['http_code'], 2);
 					} elseif (empty($result['error'])) {
 						$body_buff = $result['buffer'];
-						
+
 						// the download link may contain alphanumeric + some versioning.
 						// e.g. http://downloads.wordpress.org/plugin/orbisius-cyberstore.1.1.7.zip
 						if (preg_match('#(https?://downloads.wordpress.org/plugin/(?:[\w-.]+).zip)#si', $body_buff, $matches)) {
@@ -569,44 +569,44 @@ EOF;
 					} else {
 						$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Find Plugin Download Link: [$link]", 2);
 					}
-					
+
 					// let's give the server a chance to relax for a sec.
 					if (++$req_cnt % 5 == 0) {
 						sleep(1);
 					}
 				}
-				
+
 				$link_esc = esc_attr($link);
-			
+
 				// skip links not ending in .zip for now.
-				if (!preg_match('#\.zip$#si', $link)) {									
+				if (!preg_match('#\.zip$#si', $link)) {
 					$result_html .= Orbisius_WP_SAK_Util::msg("Skipping link: [$link_esc]. Reason: doesn't end in .zip");
-					
+
 					continue;
 				} else {
 					$dl_status = null;
 					$extract_status = null;
-					
+
 					$result_html .= Orbisius_WP_SAK_Util::msg("Processing link: [$link_esc]", 2);
-					
+
 					// Let's do a quick check
-					$remote_file_size = Orbisius_WP_SAK_Util::getRemoteFileSize($link);					
-					
-					// The max plugin size is 10MB					
+					$remote_file_size = Orbisius_WP_SAK_Util::getRemoteFileSize($link);
+
+					// The max plugin size is 10MB
 					if ($remote_file_size > $limit) {
 						$file_size_fmt = Orbisius_WP_SAK_Util::formatFileSize($remote_file_size);
-						$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc, $file_size_fmt]." 
+						$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc, $file_size_fmt]."
 							. " Plugin file is bigger than $limit_fmt.", 0);
-					} else {			
+					} else {
 						$dl_status = Orbisius_WP_SAK_Util::downloadFile($link);
 
-						if (empty($dl_status['status']) 
-								|| empty($dl_status['debug']['http_code']) 
+						if (empty($dl_status['status'])
+								|| empty($dl_status['debug']['http_code'])
 								|| $dl_status['debug']['http_code'] != 200) {
-							$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc]. 
+							$result_html .= Orbisius_WP_SAK_Util::msg("Download Failed: [$link_esc].
 								Request Info: (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>)
-							<pre class='toggle_info app_hide'>" 
-								. var_export( $dl_status, 1) . "</pre>", 0);				
+							<pre class='toggle_info app_hide'>"
+								. var_export( $dl_status, 1) . "</pre>", 0);
 						} else {
 							$file = $dl_status['file'];
 							$file_size = filesize($file);
@@ -615,7 +615,7 @@ EOF;
 
                             // Here we're assuming that the plugin will be in a folder in the zip file.
 							$extract_status = Orbisius_WP_SAK_Util::extractArchiveFile($file, $plugins_dir);
-							
+
 							if (!empty($extract_status['status'])) {
 								$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting OK: [$link_esc] in plugins/{$extract_status['plugin_folder']}", 1);
 
@@ -631,14 +631,14 @@ EOF;
 							} else {
 								$result_html .= Orbisius_WP_SAK_Util::msg("Plugin Extracting Failed: [$link_esc]", 0);
 							}
-							
+
 							// Let's remove the temporary file so it doesn't take too much space in the TMP folder.
 							// Note: if we start using downloadFile with 2nd parameter e.g. target dir
 							// this unlink idea may not be a good one.
 							unlink($file);
 						}
 					}
-					
+
 					$result_html .= '<br/>';
 				}
 			}
@@ -648,8 +648,8 @@ EOF;
 			$status = 1;
             $result_html = Orbisius_WP_SAK_Util::msg('No links have been entered or the entered ones do not end in .zip.', 2);
         }
-		
-        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );   		
+
+        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
     }
 
@@ -657,61 +657,61 @@ EOF;
      * This is called via ajax and downloads some plugins and extracts the zip files' contents into plugins folder.
      * The result is JSON
      */
-    public function get_download_listAction() {	
+    public function get_download_listAction() {
         $msg = $result_html = '';
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
         $params = $ctrl->getParams();
 
         $download_list_url = empty($params['download_list_url']) ? '' : $params['download_list_url'];
-		
+
         if (!empty($download_list_url)) {
-			$result = Orbisius_WP_SAK_Util::makeHttpRequest($download_list_url);				
+			$result = Orbisius_WP_SAK_Util::makeHttpRequest($download_list_url);
 
 			$org_link_esc = esc_attr($link);
-			
+
 			if (empty($result['error'])) {
 				$plugin_list = array();
 				$body_buff = $result['buffer'];
-				
+
 				// Do we have links to WP plugins?
 				if (preg_match_all('#https?://[w\.]*wordpress.org/(?:extend/)?plugins/[\w-]+/?#si', $body_buff, $matches)) {
 					$plugin_list += $matches[0];
 				}
-				
+
 				// How about .zip files? direct downloads
 				if (preg_match_all('#https?://[^\s]+\.zip#si', $body_buff, $matches)) {
 					$plugin_list += $matches[0];
 				}
-				
+
 				$plugin_list = array_unique($plugin_list);
-				
+
 				$result_html .= "Found link(s)<br/>";
-                
+
                 $result_html .= "(<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide retrieved content</a>) \n";
 				$result_html .= "<pre class='toggle_info app_hide'>";
 				$result_html .= esc_html($body_buff);
 				$result_html .= "</pre>";
-                
+
 				$result_html .= "<br/><textarea rows='5' cols='40' id='download_list_download_links' class='app_full_width'>";
 				$result_html .= join("\n", $plugin_list);
 				$result_html .= "</textarea>";
-				
+
 				$result_html .= <<<HTML_EOF
 				<button name='add_to_download' onclick='Sak4wp.Util.appendData("#download_list_download_links", "#download_list_buff");'
 					id='add_to_download' class='app-btn-secondary' >Add to Download</button>
 HTML_EOF;
-				
+
 			} else {
 				$result_html .= Orbisius_WP_SAK_Util::msg("Couldn't Find Plugin Download Link: [$link]", 2);
 			}
-			
+
             $status = 1;
         } else {
 			$status = 1;
             $result_html = Orbisius_WP_SAK_Util::msg('No link has been entered.', 2);
         }
-		
-        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );   		
+
+        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
     }
 }
@@ -726,14 +726,14 @@ class Orbisius_WP_SAK_Controller_Module_Locate_WordPress extends Orbisius_WP_SAK
     public function __construct() {
         $this->description = <<<EOF
 <h4>Locate WordPress</h4>
-<p>Searches for local WordPress installations in different folders and shows their versions. 
+<p>Searches for local WordPress installations in different folders and shows their versions.
 Useful if you manage multiple WordPress sites and want to make sure all of them are running the latest WordPress.
 </p>
 EOF;
     }
 
     /**
-     * 
+     *
      */
     public function run() {
         $buff = '';
@@ -746,13 +746,13 @@ EOF;
 		$buff .= "Start Folder:<br/><input type='text' name='start_folder' id='start_folder' value='$start_folder_esc' class='app_full_width' />\n";
 		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Search' />\n";
 		$buff .= "</form>\n";
-		
+
         //$buff .= "<p><br/><a href='?page=mod_locate_wp&cmd=search' class='app-btn-primary mod_search_for_wordpress'>Search</a></p>\n";
         $buff .= "<p class='results'></p>\n";
-        
+
         return $buff;
     }
-    
+
 	/**
      * This is called via ajax and searches for WP by finding wp-includes folder starting from start_folder.
 	 * Needs starting folder.
@@ -768,31 +768,33 @@ EOF;
         $msg = '';
 
         $status = array('status' => 0, 'message' => '', 'results' => '', 'start_folder' => $start_folder);
-        
+
+        $find_bin = Orbisius_WP_SAK_Util_File::getBinary('find');
+
 		// this searches for folders that contain wp-includes and that's where we'll read version.php
-		$cmd = "find $start_folder -type d -name \"wp-includes\" 2>/dev/null";
-		
+		$cmd = "$find_bin $start_folder -type d -name \"wp-includes\" 2>/dev/null";
+
         if (!empty($start_folder)) {
 			$latest_wp_version = Orbisius_WP_SAK_Util::getLatestWordPressVersion();
             $file_search_buffer = `$cmd`;
-		
+
 			if (!empty($file_search_buffer)) {
 				$lines = preg_split('#[\r\n]+#si', $file_search_buffer);
-				
+
 				foreach ($lines as $line) {
 					if (empty($line)) {
 						continue;
 					}
-					
+
 					$ver_file = $line . '/version.php'; // we just need to append the file to the abs dir path.
 					$ver_buff = Orbisius_WP_SAK_Util_File::read($ver_file); // will be faster if we read first 120 bytes?
-										
+
 					$version = '0.0.0'; // defaut
-					
+
 					// parse version which is like this $wp_version = '3.5.2';
 					if (preg_match('#wp_version\s*=\s*[\'"]([^\'"]+)#si', $ver_buff, $matches)) {
 						$version = $matches[1];
-						
+
 						// is it the latest?; no -> let's warn them
 						if (version_compare($version, $latest_wp_version, '<')) {
 							$version = Orbisius_WP_SAK_Util::msg("$version (upgrade)", 0, 1);
@@ -800,9 +802,9 @@ EOF;
 							$version = Orbisius_WP_SAK_Util::msg("$version", 1, 1);
 						}
 					}
-					
+
 					// by doing the dirname we'll go up 1 level above wp-includes -> wp root dir
-					$data[dirname($line)] = $version;		
+					$data[dirname($line)] = $version;
 				}
 
 				$result_html = $ctrl->renderKeyValueTable('WordPress Installations. Latest WordPress Version: ' . $latest_wp_version, $data, array(
@@ -811,12 +813,12 @@ EOF;
 					)
 				);
 			}
-						
+
             $status['status'] = 1;
         } else {
             $status['message'] = 'Error';
         }
-		
+
 		$status['results'] = empty($result_html) ? Orbisius_WP_SAK_Util::msg("Nothing found", 2) : $result_html;
 
         $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $status);
@@ -832,7 +834,7 @@ class Orbisius_WP_SAK_Controller_Module_Htaccess extends Orbisius_WP_SAK_Control
      */
     public function __construct() {
         $this->htaccess_dir = ABSPATH . 'wp-admin/';
-        
+
         $this->description = <<<EOF
 <h4>.htaccess</h4>
 <p>This module allows you to create an .htaccess and .htpasswd files for the WordPress admin area.
@@ -844,7 +846,7 @@ EOF;
     private $htaccess_dir = null;
 
     /**
-     * 
+     *
      */
     public function run() {
         $buff = '';
@@ -866,7 +868,7 @@ EOF;
             if ($_REQUEST['cmd'] == 'create_htaccess') {
                 $user = empty($_REQUEST['user']) ? substr(sha1(mt_rand(100, 1000) . time()), 0, 6) : trim($_REQUEST['user']);
                 $pass = empty($_REQUEST['pass']) ? substr(sha1(time() . mt_rand(100, 1000)), 0, 10) : trim($_REQUEST['pass']);
-				
+
                 $this->createHtaccessFile($user, $pass);
 
                 $buff .= "<br/>Copy the following login info for your records<br/><pre>\nAdmin URL: $admin_url\nUser: $user\nPassword: $pass\n</pre>";
@@ -896,7 +898,7 @@ EOF;
 
             if (file_exists($htpasswd_file)) {
                 $ht_files_exist++;
-            
+
                 $buff .= "<span class='app-simple-alert-success'>File [$htpasswd_file] already exists (Read Only Data)</span>\n";
                 $buff .= '<textarea class="app-code-textarea" readonly="readonly">';
                 $buff .= Orbisius_WP_SAK_Util_File::read($htpasswd_file);
@@ -911,13 +913,13 @@ EOF;
             $buff .= "<p><br/><a href='?page=mod_htaccess&cmd=delete_htaccess' class='app-module-self-destroy-button'
                     onclick='return confirm('Are you sure?', '');'>delete .htaccess & .htpasswd files.</a></p>\n";
         }
-        
+
         return $buff;
     }
 
     /**
      * Deletes pwd and htaccess file.
-     * @return bool returns true if both 
+     * @return bool returns true if both
      */
     public function deleteHtaccessFile() {
         $htaccess_file = $this->htaccess_dir . '.htaccess';
@@ -928,7 +930,7 @@ EOF;
 
         return $status1 && $status2;
     }
-    
+
     /**
      * Creates/appends .htaccess and .htpasswd files in wp-admin folder.
      * It will check if the password or basic auth rules are aleady added.
@@ -1027,7 +1029,7 @@ BUFF;
      */
     public function generatePassword($plain_text_pwd) {
         $password = crypt($plain_text_pwd, base64_encode($plain_text_pwd));
-        
+
         return $password;
     }
 }
@@ -1069,7 +1071,7 @@ EOF;
             $buff .= "No results.";
         } else {
             $ctrl = Orbisius_WP_SAK_Controller::getInstance();
-            
+
             // make title clickable
             foreach ($results as $idx => $row_obj) {
                $link = get_permalink($row_obj->ID);
@@ -1126,14 +1128,15 @@ EOF;
         );
 
         foreach ($bin_check as $bin_file) {
-            $tmp_res = `$bin_file --help`;
-
             $buff .= "<ul class='app-no-bullets-list app-no-padding'>\n";
 
-            if (preg_match('#help|usage#si', $tmp_res)) {
-                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file found", 1) . "</li>";
+            $tmp_res = `$bin_file --help 2>&1`;
+            $found_binary = Orbisius_WP_SAK_Util_File::getBinary($bin_file);
+
+            if (preg_match('#help|usage#si', $tmp_res) || ($found_binary !== false)) {
+                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file ($found_binary) found", 1) . "</li>";
             } else {
-                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file NOT found", 0) . "</li>";
+                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file NOT found. Res: [$tmp_res]", 0) . "</li>";
 			}
 
             $buff .= "</ul>\n";
@@ -1194,7 +1197,7 @@ EOF;
                         . '.sql';
 
                 if ( preg_match('#gz#si', $_REQUEST['cmd'] ) ) {
-                    $exp_params[] = '| gzip -c';
+                    $exp_params[] = '| ' . Orbisius_WP_SAK_Util_File::getBinary('gzip') . ' -c';
                     $target_sql .= '.gz';
                 }
 
@@ -1202,7 +1205,7 @@ EOF;
                 $output_error_log_file = $target_sql . '.error.log';
                 $output_error_log_file_esc = escapeshellarg($output_error_log_file);
 
-                $cmd = 'mysqldump ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
+                $cmd = Orbisius_WP_SAK_Util_File::getBinary('mysqldump') . ' ' . join( ' ', $exp_params ) . ' > ' . $target_sql_esc;
                 $cmd .= ' 2>' . $output_error_log_file_esc;
 
                 if ( !empty( $_REQUEST['bg'] ) ) {
@@ -1252,7 +1255,7 @@ EOF;
         }
 
         set_time_limit($old_time_limit);
-        
+
         return $buff;
     }
 }
@@ -1306,12 +1309,13 @@ EOF;
         );
 
         foreach ($bin_check as $bin_file) {
-            $tmp_res = `$bin_file --help`;
-            
             $buff .= "<ul class='app-no-bullets-list app-no-padding'>\n";
 
-            if (preg_match('#help|usage#si', $tmp_res)) {
-                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file found", 1) . "</li>";
+            $tmp_res = `$bin_file --help 2>&1`;
+            $found_binary = Orbisius_WP_SAK_Util_File::getBinary($bin_file);
+
+            if (preg_match('#help|usage#si', $tmp_res) || ($found_binary !== false)) {
+                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file ($found_binary) found", 1) . "</li>";
             } else {
                 $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file NOT found", 0) . "</li>";
 			}
@@ -1319,8 +1323,10 @@ EOF;
             $buff .= "</ul>\n";
         }
 
+        $du_bin = Orbisius_WP_SAK_Util_File::getBinary('du');
+
          // Site disk usage
-        $du = `du -sh $dir 2>&1 `;
+        $du = `$du_bin -sh $dir 2>&1 `;
         $du = trim($du);
         $buff .= "<br/>\n";
         $buff .= "Site Disk Usage: " . $du;
@@ -1328,7 +1334,7 @@ EOF;
         // Uploads disk usage
         $upload_dir_rec = wp_upload_dir();
         $upload_dir = $upload_dir_rec['basedir'];
-        $du = `du -sh $upload_dir 2>&1 `;
+        $du = `$du_bin -sh $upload_dir 2>&1 `;
         $du = trim($du);
         $buff .= "<br/>\n";
         $buff .= "Disk Usage (uploads): " . $du;
@@ -1362,7 +1368,7 @@ EOF;
             $dir2compress = './';
             $dir2chdir = './';
             $cur_dir = getcwd();
-            
+
             if ($archive_start == 'add_cur_folder') {
                 $dir2compress = basename($target_dir);
                 $dir2chdir = dirname($target_dir);
@@ -1409,7 +1415,7 @@ EOF;
                 $output_log_file = $output_file . '.log';
                 $output_error_log_file = $output_file . '.error.log';
                 $output_done_file = $output_file . '.done';
-                
+
                 $exclude_items = array(
                      '!sak4wp.php', // sak4wp is not necessary in the pkg
                      '.ht-sak4wp*',
@@ -1462,7 +1468,7 @@ EOF;
 
                 // Are we creating a tar or tar.gz file
                 $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
-                $cmd = "tar $tar_main_cmd_arg $output_file_esc $cmd_param_str > $output_log_file_esc 2> $output_error_log_file_esc";
+                $cmd = Orbisius_WP_SAK_Util_File::getBinary('tar') . " $tar_main_cmd_arg $output_file_esc $cmd_param_str > $output_log_file_esc 2> $output_error_log_file_esc";
 
                 if ( ! empty( $_REQUEST['bg'] ) ) {
                     // @note: for some weird reason I can't fork the process and execute a task after it finishes.
@@ -1525,7 +1531,7 @@ EOF;
         return $buff;
     }
 }
-	
+
 /**
  * This module handles actions related to Limit Login Attempts plugin.
  */
@@ -1537,7 +1543,7 @@ class Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker extends O
     public function __construct() {
         $lockouts = get_option('limit_login_lockouts');
         $retries = get_option('limit_login_retries');
-		
+
         $this->lockouts = $lockouts;
         $this->retries = $retries;
 
@@ -1570,10 +1576,10 @@ EOF;
 
 		$buff .= "<br/>";
 		$buff .= $this->getBlockedAsHTML();
-		
+
 		return $buff;
 	}
-	
+
     /**
      * Handles IP unblocking. It searches the IP in the list and then
      * updates the array and saves it in the db.
@@ -1591,7 +1597,7 @@ EOF;
         $msg = '';
 
         $status = array('status' => 0, 'message' => '');
-        
+
         if (!empty($lockouts[$ip])) {
             unset($lockouts[$ip]);
             unset($retries[$ip]);
@@ -1615,7 +1621,7 @@ EOF;
      */
     public function isBlocked($ip = '') {
        $ip = empty($ip) ? Orbisius_WP_SAK_Util::getIP() : $ip;
-       
+
        $lockouts = $this->lockouts;
        $banned = !empty($lockouts) && !empty($lockouts[$ip]);
 
@@ -1645,7 +1651,7 @@ EOF;
                     $you = '<span class="app-simple-alert-success">&larr; (you)</span>';
                     $highlight_rows[] = $cnt;
                 }
-                
+
                 $t = date('r', $ts);
                 //$ip_who_is_link = "<a href='http://who.is/whois-ip/ip-address/$ip/' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you";
                 $ip_who_is_link = "<a href='http://ipduh.com/ip/?$ip' target='_blank' data-ip='$ip' title='view ip info'>$ip</a> $you";
@@ -1657,10 +1663,10 @@ EOF;
                     'When Blocked' => $when_blocked,
                     'Action' => $action,
                 );
-                
+
                 $cnt++;
             }
-            
+
             $ctrl = Orbisius_WP_SAK_Controller::getInstance();
             $buff .= $ctrl->renderTable('Blocked IPs', '', $data, $highlight_rows);
        }
@@ -1679,10 +1685,10 @@ class Orbisius_WP_SAK_Controller_Module_Stats extends Orbisius_WP_SAK_Controller
 <p>This module allows you to see a lot of stats for your WordPress site.
 </p>
 EOF;
-    }    
+    }
 
     /**
-     * 
+     *
      */
     public function run() {
         global $wpdb;
@@ -1691,7 +1697,7 @@ EOF;
         $buff = '';
 
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
-        
+
         $cfg = $this->read_wp_config();
         $cfg['db_version'] = $wpdb->get_var("SELECT VERSION()");
         $buff .= $ctrl->renderKeyValueTable('Database Info', $cfg);
@@ -1716,9 +1722,11 @@ EOF;
         $data['Max Upload File Size Limit'] = $this->get_max_upload_size() . 'MB';
         $data['Memory Limit'] = $this->get_memory_limit() . 'MB';
 
+        $du_bin = Orbisius_WP_SAK_Util_File::getBinary('du');
+
 		// Disk space usage
         $dir = dirname(__FILE__); // that's where the sak is installed.
-        $disk_usage = `du -sh $dir`;
+        $disk_usage = `$du_bin -sh $dir`;
         $disk_usage = trim($disk_usage);
         $disk_usage = empty($disk_usage) ? 'N/A' : $disk_usage;
         $data['Site Disk Space Usage (du -sh .)'] = $disk_usage;
@@ -1726,30 +1734,34 @@ EOF;
 		// Free Disk space
 		$disk_free_space = `df --human-readable`;
 		$disk_free_space = trim($disk_free_space);
-		$disk_free_space = empty($disk_free_space) ? 'N/A' : '<pre>' . 
+		$disk_free_space = empty($disk_free_space) ? 'N/A' : '<pre>' .
 		$disk_free_space = preg_replace('#(/dev/[\w/\-]+\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+\%?)(.*)#im'
 			, '<span class="du_line">$1<span class="du_total">$2</span>$3<span class="du_used">$4</span>$5<span class="du_free">$6</span>$7'
 			. '<span class="du_percent">$8</span>$9</span>', $disk_free_space) . '</pre>';
 		$data['Total Disk Usage (df --human-readable)'] = $disk_free_space;
-		
+
+        $top_bin = Orbisius_WP_SAK_Util_File::getBinary('top');
+
 		// Processes info
-		$cmd_buff = `top -b -n 1`;
+		$cmd_buff = `$top_bin -b -n 1`;
 		$cmd_buff = trim($cmd_buff);
 		$cmd_buff = empty($cmd_buff) ? 'N/A' : '<textarea rows="4" style="width:100%;" readonly="readonly">' . $cmd_buff . '</textarea>';
 		$data['Processes Info (top -b -n 1)'] = $cmd_buff;
-		
+
 		// Free memory
-		$cmd_buff = `free -m`;
+        $free_bin = Orbisius_WP_SAK_Util_File::getBinary('free');
+		$cmd_buff = `$free_bin -m`;
 		$cmd_buff = trim($cmd_buff);
 		$cmd_buff = empty($cmd_buff) ? 'N/A' : '<textarea rows="4" style="width:100%;" readonly="readonly">' . $cmd_buff . '</textarea>';
 		$data['Free Memory (free -m)'] = $cmd_buff;
-		
+
 		// lists 15 files and sorts them by size. e.g. 100K
-		$large_files = `du -ah $dir | sort -nr | head -n +15`;
+        $du_bin = Orbisius_WP_SAK_Util_File::getBinary('du');
+		$large_files = `$du_bin -ah $dir | sort -nr | head -n +15`;
         $large_files = trim($large_files);
         $large_files = str_replace($dir, '', $large_files);
         $data['Large Files'] = empty($large_files) ? 'n/a' : '<textarea rows="4" style="width:100%;" readonly="readonly">' . $large_files . '</textarea>';
-		
+
         $buff .= $ctrl->renderKeyValueTable('System Info', $data);
 
         $data = array();
@@ -1775,26 +1787,26 @@ EOF;
 	WHERE p.post_type = 'revision'
                 "
         );
-        
+
         $buff .= $ctrl->renderKeyValueTable('WordPress Site Stats', $data);
-		
+
 		ob_start();
 		phpinfo();
 		$php_info = ob_get_contents();
 		ob_get_clean();
-		
+
 		// clear HTML buff around content and reduce heading tags to h4
 		$php_info = preg_replace('#.*?<body[^>]*>#si', '', $php_info);
 		$php_info = preg_replace('#</body.*#si', '', $php_info);
 		$php_info = preg_replace('#<h\d#si', '<h4', $php_info);
 		$php_info = preg_replace('#</\d#si', '</h4', $php_info);
-		
-		$php_info = '<h4>PHP Info</h4>' 
+
+		$php_info = '<h4>PHP Info</h4>'
 			. " (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide</a>)\n"
 			. " <div class='toggle_info app_hide'>" . $php_info . '</div>';
-				
+
 		$buff .= $php_info;
-		
+
 		return $buff;
     }
 
@@ -1815,14 +1827,14 @@ EOF;
 
     /**
      * Returns memory limit based on the CFG in MB
-     * 
+     *
      * @return int
      */
     public static function get_memory_limit() {
         $memory_limit = (int)(ini_get('memory_limit'));
         return $memory_limit;
     }
-    
+
     /**
      * Reads wordpress's config file and returns db data in an array.
      *
@@ -1878,7 +1890,33 @@ class Orbisius_WP_SAK_Util_File {
     const SERIALIZE = 2;
     const UNSERIALIZE = 4;
     const FILE_APPEND = 8;
-	
+
+    /**
+     * Usage: Orbisius_WP_SAK_Util_File::getBinary();
+     * @param str $file
+     */
+    public static function getBinary($file) {
+        $options = $output_arr = array();
+        $return_var = false;
+
+        $options[] = $file;
+        $options[] = basename($file);
+        $options[] = "/usr/bin/$file";
+        $options[] = "/usr/local/bin/$file";
+        $options[] = "/usr/sbin/$file";
+
+        foreach ($options as $file) {
+            $cmd = "$file --help 2>&1";
+            exec($cmd, $output_arr, $return_var);
+
+            if (empty($return_var)) { // found it! exit code 0 means success in linux
+                return $file;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @desc write function using flock
      *
@@ -1978,9 +2016,11 @@ class Orbisius_WP_SAK_Util_File {
     * @return array or bool when file is saved.
     */
    public static function get_wp_files($start_folder = '.', $target_file = '') {
+       $find_bin = Orbisius_WP_SAK_Util_File::getBinary('find');
+
        $start_folder = str_replace('\\', '/', $start_folder); // win -> linux slashes
        $start_folder = rtrim($start_folder, '/');
-       $result = `find $start_folder -name "wp-*" -print`; // only one type of extensions is search not OR search; sometimes it puts files that match wp-
+       $result = `$find_bin $start_folder -name "wp-*" -print`; // only one type of extensions is search not OR search; sometimes it puts files that match wp-
        $result = trim($result); // rm last empty line
        $files = preg_split('#[\r\n]+#si', $result);
        $files = preg_grep('#^'.preg_quote($start_folder) . '[./\\\]*wp-#si', $files); // there could be a starting ./ & make sure they all start with wp-
@@ -2055,7 +2095,7 @@ class Orbisius_WP_SAK_Util {
 
         return $ip;
     }
-	
+
     /**
      * Gets Server IP from env.
      * @return string
@@ -2099,33 +2139,33 @@ class Orbisius_WP_SAK_Util {
 		$size = preg_replace('#\.00$#', '', $size);
 
         return $size . " $size_suff";
-    }	
-	
+    }
+
 	/**
      * a simple status message, no formatting except color.
 	 * status is 0, 1 or 2
      */
     static function msg($msg, $status = 0, $use_simple_css = 0) {
         $inline_css = '';
-        
+
 		if ($status ==  1) {
 			$cls = 'app-alert-success';
 		} elseif ($status == 2) {
 			$cls = 'app-alert-notice';
 		} else {
 			$cls = 'app-alert-error';
-		}		
+		}
 
 		// use a simple CSS e.g. a nice span to alert, not just huge divs
 		if ($use_simple_css) {
 			$cls = str_replace('alert', 'simple-alert', $cls);
 		}
-		
+
         $str = "<div class='$cls' $inline_css>$msg</div>";
-		
+
         return $str;
     }
-	
+
 	/**
 	* Since we are downloading files, it is a good idea to be smart about it.
 	* For example it doesn't make sense to download 10MB plugin and stress the server.
@@ -2133,9 +2173,9 @@ class Orbisius_WP_SAK_Util {
 	*/
 	public static function getRemoteFileSize($url) {
 		 $ch = curl_init($url);
-		 
+
 		 curl_setopt_array($ch, self::$curl_options);
-		 
+
 		 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		 curl_setopt($ch, CURLOPT_HEADER, true);
 		 curl_setopt($ch, CURLOPT_NOBODY, true);
@@ -2145,14 +2185,14 @@ class Orbisius_WP_SAK_Util {
 		 $size = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
 
 		 curl_close($ch);
-		 
+
 		 return $size;
 	}
-	
+
 	/**
 	* Downloads a file from a given url. The file is saved in a tmp folder and the location is returned
 	* in the record
-	*/	
+	*/
 	public static function downloadFile($url, $target_dir = '') {
 		$status = 0;
 		$error = $file = $debug = '';
@@ -2166,57 +2206,57 @@ class Orbisius_WP_SAK_Util {
 				$target_dir = rtrim($target_dir, '/');
 				$target_dir .= '/';
 			}
-			
+
 			if (($ch = curl_init($url)) == false) {
 				throw new Exception("curl_init error for url [$url].");
 			}
 
 			curl_setopt_array($ch, self::$curl_options);
-		   
-			$file = tempnam(self::getTempDir(), '!sak4wp_');	   
-			
+
+			$file = tempnam(self::getTempDir(), '!sak4wp_');
+
 			$fp = fopen($file, "wb");
-			
+
 			if (empty($fp)) {
 				throw new Exception("fopen error for file [$url]");
 			}
-			
-			curl_setopt($ch, CURLOPT_FILE, $fp);       
+
+			curl_setopt($ch, CURLOPT_FILE, $fp);
 			curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
-			
+
 			if (curl_exec($ch) === false) {
-				unlink($file);				
-		
+				unlink($file);
+
 				throw new Exception("curl_exec error $file. Curl Error: " . curl_error($ch));
 			} elseif (!empty($target_dir) && is_dir($target_dir)) { // ::SNOTE: this is not tested yet!
 				$eurl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-				
+
 				if (preg_match('#^.*/(.+)$#', $eurl, $match)) {
 					if (rename($file, $target_dir . $match[1]) || copy($file, $target_dir . $match[1])) {
 						$file = $target_dir . $match[1];
 					}
 				}
 			}
-		    
+
 			$debug = curl_getinfo($ch);
-		   
+
 		    fclose($fp);
 			curl_close($ch);
-			
+
 			$status = 1;
 		} catch (Exception $e) {
 			$error = $e->getMessage();
 		}
-		
+
 		$data = array(
 			'status' => $status,
 			'error' => $error,
 			'file' => $file,
 			'debug' => $debug,
-		);		
-		
+		);
+
 		set_time_limit($old_time_limit);
-		
+
 		return $data;
 	}
 
@@ -2270,11 +2310,11 @@ class Orbisius_WP_SAK_Util {
      */
     static function readFilePartially($file, $len_bytes = 512, $seek_bytes = 0) {
         $buff = '';
-        
+
 		if (!file_exists($file)) {
             return false;
         }
-		
+
         $file_handle = fopen($file, 'rb');
 
         if (!empty($file_handle)) {
@@ -2312,7 +2352,7 @@ class Orbisius_WP_SAK_Util {
 
         return false;
     }
-	
+
 	/**
 	 * Extracts a which was saved in a tmp folder. We're expecting the zip file to contain a folder first
      * and then some contents
@@ -2320,18 +2360,18 @@ class Orbisius_WP_SAK_Util {
      * @param string $target_directory usually wp-content/plugins/
      * @see http://www.phpconcept.net/pclzip/user-guide/54
      * @see http://core.trac.wordpress.org/browser/tags/3.6/wp-admin/includes/file.php#L0
-	*/	
+	*/
 	static public function extractArchiveFile($archive_file, $target_directory) {
 		$status = 0;
 		$error = $plugin_folder = $main_plugin_file = '';
-		
+
 		// Requires WP to be loaded.
 		include_once(ABSPATH . 'wp-admin/includes/file.php');
         include_once(ABSPATH . 'wp-admin/includes/class-pclzip.php');
-		
+
 		if (function_exists('WP_Filesystem')) {
 			WP_Filesystem();
-			
+
             $archive = new PclZip($archive_file);
             $list = $archive->listContent(); // this contains all of the files and directories
 
@@ -2385,7 +2425,7 @@ class Orbisius_WP_SAK_Util {
               }
             }
             */
-            
+
             // the first element should be the folder. e.g. like-gate.zip -> like-gate/ folder
             // listContent returns an array and folder key should be true.
             foreach ($list as $file_or_dir_rec) {
@@ -2406,7 +2446,7 @@ class Orbisius_WP_SAK_Util {
             } else {
                 $status = new WP_Error('100', "Cannot find plugin folder in the zip archive.");
             }
-			
+
 			if (is_wp_error($status)) {
 				$error = $status->get_error_message();
 			} else {
@@ -2416,14 +2456,14 @@ class Orbisius_WP_SAK_Util {
 		} else {
 			$error = 'WP_Filesystem is not loaded.';
 		}
-		
+
 		$data = array(
             'status' => $status,
             'error' => $error,
             'plugin_folder' => $plugin_folder,
             'main_plugin_file' => $main_plugin_file,
         );
-		
+
 		return $data;
 	}
 
@@ -2431,7 +2471,7 @@ class Orbisius_WP_SAK_Util {
      * Returns WordPress' uploads folder. Local path. The directory includes a trailing slash
      * We may need to save some hidden files there which weren't a good match for the temp directory.
      * Since this code is run before the WP load, we might need to guess it?
-	 * 
+	 *
      * @see http://codex.wordpress.org/Function_Reference/wp_upload_dir
      * @return string
      */
@@ -2450,7 +2490,7 @@ class Orbisius_WP_SAK_Util {
         if (!is_dir($dir) || !is_writable($dir)) {
             throw new Exception("Cannot find WordPress' upload_dir or it is not wriable.");
         }
-		
+
 		return $dir;
 	}
 
@@ -2458,7 +2498,7 @@ class Orbisius_WP_SAK_Util {
      * Tries to get the temp directory for php.
      * It checks if this function exists: sys_get_temp_dir (since php 5.2).
      * Otherwise it checks the ENV variables TMP, TEMP, and TMPDIR
-     * 
+     *
      * @see http://php.net/manual/en/function.sys-get-temp-dir.php
      * @return string
      */
@@ -2485,8 +2525,8 @@ class Orbisius_WP_SAK_Util {
         }
 
         return $dir;
-    }    
-	
+    }
+
 	/**
     * Parses the WP.org website to get the latest WP version.
     * It uses the temp directory to store the version
@@ -2497,7 +2537,7 @@ class Orbisius_WP_SAK_Util {
     public static function getLatestWordPressVersion() {
        $url = 'http://wordpress.org/download/';
        $ver = $default_ver = '0.0.0'; // default
-       $ver_file = rtrim(self::getTempDir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wp-ver.txt'; // C:\Windows\TEMP\wp-ver.txt 
+       $ver_file = rtrim(self::getTempDir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wp-ver.txt'; // C:\Windows\TEMP\wp-ver.txt
 
        // we will check every 4h for a WP version
        if (!file_exists($ver_file) || (time() - filemtime($ver_file) > 4 * 3600)) {
@@ -2531,7 +2571,7 @@ class Orbisius_WP_SAK_Util {
 
        return $ver;
     }
-	
+
     /**
     * Makes a request to a given URL. Headers are requested too.
     *
@@ -2647,7 +2687,7 @@ class Orbisius_WP_SAK_Controller {
      */
 	public function doExit($msg = '', $title = '') {
         unset($this->params);
-		
+
         if (!empty($msg)) {
             $app_name = ORBISIUS_WP_SAK_APP_SHORT_NAME;
             echo "<h3 style='color:red;'>$app_name: $msg</h3>";
@@ -2663,7 +2703,7 @@ class Orbisius_WP_SAK_Controller {
         if (!defined('ABSPATH')) {
             die('ABSPATH is not defined. This script must be installed at the same level as your WordPress Installation.');
         }
-        
+
         // Let's make sure we are protected all the time.
 		$mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
 		$mod_obj->run();
@@ -2675,7 +2715,7 @@ class Orbisius_WP_SAK_Controller {
         if (is_null(self::$_instance)) {
            self::$_instance = new self();
         }
-        
+
         return self::$_instance;
     }
 
@@ -2710,7 +2750,7 @@ class Orbisius_WP_SAK_Controller {
 		$params = $_REQUEST;
         $params = array_map('trim', $params);
 		$this->params = $params;
-	}	
+	}
 
     /**
      * Executes some quick and light actions that do not require WP to be loaded.
@@ -2718,7 +2758,7 @@ class Orbisius_WP_SAK_Controller {
      */
 	public function preRun() {
         $params = $this->params;
-        
+
         if (isset($params['css'])) {
             $this->outputStyles($params['css']);
         } elseif (isset($params['js'])) {
@@ -2731,13 +2771,13 @@ class Orbisius_WP_SAK_Controller {
                     ? self::bootstrap_glyphicons_halflings_white
                     : self::bootstrap_glyphicons_halflings;
             }
-            
+
             $img_buff = base64_decode($img_buff);
             $this->sendHeader(self::HEADER_IMAGE_PNG, $img_buff);
         } elseif (isset($params['destroy'])) {
 			$mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
 			$mod_obj->clean();
-			
+
             if (!unlink(__FILE__)) {
 				$this->doExit('Cannot self destroy. Please delete <strong>' . __FILE__ . '</strong> manually.');
             }
@@ -2747,7 +2787,7 @@ class Orbisius_WP_SAK_Controller {
             $this->redirect(ORBISIUS_WP_SAK_APP_SCRIPT);
         }
     }
-    
+
     /**
      * Executes tasks that require WP to loaded
      */
@@ -2761,7 +2801,7 @@ class Orbisius_WP_SAK_Controller {
      */
 	public function run() {
         $params = $this->params;
-        
+
 		if (!empty($params['module']) && !empty($params['action'])) {
             $module = $params['module'];
             $action = $params['action'];
@@ -2778,7 +2818,7 @@ class Orbisius_WP_SAK_Controller {
                 $status['message'] = 'Internal Error.';
                 $this->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $status);
             }
-            
+
             $obj->init();
             $obj->$obj_action_name();
         }
@@ -2795,12 +2835,12 @@ class Orbisius_WP_SAK_Controller {
      * WP should be loaded by now.
      */
 	public function postRun() {
-		
+
 	}
 
     /**
      * Returns HTML content which is shown in the centre of the page.
-     * 
+     *
      * @param string $page
      * @return string
      */
@@ -2811,20 +2851,20 @@ class Orbisius_WP_SAK_Controller {
 
         $script = ORBISIUS_WP_SAK_APP_SCRIPT;
         $app_name = ORBISIUS_WP_SAK_APP_NAME;
-         
+
 		switch ($page) {
             case 'mod_self_protect':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
                 $descr = $mod_obj->getInfo();
                 //$descr .= $mod_obj->run();
 
-                break;                
+                break;
 			case 'mod_user_manager':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_User_Manager();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
 
-                break;                 
+                break;
 			case 'mod_plugin_manager':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Plugin_Manager();
                 $descr = $mod_obj->getInfo();
@@ -2836,7 +2876,7 @@ class Orbisius_WP_SAK_Controller {
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
 
-                break;            
+                break;
 		case 'mod_htaccess':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Htaccess();
                 $descr = $mod_obj->getInfo();
@@ -2883,7 +2923,7 @@ class Orbisius_WP_SAK_Controller {
 				$descr .= $mod_obj->run();
 
                 break;
-            
+
             case '':
             case 'home':
                 $descr = <<<BUFF_EOF
@@ -2891,7 +2931,7 @@ class Orbisius_WP_SAK_Controller {
                     recovery operations on your WordPress site.
                         This script is intended to be used for short time only and then removed in order to prevent security issues.
                    </p>
-                <p> When you are done click on the <a href='$script?destroy' class='app-module-self-destroy-button' 
+                <p> When you are done click on the <a href='$script?destroy' class='app-module-self-destroy-button'
                     title="This will remove this script. If you see the same script that means the self destruction didn't happen.
                         Please remove the file manually by connecting using an FTP client."
                 onclick="return confirm('This will remove this script. If you see the same script that means the self
@@ -2902,7 +2942,7 @@ class Orbisius_WP_SAK_Controller {
 BUFF_EOF;
 
                 break;
-            
+
             case 'help':
                     $app_url = ORBISIUS_WP_SAK_APP_URL;
         $ver = "<strong>Always remove this file when the work is complete!</strong>
@@ -2956,7 +2996,7 @@ BUFF_EOF;
 BUFF_EOF;
 
                 break;
-            
+
             case 'donate':
                 $descr = <<<BUFF_EOF
 <h4>Donate</h4>
@@ -2993,10 +3033,10 @@ BUFF_EOF;
 
         return $descr;
 	}
-	
+
 	public function displayHeader() {
         $script = ORBISIUS_WP_SAK_APP_SCRIPT;
-		$app_name = ORBISIUS_WP_SAK_APP_NAME;		
+		$app_name = ORBISIUS_WP_SAK_APP_NAME;
         $app_short_name = ORBISIUS_WP_SAK_APP_SHORT_NAME;
 		$app_url = ORBISIUS_WP_SAK_APP_URL;
         $year = date('Y');
@@ -3008,7 +3048,7 @@ BUFF_EOF;
         $admin_url = admin_url('/');
 		$ip = Orbisius_WP_SAK_Util::getIP();
 		$server_ip = Orbisius_WP_SAK_Util::getServerIP();
-        
+
         $page_content = $this->getPageContent();
 
 		$buff = <<<BUFF_EOF
@@ -3022,11 +3062,11 @@ BUFF_EOF;
         <link href="//netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css" type="text/css" rel="stylesheet" />-->
         <link href="?css=cust" type="text/css" rel="stylesheet" />
         <!--<link href="?css=2" type="text/css" rel="stylesheet" />-->
-<!-- 
+<!--
 <link href="http://marketplace.com.clients.com/landing/1/bootstrap/css/bootstrap.css" rel="stylesheet" /> -->
         <meta name="author" content="Orbisius.com" />
     </head>
-    <body>		
+    <body>
 
    <div class="container main_container">
       <div class="masthead">
@@ -3037,7 +3077,7 @@ BUFF_EOF;
 				  "twitter-follow-button" data-show-count="false">Follow @Orbisius</a>
 				  <a href="https://twitter.com/sak4wp" class=
 				  "twitter-follow-button" data-show-count="false">Follow @sak4wp</a>
-				  
+
 				  <script type="text/javascript">
 				  //<![CDATA[
 				  !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
@@ -3049,7 +3089,7 @@ BUFF_EOF;
         <p>Running on: <strong>{$host}</strong> | Your IP: $ip | Server IP: $server_ip
 			| <a href='$site_url' target='_blank'>Public Area</a>
 			| <a href='$admin_url' target='_blank'>Admin Area</a>
-			
+
 			<span class='app-align-right'>
 				  <img src='?img=icon_user' alt='account' /> <a href="$script?page=account">Account</a>
 				| <a href="$script?page=help">Help</a>
@@ -3081,7 +3121,7 @@ BUFF_EOF;
                 If you see the same script that means the self destruction didn't happen. Please remove the file manually by connecting using an FTP client."
                 onclick="return confirm('This will remove this script. If you see the same script that means the self destruction didn\'t happen.
                     Please confirm self destroy operation.', '');">Self Destroy</a>
-			</li>			
+			</li>
         </ul>
 
         <!--<div class="navbar">
@@ -3098,7 +3138,7 @@ BUFF_EOF;
         </div> --> <!-- /.navbar -->
 
       <br />
-                
+
       <div class="row-fluid">
 	    <div class="span12">
             <p>$page_content</p>
@@ -3110,7 +3150,7 @@ BUFF_EOF;
       <div class="footer">
             &copy; Orbisius.com $year
 				<a href="https://twitter.com/Orbisius" class="twitter-follow-button"
-				  data-show-count="false">Follow @Orbisius</a> 
+				  data-show-count="false">Follow @Orbisius</a>
 				<a href="https://twitter.com/sak4wp" class=
 			  "twitter-follow-button" data-show-count="false">Follow @sak4wp</a>
 				<script type="text/javascript">
@@ -3137,16 +3177,16 @@ BUFF_EOF;
 	public function displayFooter() {
         $script = ORBISIUS_WP_SAK_APP_SCRIPT;
         $on_document_ready_assets_str = join("\n\n", $this->on_document_ready_assets);
-        
+
 		$buff = <<<BUFF_EOF
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
         <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.2.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
         <!--<script src="?js=1"></script>-->
 
-        <script>		
+        <script>
             var wpsak_json_cfg = { ajax_url : '$script' };
-			
+
 			var Sak4wp = {
 				Util : {
 					// This method adds data from one box to anther. The target box's content is preserved.
@@ -3154,11 +3194,11 @@ BUFF_EOF;
                         // we're adding a new line before and after the found links. The new lines will be later removed.
 						$(target).val($(target).val() + String.fromCharCode(13) + $(src).val() + String.fromCharCode(13)); // new line
 					},
-					
+
 					/*
 					* Some buttons expose more content
 					*/
-					setupToggleButtons : function () {						
+					setupToggleButtons : function () {
 						$('.toggle_info_trigger').on('click', function() {
 							if ($(this).siblings('.toggle_info').length) {
 								$(this).siblings('.toggle_info').toggle();
@@ -3169,28 +3209,28 @@ BUFF_EOF;
 					}
 				}
 			};
-			
+
             jQuery(document).ready(function($) {
                 $on_document_ready_assets_str
 
 				// let's select the first input box
 				$('form').find('input[type=text],textarea,select').filter(':visible:first').focus();
-				
+
 				// always re-initialize the toggle buttons after an Ajax request.
 				$( document ).ajaxComplete(function( event,request, settings ) {
 				    Sak4wp.Util.setupToggleButtons();
 				});
-				
+
 				Sak4wp.Util.setupToggleButtons();
-				
+
 				// Plugin_Manager : Download links
                 $('#mod_plugin_manager_download_list_form').submit(function() {
 					$('.app-ajax-message').remove();
 					var form = $(this);
 					var container = '.download_list_results';
-					
+
                     $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
-				
+
 					$.ajax({
                         type : "post",
                         dataType : "json",
@@ -3198,9 +3238,9 @@ BUFF_EOF;
                         data : $(form).serialize() + '&module=Plugin_Manager&action=get_download_list',
                         success : function(json) {
                            $('.app-ajax-message').remove();
-                
+
                            if (json.status) {
-                              $(container).html(json.results);							  
+                              $(container).html(json.results);
                            } else {
                               $(container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
                                   + json.message + "</span>");
@@ -3208,23 +3248,23 @@ BUFF_EOF;
                         },
                         error : function(jqXHR, text_status, error_thrown) {
                             $('.app-ajax-message').remove();
-                
+
                             alert("There was an error. " + text_status + ' ' + error_thrown);
                         },
-                        
+
                     }); // ajax
 
                     return false;
 				}); // Plugin_Manager
-				
+
 				// Plugin_Manager
                 $('#mod_plugin_manager_download_plugins_form').submit(function() {
 					$('.app-ajax-message').remove();
 					var form = $(this);
 					var container = '.results';
-					
+
                     $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
-				
+
 					$.ajax({
                         type : "post",
                         dataType : "json",
@@ -3232,7 +3272,7 @@ BUFF_EOF;
                         data : $(form).serialize() + '&module=Plugin_Manager&action=download',
                         success : function(json) {
                            $('.app-ajax-message').remove();
-                
+
                            if (json.status) {
                               $(container).html(json.results);
                            } else {
@@ -3242,23 +3282,23 @@ BUFF_EOF;
                         },
                         error : function(jqXHR, text_status, error_thrown) {
                             $('.app-ajax-message').remove();
-                
+
                             alert("There was an error. " + text_status + ' ' + error_thrown);
                         },
-                        
+
                     }); // ajax
 
                     return false;
 				}); // Plugin_Manager
-				
+
 				// search for wp
                 $('#mod_locate_wordpress_form').submit(function() {
 					$('.app-ajax-message').remove();
 					var form = $(this);
 					var container = '.results';
-					
+
                     $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
-				
+
 					$.ajax({
                         type : "post",
                         dataType : "json",
@@ -3266,7 +3306,7 @@ BUFF_EOF;
                         data : $(form).serialize() + '&module=Locate_WordPress&action=search',
                         success : function(json) {
                            $('.app-ajax-message').remove();
-                
+
                            if (json.status) {
                               $(container).html(json.results);
                            } else {
@@ -3276,20 +3316,20 @@ BUFF_EOF;
                         },
                         error : function(jqXHR, text_status, error_thrown) {
                             $('.app-ajax-message').remove();
-                
+
                             alert("There was an error. " + text_status + ' ' + error_thrown);
                         },
-                        
+
                     }); // ajax
 
                     return false;
 				}); // search4wp
-				
+
                 // unblock IP ajax
                 $('.mod_limit_login_attempts_blocked_ip').click(function() {
                     var ip = $(this).data('ip');
                     var container = $(this).closest('td');
-                
+
                     if (!confirm('Are you sure you want to unblock : ' + ip + '?', '')) {
                         return false;
                     }
@@ -3306,7 +3346,7 @@ BUFF_EOF;
                         data : { module : 'Limit_Login_Attempts_Unblocker', action : 'unblockIP', ip : ip },
                         success : function(json) {
                            $('.app-ajax-message').remove();
-                
+
                            if (json.status) {
                               //$(parent_container).slideUp('slow').remove();
                               $(container).append("<span class='app-ajax-message app-alert-success'>Unblocked!</span>");
@@ -3317,10 +3357,10 @@ BUFF_EOF;
                         },
                         error : function(jqXHR, text_status, error_thrown) {
                             $('.app-ajax-message').remove();
-                
+
                             alert("There was an error. " + text_status + ' ' + error_thrown);
                         },
-                        
+
                     }); // ajax
 
                     return false;
@@ -3381,7 +3421,7 @@ BUFF_EOF;
            }
 
            $buff .= "\t</tr>\n";
-           
+
            // let's put header col. we'll output the keys in a tr
            if ($idx == count($data) - 1) {
                $buff .= "\t<tr class='app-table-header-row'>\n";
@@ -3395,7 +3435,7 @@ BUFF_EOF;
         }
 
         $buff .= "</table>\n";
-        
+
         return $buff;
     }
 
@@ -3414,11 +3454,11 @@ BUFF_EOF;
 
 		// this is a nice way to add extra CSS
 		$table_css = empty($options['table_css']) ? '' : $options['table_css'];
-		
+
 		$cnt = 0;
-        $buff .= "<table class='app-table $table_css' cellpadding='2' cellspacing='0'>\n";        
-		
-		if (!empty($options['header'])) {		
+        $buff .= "<table class='app-table $table_css' cellpadding='2' cellspacing='0'>\n";
+
+		if (!empty($options['header'])) {
 		   $buff .= "\t<tr class='app-table-header-row'>\n";
 
 		   foreach ($options['header'] as $label) {
@@ -3464,7 +3504,7 @@ BUFF_EOF;
 
     // used in accounts
     const app_icon_user = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJ3SURBVDjLpZNtSNNRFIcNKunF1rZWBMJqKaSiX9RP1dClsjldA42slW0q5oxZiuHrlqllLayoaJa2jbm1Lc3QUZpKFmmaTMsaRp+kMgjBheSmTL2//kqMBJlFHx44XM7vOfdyuH4A/P6HFQ9zo7cpa/mM6RvCrVDzaVDy6C5JJKv6rwSnIhlFd0R0Up/GwF2KWyl01CTSkM/dQoQRzAurCjRCGnRUUE2FaoSL0HExiYVzsQwcj6RNrSqo4W5Gh6Yc4+1qDDTkIy+GhYK4nTgdz0H2PrrHUJzs71NQn86enPn+CVN9GnzruoYR63mMPbkC59gQzDl7pt7rc9f7FNyUhPY6Bx9gwt4E9zszhWWpdg6ZcS8j3O7zCTuEpnXB+3MNZkUUZu0NmHE8XsL91oSWwiiEc3MeseLrN6woYCWa/Zl8ozyQ3w3Hl2lYy0SwlCUvsVi/Gv2JwITnYPDun2Hy6jYuEzAF1jUBCVYpO6kXo+NuGMeBAgcgfwNkvgBOPgUqXgKvP7rBFvRhE1crp8Vq1noFYSlacVyqGk0D86gbART9BDk9BFnPCNJbCY5aCFL1Cyhtp0RWAp74MsKSrkq9guHyvfMTtmLc1togpZoyqYmyNoITzVTYRJCiXYBIQ3CwFqi83o3JDhX6C0M8XsGIMoQ4OyuRlq1DdZcLkmbgGDX1iIEKNxAcbgTEOqC4ZRaJ6Ub86K7CYFEo8Qo+GBQlQyXBczLZpbloaQ9k1NUz/kD2myBBKxRZpa5hVcQslalatoUxizxAVVrN3CW21bFj9F858Q9dnIRmDyeuybM71uxmH9BNBB1q6zybV7H9s1Ue4PM3/gu/AEbfqfWy2twsAAAAAElFTkSuQmCC';
-    
+
     /**
      * Outputs the necessary header based on the type.
 	 * The $buffer can be an array -> will be JSON encoded.
@@ -3485,10 +3525,10 @@ BUFF_EOF;
         //header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
         //header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
         // header('Cache-Control: public');
-        
+
         if (!empty($buffer)) {
 			$buffer = is_scalar($buffer) ? $buffer : json_encode($buffer);
-			
+
             if ($type != self::HEADER_JSON) { // don't bother caching JSON replies
                 $etag = md5($buffer);
                 header("ETag: \"$etag\"");
@@ -3602,11 +3642,11 @@ ul.nav li.right, .app-align-right {
     width: 100%;
 }
 
-.app-table-long-first-col tr td:first-child { 
+.app-table-long-first-col tr td:first-child {
 	width : 80%;
 }
 
-.app-table-long-first-col tr td:last-child { 
+.app-table-long-first-col tr td:last-child {
 	text-align:center;
 }
 
@@ -3711,7 +3751,7 @@ which makes them look bad or blend with the background.
     text-align: center;
     margin:2px 0px;
 }
-                
+
 /* Common MSG simple classes */
 .app-simple-alert-error {
     padding:3px;
@@ -3744,28 +3784,28 @@ ul.app-no-bullets-list {
     margin:0;
 }
 
-.du_line { 
+.du_line {
 	background:yellow;
 	padding-top:3px;
 	padding-bottom:3px;
 }
 
-.du_total { 
+.du_total {
 	color: #fff;
 	background:#428BCA;
 }
 
-.du_used { 
+.du_used {
 	color: #fff;
 	background:red;
 }
 
-.du_free { 
+.du_free {
 	color: #fff;
 	background:green;
 }
 
-.du_percent { 
+.du_percent {
 	color: #fff;
 	background:teal;
 }
