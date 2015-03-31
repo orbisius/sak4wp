@@ -1317,7 +1317,7 @@ EOF;
             if (preg_match('#help|usage#si', $tmp_res) || ($found_binary !== false)) {
                 $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file ($found_binary) found", 1) . "</li>";
             } else {
-                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file NOT found", 0) . "</li>";
+                $buff .= "\t<li>" . Orbisius_WP_SAK_Util::msg("$bin_file NOT found. Res: [$tmp_res]", 0) . "</li>";
 			}
 
             $buff .= "</ul>\n";
