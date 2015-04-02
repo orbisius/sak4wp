@@ -1377,6 +1377,8 @@ EOF;
                 // This is passed as 1st param to the tar command
                 // if archivig current folder and using text file no need to specify folder. I think.
                 $cmd_params_arr[] = $dir2compress;
+            } else {
+                $cmd_params_arr[] = '.';
             }
 
             if ( preg_match('#export#si', $_REQUEST['cmd'] ) ) {
@@ -1427,9 +1429,12 @@ EOF;
                      '*.cache',
 
                      // there is another function to get backups: is_wp_backup_resource
+                     'wp-content/uploads/*backup*',
+                     'wp-content/*backup*',
                      'wp-content/uploads/backupbuddy*',
                      'wp-content/backupwordpress*',
                      'wp-snapshots/*', // Duplicator
+                    
                      '__MACOSX', // mac
                      '.DS_Store', // mac
                      $db_export_file_prefix . '*',
