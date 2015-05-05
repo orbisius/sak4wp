@@ -51,7 +51,21 @@ try {
     $ctrl->preRun();
 
     // This WP load may fail which we'll check()
-    include_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wp-load.php');
+	$wp_load_locations = array(
+		dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'wp-load.php',
+		dirname( dirname( __FILE__ ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
+		dirname( dirname( dirname( __FILE__ ) ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
+	);
+	
+	foreach ( $wp_load_locations as $wp_load_php ) {
+		if ( file_exists( $wp_load_php ) ) {
+			include_once( $wp_load_php );
+		
+			if ( defined( 'ABSPATH' ) ) {
+				break;
+			}
+		}
+	}
 
     $ctrl->check();
     $ctrl->run();
