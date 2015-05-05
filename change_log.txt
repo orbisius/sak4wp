@@ -23,6 +23,7 @@ SAK4WP Change Log
 * Added method to try multiple directories in which it should find a given binary.(Orbisius_WP_SAK_Util_File::getBinary)
 * Showing the actual error message if a binary is not found.
 * Looking for wp-load in multiple directories.
+* Site Packager can archive files from multiple directories.
 
 = 1.0.8 (2014-10-03) =
 * Using ipduh.com to do IP whois instead of who.is ticket #1

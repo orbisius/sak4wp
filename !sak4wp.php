@@ -1,5 +1,4 @@
 <?php
-
 /**
 Swiss Army Knife for WordPress - standalone open source tool (GPL) that allows you to do system admin work on your WordPress site. Created by @orbisius
 You must remove it after the work is complete to avoid security issues.
@@ -1339,30 +1338,40 @@ EOF;
 
         $du_bin = Orbisius_WP_SAK_Util_File::getBinary('du');
 
-         // Site disk usage
-        $du = `$du_bin -sh $dir 2>&1 `;
-        $du = trim($du);
-        $buff .= "<br/>\n";
-        $buff .= "Site Disk Usage: " . $du;
-
-        // Uploads disk usage
-        $upload_dir_rec = wp_upload_dir();
-        $upload_dir = $upload_dir_rec['basedir'];
-        $du = `$du_bin -sh $upload_dir 2>&1 `;
-        $du = trim($du);
-        $buff .= "<br/>\n";
-        $buff .= "Disk Usage (uploads): " . $du;
-
         $buff .= "<br/><br/><strong>Archive Type</strong>\n";
 		$buff .= "<br/><label><input type='radio' id='cmd1' name='cmd' value='export_sql' checked='checked' /> Archive (tar)</label>\n";
 		$buff .= "<br/><label><input type='radio' id='cmd2' name='cmd' value='export_sql_gz' /> Archive (tar.gz - linux only)</label>\n";
 
         $buff .= "<br/><br/><strong>Archive Folder Prefix</strong>\n";
-        $buff .= "<br/><label><input type='radio' id='archive_start2' name='archive_start' value='do_not_add_folder' checked='checked' /> "
-                . "Archive includes files from current dir (start with ./) </label>\n";
 
-        $buff .= sprintf("<br/><label><input type='radio' id='archive_start1' name='archive_start' value='add_cur_folder' /> "
-                . "Archive includes current folder [%s]</label>\n", basename($target_dir));
+        // Uploads disk usage
+        $upload_dir_rec = wp_upload_dir();
+        $upload_dir = $upload_dir_rec['basedir'];
+
+        $arch_dirs = array(
+            rtrim( ABSPATH, '/' ),
+            dirname( __FILE__ ),
+            rtrim( $target_dir, '/' ),
+            dirname( $target_dir ),
+            rtrim( $upload_dir, '/' ),
+            // @todo: add plugins, themes dir
+        );
+
+        $arch_dirs = array_unique($arch_dirs);
+        sort($arch_dirs);
+
+        foreach ( $arch_dirs as $idx => $archive_dir ) {
+            $dir_e = escapeshellarg($archive_dir);
+            $dir_attr_e = esc_attr($archive_dir);
+            
+            $du = `$du_bin -sh $dir_e 2>&1`;
+            $du = trim($du);
+            $du_label = "Disk Usage ($du)";
+
+            $ch = $idx == 0 ? " checked='checked' " : '';
+            $buff .= "<br/><label><input type='radio' id='archive_start$idx' name='archive_start' value='$dir_attr_e' $ch /> "
+                . "Archive starts from [$archive_dir] ($du_label)</label>\n";
+        }
 
         $buff .= "<br/><br/><strong>Backup Type</strong>\n";
 		$buff .= "<br/><label><input type='radio' id='backup_type1' name='backup_type' value='site_only' checked='checked' /> Current WordPress Site only (smaller size; backups are ignored)</label>\n";
@@ -1376,16 +1385,16 @@ EOF;
 		$buff .= "</form>\n";
 
         if ( !empty( $_REQUEST['cmd'] ) ) {
-            $archive_start = empty($_REQUEST['archive_start']) || $_REQUEST['archive_start'] == 'do_not_add_folder' ? 'do_not_add_folder' : 'add_cur_folder';
+            $archive_start = empty($_REQUEST['archive_start']) ? ABSPATH : $_REQUEST['archive_start'];
 
-            $cmd_params_arr = array();
-            $dir2compress = './';
-            $dir2chdir = './';
             $cur_dir = getcwd();
+            $dir2chdir = $archive_start;
+            $dir2compress = $archive_start;
+            $cmd_params_arr = array();
 
-            if ($archive_start == 'add_cur_folder') {
-                $dir2compress = basename($target_dir);
-                $dir2chdir = dirname($target_dir);
+            if (1 || $archive_start == 'add_cur_folder') {
+                $dir2compress = basename($archive_start);
+                $dir2chdir = dirname($archive_start);
                 chdir($dir2chdir);
 
                 // This is passed as 1st param to the tar command
