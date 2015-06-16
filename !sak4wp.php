@@ -32,7 +32,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.0.9');
+define('ORBISIUS_WP_SAK_APP_VER', '1.1.0');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
@@ -403,6 +403,12 @@ EOF;
 
 		$current_user = wp_get_current_user();
 
+        if ( empty( $_REQUEST['load_user_meta'] ) ) {
+           $this->description .= " <a href='?page=mod_user_manager&load_user_meta=1'>Load user meta</a> | ";
+        } else {
+            $this->description .= " <a href='?page=mod_user_manager&load_user_meta=0'>Skip user meta loading</a> | ";
+        }
+
 		if (!empty($current_user->ID)) {
 			$this->description .= "<span class='app_logged_in app-simple-alert-success'>Currently Logged User: $current_user->display_name
 				[$current_user->user_email] (ID: $current_user->ID)</span>";
@@ -421,7 +427,12 @@ EOF;
     public function run() {
         $buff = '';
 
-		$data = get_users();
+        $args = array(
+            'number' => 250,
+            'orderby' => 'registered',
+        );
+        
+		$data = get_users( $args );
 		$records = array();
 
 		$highlight_admins = array();
@@ -438,16 +449,17 @@ EOF;
 			// This allows us to swich the user to a different one.
 			$rec['user_login'] .= " (<a href='?page=mod_user_manager&user_id=$user_obj->ID'>Login</a>)";
 
-            $user_meta = get_user_meta($user_obj->ID);
+            if ( ! empty( $_REQUEST['load_user_meta'] ) ) {
+                $user_meta_html = '<pre class="toggle_info app_hide">' . var_export( get_user_meta( $user_obj->ID ), 1 ) . "</pre>\n";
+                $rec['ID'] .= " (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide meta</a>)\n" . $user_meta_html;
+            }
 
-            $rec['ID'] .= " (<a href='javascript:void(0);' class='toggle_info_trigger'>show/hide meta</a>)\n" .
-                '<pre class="toggle_info app_hide">' . var_export($user_meta, 1) . "</pre>\n";
-
-			$records[] = $rec;
-
-			if (user_can($user_obj->ID, 'manage_options' )) {
+			if ( user_can( $user_obj->ID, 'manage_options' ) ) {
 				$highlight_admins[] = $idx;
+                $rec['user_login'] .= ' (admin)';
 			}
+            
+			$records[] = $rec;
         }
 
         $buff .= "<p class='results'></p>\n";
