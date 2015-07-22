@@ -2,6 +2,9 @@
 SAK4WP Change Log
 =================
 
+= 1.1.0 (2015-07) =
+* Added db credentials (Db Dump module) in case the wp-config can't be parsed (e.g. custom setup).
+
 = 1.1.0 (2015-06) =
 * Added limits when loading users.
 * Showing which accounts are admins

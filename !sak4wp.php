@@ -1178,13 +1178,36 @@ EOF;
         $buff .= "<br/><br/><strong>Misc</strong>\n";
 		$buff .= "<br/><label><input type='checkbox' id='bg' name='bg' value='1' /> Run the task in background (linux only) (recommended for larger sites > 100MB)</label>\n";
 
+        $buff .= "<br/>Database Info (in case it can't be parsed automatically) \n";
+        $buff .= "<br/><input type='text' name='db_host' value='localhost' placeholder='db host' />\n";
+        $buff .= "<br/><input type='text' name='db_user' value='' placeholder='db user' />\n";
+        $buff .= "<br/><input type='text' name='db_pass' value='' placeholder='db pass' />\n";
+        $buff .= "<br/><input type='text' name='db_name' value='' placeholder='db name' /><br/>\n";
+
 		$buff .= "<br/><input type='submit' name='submit_btn' class='btn btn-primary' value='Archive' />\n";
 		$buff .= "</form>\n";
 
         if ( !empty( $_REQUEST['cmd'] ) ) {
+            
             if ( preg_match('#dump_sql#si', $_REQUEST['cmd'] ) ) {
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
-                $data = $mod_obj->read_wp_config();
+                
+                $data = array();
+                $db_fields = array();
+                $db_field_keys = array( 'db_host', 'db_user', 'db_pass', 'db_name', );
+
+                foreach ( $db_field_keys as $key ) {
+                    if ( !empty($_REQUEST[$key])) {
+                        $db_fields[$key] = $_REQUEST[$key];
+                    }
+                }
+                
+
+                if (count($db_fields) == count($db_field_keys)) {
+                    $data = array_merge($db_fields, $data);
+                } else {
+                    $data = $mod_obj->read_wp_config();
+                }
 
                 $exp_params[] = '--single-transaction';
                 $exp_params[] = '--hex-blob';
