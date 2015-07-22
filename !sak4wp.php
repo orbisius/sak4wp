@@ -1201,8 +1201,8 @@ EOF;
                         $db_fields[$key] = $_REQUEST[$key];
                     }
                 }
-                
 
+                // if the user has entered all of the fields then don't load wp-config
                 if (count($db_fields) == count($db_field_keys)) {
                     $data = array_merge($db_fields, $data);
                 } else {
