@@ -2,6 +2,11 @@
 SAK4WP Change Log
 =================
 
+= 1.1.1 (2016-03) =
+* Added update post meta
+* Added delete post meta
+* Don't try to load post meta if post/page is not found. Use null instead.
+
 = 1.1.0 (2015-07) =
 * Added db credentials (Db Dump module) in case the wp-config can't be parsed (e.g. custom setup).
 

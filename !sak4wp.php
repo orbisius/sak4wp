@@ -32,7 +32,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.1.0');
+define('ORBISIUS_WP_SAK_APP_VER', '1.1.1');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
@@ -242,23 +242,34 @@ class Orbisius_WP_SAK_Controller_Module_PostMeta extends Orbisius_WP_SAK_Control
         $this->description = <<<EOF
 <h4>Post Meta</h4>
 <p>
-    This module allows you to view post meta information.
+    This module allows you to view and edit post meta information.
 </p>
 EOF;
 
         $form_js_handler = <<<BUFF_EOF
         // Orbisius_WP_SAK_Controller_Module_PostMeta
-        $('#mod_post_meta_form').submit(function() {
+        // Load form.
+        $('.mod_post_meta_form').submit(function() {
             var form = $(this);
             var container = '.results_container';
 
             $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
 
+            var action = 'getPostMetaAjax';
+
+            if ( form.hasClass('mod_post_meta_edit_form') ) {
+                action = 'setPostMetaAjax';
+            }
+                
+            if ( form.hasClass('mod_post_meta_delete_form') ) {
+                action = 'setPostMetaAjax';
+            }
+
             $.ajax({
                 type : "post",
                 dataType : "json",
                 url : wpsak_json_cfg.ajax_url, // contains all the necessary params
-                data : $(form).serialize() + '&module=PostMeta&action=getPostMetaAjax',
+                data : $(form).serialize() + '&module=PostMeta&action=' + action,
                 success : function(json) {
                    $('.app-ajax-message').remove();
 
@@ -278,7 +289,8 @@ EOF;
             }); // ajax
 
             return false;
-        }); // Orbisius_WP_SAK_Controller_Module_PostMeta
+        });
+        // Orbisius_WP_SAK_Controller_Module_PostMeta
 BUFF_EOF;
 
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
@@ -291,22 +303,58 @@ BUFF_EOF;
     public function run() {
         $buff = '';
 
-        $post_id = empty($_REQUEST['post_id']) ? '' : $_REQUEST['post_id'];
+        $post_id = empty($_REQUEST['post_id']) ? '' : (int) $_REQUEST['post_id'];
+        $meta_key = empty($_REQUEST['meta_key']) ? '' : trim($_REQUEST['meta_key']);
+        $meta_value = empty($_REQUEST['meta_value']) ? '' : trim( $_REQUEST['meta_value'] );
+        
         $post_id_esc = esc_attr($post_id);
+        $meta_key_esc = esc_attr($meta_key);
+        $meta_value_esc = esc_attr($meta_value);
 
         //$buff .= "<br/><h4>Plugin List from Text/HTML File</h4>\n";
-		$buff .= "<form method='post' id='mod_post_meta_form'>\n";
+        $buff .= "<h4>Load Post Meta</h4>";
+		$buff .= "<form method='post' class='mod_post_meta_form mod_post_meta_load_form' id='mod_post_meta_load_form'>\n";
 		$buff .= "<input type='hidden' id='cmd' name='cmd' value='get_post_meta' />\n";
 		$buff .= "ID: <input type='text' id='post_id' name='post_id' value='$post_id_esc' /> \n";
-		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Load Meta Data' />\n<br/>";
+		$buff .= "<input type='submit' class='app-btn-primary' value='Load Post Meta' />\n<br/>";
         $buff .= "Examples: <br/>- Enter ID e.g. 1 <br/>- OR 1, 2, 3 <br/>- OR even a page slug e.g. my-service-page\n";
 		$buff .= "</form>\n";
+        $buff .= "<hr />\n";
+        
 		$buff .= "<div id='results_container' class='results_container'></div>\n";
 
-        if (!empty($_REQUEST['cmd'])) {
-            if ($_REQUEST['cmd'] == 'get_post_meta') {
-                $post_id = empty($_REQUEST['post_id']) ? 0 : $_REQUEST['post_id'];
+        $buff .= "<h4>Edit Post Meta</h4>";
+        $buff .= "<form method='post' class='mod_post_meta_form mod_post_meta_edit_form' id='mod_post_meta_edit_form'>\n";
+		$buff .= "<input type='hidden' id='cmd' name='cmd' value='edit_post_meta' />\n";
+		$buff .= "ID: <input type='text' id='post_id' name='post_id' value='$post_id_esc' /> \n";
+		$buff .= "Meta Key: <input type='text' id='meta_key' name='meta_key' value='$meta_key_esc' /> \n";
+		$buff .= "Meta Value: <textarea id='meta_value' name='meta_value' value='$meta_value_esc' rows='4'></textarea>\n";
+		$buff .= "<input type='submit' class='app-btn-primary' value='Update Post Meta' />\n<br/>";
+        $buff .= "Examples: <br/>- Enter ID e.g. 1 <br/>- OR 1, 2, 3 <br/>- OR even a page slug e.g. my-service-page\n";
+		$buff .= "</form>\n";
+		$buff .= "<hr />\n";
 
+        $buff .= "<h4>Delete Post Meta</h4>";
+        $buff .= "<form method='post' class='mod_post_meta_form mod_post_meta_delete_form' id='mod_post_meta_delete_form'>\n";
+		$buff .= "<input type='hidden' id='cmd' name='cmd' value='delete_post_meta' />\n";
+		$buff .= "ID: <input type='text' id='post_id' name='post_id' value='$post_id_esc' /> \n";
+		$buff .= "Meta Key: <input type='text' id='meta_key' name='meta_key' value='$meta_key_esc' /> \n";
+		$buff .= "<input type='submit' class='app-btn-primary' value='Delete Post Meta' />\n<br/>";
+        $buff .= "Examples: <br/>- Enter ID e.g. 1 <br/>- OR 1, 2, 3 <br/>- OR even a page slug e.g. my-service-page\n";
+		$buff .= "</form>\n";
+
+        if (!empty($_REQUEST['cmd'])) {
+            if ($_REQUEST['cmd'] == 'delete_post_meta') {
+                $post_id = empty($_REQUEST['post_id']) ? 0 : $_REQUEST['post_id'];
+                $this->deletePostMeta($post_id, $meta_key);
+            }
+
+            if ($_REQUEST['cmd'] == 'edit_post_meta') {
+                $this->setPostMeta($post_id, $meta_key, $meta_value);
+            }
+
+            // This should fetch the freshest info.
+            if ($_REQUEST['cmd'] == 'get_post_meta') {
                 $buff .= $this->getMetaAsString($post_id);
                 $buff .= "<br/>";
             }
@@ -352,12 +400,83 @@ BUFF_EOF;
     }
 
     /**
+     * This method is called when we have the module and action specified.
+     */
+    public function setPostMetaAjaxAction() {
+        $msg = '';
+        $result_html = '';
+        $status = 1;
+
+        $cmd = isset($_REQUEST['cmd']) ? trim($_REQUEST['cmd']) : null;
+
+        $cmd_label = preg_match('#delete#si', $cmd) ? 'Delete Meta' : 'Update Meta';
+
+        // raw data
+        $meta_key = empty($_REQUEST['meta_key']) ? '' : trim($_REQUEST['meta_key']);
+        $meta_value = isset($_REQUEST['meta_value']) ? trim($_REQUEST['meta_value']) : null;
+
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $post_ids_list = $ctrl->getVar('post_id'); // could be 1 or more IDs
+        
+        $ids = explode(',', $post_ids_list);
+        $ids = array_map('trim', $ids);
+        $ids = array_filter($ids); // non empty ones
+        $ids = array_unique($ids);
+
+        foreach ($ids as $post_id) {
+            // If the user has entered a slug we'll use it to get the post ID
+            if (!is_numeric($post_id)) {
+                $post = get_page_by_path($post_id);
+
+                if (empty($post)) {
+                    $result_html .= Orbisius_WP_SAK_Util::msg('Path: [' . esc_attr($post_id) . '] was not found. Skipping. <br/>', 0);
+                    continue;
+                }
+
+                $post_id = $post->ID;
+            }
+
+            $res = $this->setPostMeta($post_id, $meta_key, $meta_value);
+
+            $result_html .= ($res === false)
+                    ? Orbisius_WP_SAK_Util::msg($cmd_label . ' Error. post meta for post/page ID: ' . esc_attr($post_id) . '] or the new value matches the old one. <br/>', 0)
+                    : Orbisius_WP_SAK_Util::msg($cmd_label. ' OK meta for post/page ID: ' . esc_attr($post_id) . ']. <br/>', 1);
+        }
+
+        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
+    }
+
+    /**
+     *
+     * @param int $post_id
+     * @param str $meta_key
+     * @param str $meta_value
+     * @see https://codex.wordpress.org/Function_Reference/update_post_meta
+     */
+    public function setPostMeta($post_id, $meta_key, $meta_value) {
+        if ( is_null( $meta_value ) ) {
+            $mixed_res = delete_post_meta($post_id, $meta_key);
+        } else {
+            /*Returns meta_id if the meta doesn't exist, otherwise returns true on success and false on failure.
+             * NOTE: If the meta_value passed to this function is the same as the value that is already in the database, this function returns false. */
+            $mixed_res = update_post_meta($post_id, $meta_key, $meta_value);
+        }
+        
+        return $mixed_res;
+    }
+
+    /**
      * Sample Method
      */
     public function getMetaAsString($post_id) {
         $str = '';
         $post = get_post($post_id);
-        $meta = get_post_meta($post_id);
+
+        $meta = !empty($post)
+                ? get_post_meta($post_id)
+                : null;
+        
         $author_meta = !empty($post->post_author)
                 ? get_user_meta($post->post_author)
                 : null;
@@ -366,7 +485,7 @@ BUFF_EOF;
 
         if (!empty($post)) {
             $link = get_permalink($post_id);
-            $link_str = "<a href='$link' target='_blank'>View</a>";
+            $link_str = "(<a href='$link' target='_blank'>View</a>)";
         }
 
         // if the item is one element that means that it's one value
@@ -374,7 +493,7 @@ BUFF_EOF;
             $meta = $meta[0];
         }
 
-        $str .= "<h3>Post/Page ID: $post_id ($link_str)</h3><pre>" . var_export($post, 1) . "</pre>\n";
+        $str .= "<h3>Post/Page ID: $post_id $link_str</h3><pre>" . var_export($post, 1) . "</pre>\n";
         $str .= '<h3>Post/Page Meta</h3><pre class="toggle_info000">' . var_export($meta, 1) . "</pre>\n";
         $str .= '<h3>Author Meta</h3><pre class="toggle_info000">' . var_export($author_meta, 1) . "</pre>\n";
 
