@@ -2788,7 +2788,7 @@ class Orbisius_WP_SAK_Util {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_SSLVERSION,3);
+        //curl_setopt($ch, CURLOPT_SSLVERSION,3);
 
         if (defined('CURLOPT_CERTINFO')) {
             curl_setopt($ch, CURLOPT_CERTINFO, 1);
