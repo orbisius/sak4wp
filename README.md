@@ -149,6 +149,9 @@ Future Ideas / TODO
 - Add a favicon
 - Add site title to the SAK4WP so when printting content it'll show the tested site
 - Log viewer -> scan for *.log and either offer them for download or show last 20 lines
+- The WP install scanner to show plugin versions and if they are up-to-date (Thanks Seb for the idea)
+- If WP-CLI is available enable commands such as update: core, plugins, themes
+- Mass site and db pkg
 
 - Module: File Manager -> upload/download files, zip/unzip, (un)tar, check for large files, color large files with red > 1GB, process line per line
 
