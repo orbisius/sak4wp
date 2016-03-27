@@ -9,6 +9,7 @@ SAK4WP Change Log
 * Fixed WordPress version detection ... the WordPress.org SSL related issue
 * Fixed: php memory limit detection ... some hosts report this in bytes and not in MB
 * Stats module shows if it has found wp-cli and its version.
+* Stats module: shows inode usage
 
 = 1.1.0 (2015-07) =
 * Added db credentials (Db Dump module) in case the wp-config can't be parsed (e.g. custom setup).

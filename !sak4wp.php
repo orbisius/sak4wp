@@ -1919,6 +1919,12 @@ EOF;
         $disk_usage = empty($disk_usage) ? 'N/A' : $disk_usage;
         $data['Site Disk Space Usage (du -sh .)'] = $disk_usage;
 
+        $df_bin = Orbisius_WP_SAK_Util_File::getBinary('df');
+        $inode_usage = `$df_bin -i`;
+        $inode_usage = trim($inode_usage);
+        $inode_usage = empty($inode_usage) ? 'N/A' : "<pre>" . $inode_usage . "</pre>";
+        $data['OS inode Usage (du -i .)'] = $inode_usage;
+
 		// Free Disk space
         $df_bin = Orbisius_WP_SAK_Util_File::getBinary('df');
 		$disk_free_space = `$df_bin --human-readable`;
