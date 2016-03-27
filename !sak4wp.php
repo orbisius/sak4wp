@@ -1904,17 +1904,24 @@ EOF;
         $data['Max Upload File Size Limit'] = $this->get_max_upload_size() . 'MB';
         $data['Memory Limit'] = $this->get_memory_limit() . 'MB';
 
-        $du_bin = Orbisius_WP_SAK_Util_File::getBinary('du');
+        // wp-cli detection.
+        $wp_cli_bin = Orbisius_WP_SAK_Util_File::getBinary('wp');
+        $wp_cli_version = `$wp_cli_bin --info`;
+        $wp_cli_version = trim($wp_cli_version);
+        $wp_cli_version = empty($wp_cli_version) ? 'Not Installed/Detected' : "<pre>" . $wp_cli_version . "</pre>";
+        $data['wp-cli'] = $wp_cli_version;
 
 		// Disk space usage
         $dir = dirname(__FILE__); // that's where the sak is installed.
+        $du_bin = Orbisius_WP_SAK_Util_File::getBinary('du');
         $disk_usage = `$du_bin -sh $dir`;
         $disk_usage = trim($disk_usage);
         $disk_usage = empty($disk_usage) ? 'N/A' : $disk_usage;
         $data['Site Disk Space Usage (du -sh .)'] = $disk_usage;
 
 		// Free Disk space
-		$disk_free_space = `df --human-readable`;
+        $df_bin = Orbisius_WP_SAK_Util_File::getBinary('df');
+		$disk_free_space = `$df_bin --human-readable`;
 		$disk_free_space = trim($disk_free_space);
 		$disk_free_space = empty($disk_free_space) ? 'N/A' : '<pre>' .
 		$disk_free_space = preg_replace('#(/dev/[\w/\-]+\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+\%?)(.*)#im'
@@ -2000,7 +2007,7 @@ EOF;
     public static function get_max_upload_size() {
         $max_upload = (int)(ini_get('upload_max_filesize'));
         $max_post = (int)(ini_get('post_max_size'));
-        $memory_limit = (int)(ini_get('memory_limit'));
+        $memory_limit = self::get_memory_limit();
 
         $upload_mb = min($max_upload, $max_post, $memory_limit);
 
@@ -2014,6 +2021,12 @@ EOF;
      */
     public static function get_memory_limit() {
         $memory_limit = (int)(ini_get('memory_limit'));
+
+        // Some hostings report this in bytes? instead of MB e.g. 256M
+        if ( $memory_limit >= 1024 * 1024 ) { // more than 1MB
+            $memory_limit /= 1024 * 1024;
+        }
+
         return $memory_limit;
     }
 
