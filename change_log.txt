@@ -2,6 +2,11 @@
 SAK4WP Change Log
 =================
 
+= 1.1.2 (2016-06) =
+* Looking for WP 1 more level so if this is put in plugins it will find wp-config.php
+* Redirect to the main site (/) and not to the file itself because this would log a page not found 
+as if somebody was trying to access sak4wp file.
+
 = 1.1.1 (2016-03) =
 * Added update post meta
 * Added delete post meta

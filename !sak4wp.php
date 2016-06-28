@@ -54,6 +54,7 @@ try {
 		dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'wp-load.php',
 		dirname( dirname( __FILE__ ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
 		dirname( dirname( dirname( __FILE__ ) ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
+		dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
 	);
 	
 	foreach ( $wp_load_locations as $wp_load_php ) {
@@ -486,6 +487,11 @@ BUFF_EOF;
         if (!empty($post)) {
             $link = get_permalink($post_id);
             $link_str = "(<a href='$link' target='_blank'>View</a>)";
+        }
+
+        // if the item is one element that means that it's one value
+        if (count($meta) == 1) {
+            $meta = $meta[0];
         }
 
         $str .= "<h3>Post/Page ID: $post_id $link_str</h3><pre>" . var_export($post, 1) . "</pre>\n";
@@ -2987,12 +2993,14 @@ class Orbisius_WP_SAK_Controller {
 			$mod_obj->clean();
 
             if (!unlink(__FILE__)) {
-				$this->doExit('Cannot self destroy. Please delete <strong>' . __FILE__ . '</strong> manually.');
+				$this->doExit('Cannot self destroy. Please delete <strong>' 
+					. __FILE__
+					. '</strong> manually.');
             }
-
-            // This should be a test. If the user is seeing the script
-            // that means it is is still alive.
-            $this->redirect(ORBISIUS_WP_SAK_APP_SCRIPT);
+            
+			// Redirect to the main site (/) and not to the file itself because this would log 
+			// a page not found as if somebody was trying to access sak4wp file.
+            $this->redirect('/');
         }
     }
 
