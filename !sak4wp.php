@@ -32,7 +32,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.1.1');
+define('ORBISIUS_WP_SAK_APP_VER', '1.1.3');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
@@ -497,6 +497,245 @@ BUFF_EOF;
         $str .= "<h3>Post/Page ID: $post_id $link_str</h3><pre>" . var_export($post, 1) . "</pre>\n";
         $str .= '<h3>Post/Page Meta</h3><pre class="toggle_info000">' . var_export($meta, 1) . "</pre>\n";
         $str .= '<h3>Author Meta</h3><pre class="toggle_info000">' . var_export($author_meta, 1) . "</pre>\n";
+
+        return $str;
+    }
+}
+
+/**
+ * Example Module - Handles ...
+ */
+class Orbisius_WP_SAK_Controller_Module_UserMeta extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>User Meta</h4>
+<p>
+    This module allows you to view and edit user meta information.
+</p>
+EOF;
+
+        $form_js_handler = <<<BUFF_EOF
+        // Orbisius_WP_SAK_Controller_Module_UserMeta
+        // Load form.
+        $('.mod_user_meta_form').submit(function() {
+            var form = $(this);
+            var container = '.results_container';
+
+            $(container).empty().append("<div class='app-ajax-message app-alert-notice'>loading ...</div>");
+
+            var action = 'getUserMetaAjax';
+
+            if ( form.hasClass('mod_user_meta_edit_form') ) {
+                action = 'setUserMetaAjax';
+            }
+
+            if ( form.hasClass('mod_user_meta_delete_form') ) {
+                action = 'setUserMetaAjax';
+            }
+
+            $.ajax({
+                //type : "user",
+                dataType : "json",
+                url : wpsak_json_cfg.ajax_url, // contains all the necessary params
+                data : $(form).serialize() + '&module=UserMeta&action=' + action,
+                success : function(json) {
+                   $('.app-ajax-message').remove();
+
+                   if (json.status) {
+                      $(container).html(json.results);
+                   } else {
+                      $(container).append("<span class='app-ajax-message app-alert-error'>There was an error. Error: "
+                          + json.message + "</span>");
+                   }
+                },
+                error : function(jqXHR, text_status, error_thrown) {
+                    $('.app-ajax-message').remove();
+
+                    alert("There was an error. " + text_status + ' ' + error_thrown);
+                },
+
+            }); // ajax
+
+            return false;
+        });
+        // Orbisius_WP_SAK_Controller_Module_UserMeta
+BUFF_EOF;
+
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $ctrl->enqeueOnDocumentReady($form_js_handler);
+    }
+
+    /**
+     *
+     */
+    public function run() {
+        $buff = '';
+
+        $user_id = empty($_REQUEST['user_id']) ? '' : (int) $_REQUEST['user_id'];
+        $meta_key = empty($_REQUEST['meta_key']) ? '' : trim($_REQUEST['meta_key']);
+        $meta_value = empty($_REQUEST['meta_value']) ? '' : trim( $_REQUEST['meta_value'] );
+
+        $user_id_esc = esc_attr($user_id);
+        $meta_key_esc = esc_attr($meta_key);
+        $meta_value_esc = esc_attr($meta_value);
+
+        //$buff .= "<br/><h4>Plugin List from Text/HTML File</h4>\n";
+        $buff .= "<h4>Load User Meta</h4>";
+		$buff .= "<form method='post' class='mod_user_meta_form mod_user_meta_load_form' id='mod_user_meta_load_form'>\n";
+		$buff .= "<input type='hidden' id='cmd' name='cmd' value='get_user_meta' />\n";
+		$buff .= "ID: <input type='text' id='user_id' name='user_id' value='$user_id_esc' /> \n";
+		$buff .= "<input type='submit' class='app-btn-primary' value='Load User Meta' />\n<br/>";
+        $buff .= "Examples: <br/>- Enter ID e.g. 1 <br/>- OR 1, 2, 3 <br/>- OR even a page slug e.g. my-service-page\n";
+		$buff .= "</form>\n";
+        $buff .= "<hr />\n";
+
+		$buff .= "<div id='results_container' class='results_container'></div>\n";
+
+        $buff .= "<h4>Edit User Meta</h4>";
+        $buff .= "<form method='post' class='mod_user_meta_form mod_user_meta_edit_form' id='mod_user_meta_edit_form'>\n";
+		$buff .= "<input type='hidden' id='cmd' name='cmd' value='edit_user_meta' />\n";
+		$buff .= "ID: <input type='text' id='user_id' name='user_id' value='$user_id_esc' /> \n";
+		$buff .= "Meta Key: <input type='text' id='meta_key' name='meta_key' value='$meta_key_esc' /> \n";
+		$buff .= "Meta Value: <textarea id='meta_value' name='meta_value' value='$meta_value_esc' rows='4'></textarea>\n";
+		$buff .= "<input type='submit' class='app-btn-primary' value='Update User Meta' />\n<br/>";
+        $buff .= "Examples: <br/>- Enter ID e.g. 1 <br/>- OR 1, 2, 3 <br/>- OR even a page slug e.g. my-service-page\n";
+		$buff .= "</form>\n";
+		$buff .= "<hr />\n";
+
+        $buff .= "<h4>Delete User Meta</h4>";
+        $buff .= "<form method='post' class='mod_user_meta_form mod_user_meta_delete_form' id='mod_user_meta_delete_form'>\n";
+		$buff .= "<input type='hidden' id='cmd' name='cmd' value='delete_user_meta' />\n";
+		$buff .= "ID: <input type='text' id='user_id' name='user_id' value='$user_id_esc' /> \n";
+		$buff .= "Meta Key: <input type='text' id='meta_key' name='meta_key' value='$meta_key_esc' /> \n";
+		$buff .= "<input type='submit' class='app-btn-primary' value='Delete User Meta' />\n<br/>";
+        $buff .= "Examples: <br/>- Enter ID e.g. 1 <br/>- OR 1, 2, 3 <br/>- OR even a page slug e.g. my-service-page\n";
+		$buff .= "</form>\n";
+
+        if (!empty($_REQUEST['cmd'])) {
+            if ($_REQUEST['cmd'] == 'delete_user_meta') {
+                $user_id = empty($_REQUEST['user_id']) ? 0 : $_REQUEST['user_id'];
+                $this->deleteUserMeta($user_id, $meta_key);
+            }
+
+            if ($_REQUEST['cmd'] == 'edit_user_meta') {
+                $this->setUserMeta($user_id, $meta_key, $meta_value);
+            }
+
+            // This should fetch the freshest info.
+            if ($_REQUEST['cmd'] == 'get_user_meta') {
+                $buff .= $this->getMetaAsString($user_id);
+                $buff .= "<br/>";
+            }
+        }
+
+        return $buff;
+    }
+
+    /**
+     * This method is called when we have the module and action specified.
+     */
+    public function getUserMetaAjaxAction() {
+        $msg = '';
+        $result_html = '';
+        $status = 1;
+
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $user_ids_list = $ctrl->getVar('user_id'); // could be 1 or more IDs
+
+        $ids = explode(',', $user_ids_list);
+        $ids = array_map('abs', $ids);
+        $ids = array_map('trim', $ids);
+        $ids = array_filter($ids); // non empty ones
+        $ids = array_unique($ids);
+
+        foreach ($ids as $user_id) {
+            $result_html .= $this->getMetaAsString($user_id);
+        }
+
+        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
+    }
+
+    /**
+     * This method is called when we have the module and action specified.
+     */
+    public function setUserMetaAjaxAction() {
+        $msg = '';
+        $result_html = '';
+        $status = 1;
+
+        $cmd = isset($_REQUEST['cmd']) ? trim($_REQUEST['cmd']) : null;
+
+        $cmd_label = preg_match('#delete#si', $cmd) ? 'Delete Meta' : 'Update Meta';
+
+        // raw data
+        $meta_key = empty($_REQUEST['meta_key']) ? '' : trim($_REQUEST['meta_key']);
+        $meta_value = isset($_REQUEST['meta_value']) ? trim($_REQUEST['meta_value']) : null;
+
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $user_ids_list = $ctrl->getVar('user_id'); // could be 1 or more IDs
+
+        $ids = explode(',', $user_ids_list);
+        $ids = array_map('trim', $ids);
+        $ids = array_map('abs', $ids);
+        $ids = array_filter($ids); // non empty ones
+        $ids = array_unique($ids);
+
+        foreach ($ids as $user_id) {
+            $res = $this->setUserMeta($user_id, $meta_key, $meta_value);
+
+            $result_html .= ($res === false)
+                    ? Orbisius_WP_SAK_Util::msg($cmd_label . ' Error. user meta for user ID: ' . esc_attr($user_id) . '] or the new value matches the old one. <br/>', 0)
+                    : Orbisius_WP_SAK_Util::msg($cmd_label. ' OK meta for user ID: ' . esc_attr($user_id) . ']. <br/>', 1);
+        }
+
+        $result_status = array('status' => $status, 'message' => $msg, 'results' => $result_html, );
+        $ctrl->sendHeader(Orbisius_WP_SAK_Controller::HEADER_JS, $result_status);
+    }
+
+    /**
+     *
+     * @param int $user_id
+     * @param str $meta_key
+     * @param str $meta_value
+     * @see https://codex.wordpress.org/Function_Reference/update_user_meta
+     */
+    public function setUserMeta($user_id, $meta_key, $meta_value = null) {
+        if ( is_null( $meta_value ) ) {
+            $mixed_res = delete_user_meta($user_id, $meta_key);
+        } else {
+            /*Returns meta_id if the meta doesn't exist, otherwise returns true on success and false on failure.
+             * NOTE: If the meta_value passed to this function is the same as the value that is already in the database, this function returns false. */
+            $mixed_res = update_user_meta($user_id, $meta_key, $meta_value);
+        }
+
+        return $mixed_res;
+    }
+
+    /**
+     * Sample Method
+     */
+    public function getMetaAsString($user_id) {
+        $str = '';
+        $user_id = abs($user_id);
+        $user = get_user_by( 'id', $user_id);
+
+        $meta = !empty($user)
+                ? get_user_meta($user_id)
+                : null;
+
+        $link_str = '';
+
+        // if the item is one element that means that it's one value
+        if (count($meta) == 1) {
+            $meta = $meta[0];
+        }
+
+        $str .= "<h3>User ID: $user_id $link_str</h3><pre>" . var_export($user, 1) . "</pre>\n";
+        $str .= '<h3>User Meta</h3><pre class="toggle_info000">' . var_export($meta, 1) . "</pre>\n";
 
         return $str;
     }
@@ -3126,6 +3365,13 @@ class Orbisius_WP_SAK_Controller {
 
                 break;
 
+            case 'mod_user_meta':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_UserMeta();
+				$descr = $mod_obj->getInfo();
+				$descr .= $mod_obj->run();
+
+                break;
+
             case 'mod_db_dump':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Db_Dump();
 				$descr = $mod_obj->getInfo();
@@ -3320,6 +3566,7 @@ BUFF_EOF;
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#">Modules <span class="caret"></span></a>
 				<ul class="dropdown-menu">
 					<li><a href="$script?page=mod_stats" title="Lists WordPress Site Stats.">Stats</a></li>
+					<li><a href="$script?page=mod_user_meta" title="Pulls User Meta info">User Meta</a></li>
 					<li><a href="$script?page=mod_post_meta" title="Pulls Post Meta info from posts or pages">Post Meta</a></li>
 					<li><a href="$script?page=mod_db_dump" title="Export current site db">Db Dump</a></li>
 					<li><a href="$script?page=mod_site_packager" title="Archive your site">Site Packager</a></li>
