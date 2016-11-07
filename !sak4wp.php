@@ -3380,196 +3380,203 @@ class Orbisius_WP_SAK_Controller {
      * @return string
      */
 	public function getPageContent($page = '') {
-        if (empty($page) && !empty($_REQUEST['page'])) {
-            $page = $_REQUEST['page'];
-        }
-
-        $script = ORBISIUS_WP_SAK_APP_SCRIPT;
-        $app_name = ORBISIUS_WP_SAK_APP_NAME;
-
-		switch ($page) {
-            case 'mod_self_protect':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
-                $descr = $mod_obj->getInfo();
-                //$descr .= $mod_obj->run();
-                break;
+        try {
+            $descr = '';
             
-			case 'mod_user_manager':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_User_Manager();
-                $descr = $mod_obj->getInfo();
-                $descr .= $mod_obj->run();
-                break;
+            if (empty($page) && !empty($_REQUEST['page'])) {
+                $page = $_REQUEST['page'];
+            }
 
-			case 'mod_plugin_manager':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Plugin_Manager();
-                $descr = $mod_obj->getInfo();
-                $descr .= $mod_obj->run();
-                break;
+            $script = ORBISIUS_WP_SAK_APP_SCRIPT;
+            $app_name = ORBISIUS_WP_SAK_APP_NAME;
 
-			case 'mod_locate_wp':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Locate_WordPress();
-                $descr = $mod_obj->getInfo();
-                $descr .= $mod_obj->run();
-                break;
+            switch ($page) {
+                case 'mod_self_protect':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
+                    $descr = $mod_obj->getInfo();
+                    //$descr .= $mod_obj->run();
+                    break;
 
-			case 'mod_search':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Search();
-                $descr = $mod_obj->getInfo();
-                $descr .= $mod_obj->run();
-                break;
+                case 'mod_user_manager':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_User_Manager();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-            case 'mod_htaccess':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Htaccess();
-                $descr = $mod_obj->getInfo();
-                $descr .= $mod_obj->run();
-                break;
-            
-            case 'mod_stats':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
-                $descr = $mod_obj->getInfo();
-                $descr .= $mod_obj->run();
-                break;
+                case 'mod_plugin_manager':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Plugin_Manager();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-            case 'mod_list_page_templates':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_List_Page_Templates();
-                $descr = $mod_obj->getInfo();
-                $descr .= $mod_obj->run();
-                break;
+                case 'mod_locate_wp':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Locate_WordPress();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-            case 'mod_unblock':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker();
-				$descr = $mod_obj->getInfo();
-				$descr .= $mod_obj->run();
-                break;
+                case 'mod_search':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Search();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-            case 'mod_post_meta':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_PostMeta();
-				$descr = $mod_obj->getInfo();
-				$descr .= $mod_obj->run();
-                break;
+                case 'mod_htaccess':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Htaccess();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-            case 'mod_user_meta':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_UserMeta();
-				$descr = $mod_obj->getInfo();
-				$descr .= $mod_obj->run();
-                break;
+                case 'mod_stats':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-            case 'mod_db_dump':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Db_Dump();
-				$descr = $mod_obj->getInfo();
-				$descr .= $mod_obj->run();
-                break;
+                case 'mod_list_page_templates':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_List_Page_Templates();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-            case 'mod_site_packager':
-                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Site_Packager();
-				$descr = $mod_obj->getInfo();
-				$descr .= $mod_obj->run();
-                break;
+                case 'mod_unblock':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-            case '':
-            case 'home':
-                $descr = <<<BUFF_EOF
-                <p>$app_name is a standalone script which allows you to see some stats for your wordpress site and also perform some
-                    recovery operations on your WordPress site.
-                        This script is intended to be used for short time only and then removed in order to prevent security issues.
-                   </p>
-                <p> When you are done click on the <a href='$script?destroy' class='app-module-self-destroy-button'
-                    title="This will remove this script. If you see the same script that means the self destruction didn't happen.
-                        Please remove the file manually by connecting using an FTP client."
-                onclick="return confirm('This will remove this script. If you see the same script that means the self
-                    destruction didn\'t happen. Please confirm self destroy operation.', '');">Self Destroy</a>
+                case 'mod_post_meta':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_PostMeta();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
 
-   button and the script will attempt to delete itself (if it has the necessary permissions).
-                   </p>
+                case 'mod_user_meta':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_UserMeta();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
+
+                case 'mod_db_dump':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Db_Dump();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
+
+                case 'mod_site_packager':
+                    $mod_obj = new Orbisius_WP_SAK_Controller_Module_Site_Packager();
+                    $descr = $mod_obj->getInfo();
+                    $descr .= $mod_obj->run();
+                    break;
+
+                case '':
+                case 'home':
+                    $descr = <<<BUFF_EOF
+                    <p>$app_name is a standalone script which allows you to see some stats for your wordpress site and also perform some
+                        recovery operations on your WordPress site.
+                            This script is intended to be used for short time only and then removed in order to prevent security issues.
+                       </p>
+                    <p> When you are done click on the <a href='$script?destroy' class='app-module-self-destroy-button'
+                        title="This will remove this script. If you see the same script that means the self destruction didn't happen.
+                            Please remove the file manually by connecting using an FTP client."
+                    onclick="return confirm('This will remove this script. If you see the same script that means the self
+                        destruction didn\'t happen. Please confirm self destroy operation.', '');">Self Destroy</a>
+
+       button and the script will attempt to delete itself (if it has the necessary permissions).
+                       </p>
 BUFF_EOF;
-                break;
+                    break;
 
-            case 'help':
-                    $app_url = ORBISIUS_WP_SAK_APP_URL;
-        $ver = "<strong>Always remove this file when the work is complete!</strong>
-                | Powered by <a href='$app_url' target='_blank'>$app_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
+                case 'help':
+                        $app_url = ORBISIUS_WP_SAK_APP_URL;
+            $ver = "<strong>Always remove this file when the work is complete!</strong>
+                    | Powered by <a href='$app_url' target='_blank'>$app_name</a> (v" . ORBISIUS_WP_SAK_APP_VER . ')';
 
-                $descr = <<<BUFF_EOF
-<h4>Support</h4>
-<p>We provide support via <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a>.</p>
+                    $descr = <<<BUFF_EOF
+    <h4>Support</h4>
+    <p>We provide support via <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a>.</p>
 
-<br/>
-<h4>Home Page</h4>
-<p><a href="$app_url" target="_blank">$app_url</a></p>
+    <br/>
+    <h4>Home Page</h4>
+    <p><a href="$app_url" target="_blank">$app_url</a></p>
 
-<br/>
-<h4>Project Page on GitHub</h4>
-<p><a href="https://github.com/orbisius/sak4wp/" target="_blank">https://github.com/orbisius/sak4wp/</a></p>
+    <br/>
+    <h4>Project Page on GitHub</h4>
+    <p><a href="https://github.com/orbisius/sak4wp/" target="_blank">https://github.com/orbisius/sak4wp/</a></p>
 
-<br/>
-<h4>Suggestions</h4>
-<p>If you have a suggestion submit a ticket at <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a> too.</p>
+    <br/>
+    <h4>Suggestions</h4>
+    <p>If you have a suggestion submit a ticket at <a href="https://github.com/orbisius/sak4wp/issues" target="_blank">github's issue tracker</a> too.</p>
 
-<br/>
-<h4>Help Videos</h4>
-<p> Check out this YouTube playlist: <a href="http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw" target="_blank">http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw</a></p>
+    <br/>
+    <h4>Help Videos</h4>
+    <p> Check out this YouTube playlist: <a href="http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw" target="_blank">http://www.youtube.com/playlist?list=PLfGsyhWLtLLiiU_wvXdOUBvBAXEZGrZfw</a></p>
 
-<br/>
-<h4>Security</h4>
-<p>
-    <strong>If you've found a security bug please <a href="http://orbisius.com/site/contact/" target="_blank">Contact us</a> right away!</strong>
-</p>
-
-BUFF_EOF;
-
-                break;
-
-            case 'about':
-                $descr = <<<BUFF_EOF
-<h4>About</h4>
-<p>$app_name was created by Svetoslav Marinov (SLAVI), <a href="http://orbisius.com" target="_blank">http://orbisius.com</a>.</p>
-
-<h4>Need Help?</h4>
-<p>Please check <a href="?page=help">Help</a> page for more info.</p>
-
-
-<h4>Credits</h4>
-<ul>
-    <li>WordPress team</li>
-    <li>Icons by FamFamFam</li>
-    <li>Thanks for myself :) for my passing for sharing my work.</li>
- </ul>
-BUFF_EOF;
-
-                break;
-
-            case 'donate':
-                $descr = <<<BUFF_EOF
-<h4>Donate</h4>
-<p>Thank you for considering a donation to this project. We appraciate every contribution.</p>
-<p>By donating you will speed up the development of the project.</p>
-
-<br/>
-
-<h4>Where to send the money?</h4>
-<p>Please send it via PayPal to <strong>billing@orbisius.com</strong>.</p>
+    <br/>
+    <h4>Security</h4>
+    <p>
+        <strong>If you've found a security bug please <a href="http://orbisius.com/site/contact/" target="_blank">Contact us</a> right away!</strong>
+    </p>
 
 BUFF_EOF;
 
-            case 'account':
-                $descr = <<<BUFF_EOF
-<h4>Account</h4>
-<p>
-    How would you like to be able to store all your plugin lists on the cloud?
-    Tweet about SAK4WP to get a free account (when available).
-</p>
+                    break;
+
+                case 'about':
+                    $descr = <<<BUFF_EOF
+    <h4>About</h4>
+    <p>$app_name was created by Svetoslav Marinov (SLAVI), <a href="http://orbisius.com" target="_blank">http://orbisius.com</a>.</p>
+
+    <h4>Need Help?</h4>
+    <p>Please check <a href="?page=help">Help</a> page for more info.</p>
+
+
+    <h4>Credits</h4>
+    <ul>
+        <li>WordPress team</li>
+        <li>Icons by FamFamFam</li>
+        <li>Thanks for myself :) for my passing for sharing my work.</li>
+     </ul>
+BUFF_EOF;
+
+                    break;
+
+                case 'donate':
+                    $descr = <<<BUFF_EOF
+    <h4>Donate</h4>
+    <p>Thank you for considering a donation to this project. We appraciate every contribution.</p>
+    <p>By donating you will speed up the development of the project.</p>
+
+    <br/>
+
+    <h4>Where to send the money?</h4>
+    <p>Please send it via PayPal to <strong>billing@orbisius.com</strong>.</p>
+
+BUFF_EOF;
+
+                case 'account':
+                    $descr = <<<BUFF_EOF
+    <h4>Account</h4>
+    <p>
+        How would you like to be able to store all your plugin lists on the cloud?
+        Tweet about SAK4WP to get a free account (when available).
+    </p>
 
 
 BUFF_EOF;
 
-                break;
+                    break;
 
-            default:
-                $descr = <<<BUFF_EOF
-            <h4>Error</h4>
-            <p>Invalid page.</p>
+                default:
+                    $descr = <<<BUFF_EOF
+                <h4>Error</h4>
+                <p>Invalid page.</p>
 BUFF_EOF;
-                break;
+                    break;
+            }
+        } catch ( Exception $e ) {
+            $descr .= "Errror: " . Orbisius_WP_SAK_Util::msg( $e->getMessage() );
+            $descr .= "<br/>Trace: " . Orbisius_WP_SAK_Util::msg( "<pre>" . $e->getTraceAsString() . "</pre>" );
         }
 
         return $descr;
