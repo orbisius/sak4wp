@@ -2,6 +2,10 @@
 SAK4WP Change Log
 =================
 
+= 1.1.4 (2016-11) =
+* Finished the search in the files
+* 
+
 = 1.1.3 (2016-08) =
 * Added a new module UserMeta so developer can add/update/delete user meta keys
 

@@ -1210,6 +1210,86 @@ EOF;
 }
 
 /**
+ * Search Module - Searches for text using grep
+ */
+class Orbisius_WP_SAK_Controller_Module_Search extends Orbisius_WP_SAK_Controller_Module {
+    /**
+     * Setups the object stuff and defines some descriptions
+     */
+    public function __construct() {
+        $this->description = <<<EOF
+<h4>Search</h4>
+<p>Search for a given text keyword within files of WordPress.
+</p>
+EOF;
+    }
+
+    /**
+     *
+     */
+    public function run() {
+        $buff = '';
+
+		$q = empty( $_REQUEST['q'] ) ? '' : trim( wp_kses( $_REQUEST['q'] , array() ) );
+		$q_esc = esc_attr($q);
+
+		$buff .= "<br/><form method='post' id='mod_search_form'>\n";
+		$buff .= "<input type='hidden' name='cmd' value='mod_search' />\n";
+		$buff .= "Search Keyword:<br/><input type='text' name='q' id='q' value='$q_esc' class='app_full_width00' />\n";
+		$buff .= "<input type='submit' name='submit' class='app-btn-primary' value='Search' />\n";
+		$buff .= "</form>\n";
+
+        if ( ! empty( $q ) ) {
+
+            $buff .= "<p class='results'>";
+            $buff .= "<h3>Results</h3>";
+            $buff .= "<pre>";
+            $buff .= htmlentities( $this->searchAction(), ENT_QUOTES, "UTF-8" );
+            $buff .= "</pre>";
+            $buff .= "</p>\n";
+            $buff .= "<p><br/><a href='?page=mod_search&cmd=search' class='app-btn-primary mod_search_for_wordpress'>New Search</a></p>\n";
+        }
+
+        return $buff;
+    }
+
+	/**
+     * This is called via ajax and searches for WP by finding wp-includes folder starting from start_folder.
+	 * Needs starting folder.
+     * The result is JSON
+     */
+    public function searchAction() {
+        $ctrl = Orbisius_WP_SAK_Controller::getInstance();
+        $params = $ctrl->getParams();
+
+        $q = empty($params['q']) ? '' : trim( $params['q'] );
+
+        if ( empty( $q ) ) {
+            return;
+        }
+        
+        $start_folder = empty($params['start_folder']) ? ABSPATH : $params['start_folder'];
+        $start_folder = str_replace( '/', DIRECTORY_SEPARATOR, $start_folder );
+        $start_folder = trim( $start_folder, '\\/' );
+
+        $q_esc = escapeshellarg($q);
+        $start_folder_esc = escapeshellarg($start_folder);
+
+        $s = 0;
+        $msg = '';
+
+        $bin = Orbisius_WP_SAK_Util_File::getBinary('grep');
+
+		// this searches for folders that contain wp-includes and that's where we'll read version.php
+		$cmd = "$bin -irn $q_esc $start_folder_esc 2>&1";
+        $search_buffer = `$cmd`;
+        $search_buffer = trim( $search_buffer );
+
+        return $search_buffer;
+    }
+}
+
+/**
  * This module handles lists page templates.
  */
 class Orbisius_WP_SAK_Controller_Module_Htaccess extends Orbisius_WP_SAK_Controller_Module {
@@ -3312,78 +3392,78 @@ class Orbisius_WP_SAK_Controller {
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Self_Protect();
                 $descr = $mod_obj->getInfo();
                 //$descr .= $mod_obj->run();
-
                 break;
+            
 			case 'mod_user_manager':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_User_Manager();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
-
                 break;
+
 			case 'mod_plugin_manager':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Plugin_Manager();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
-
                 break;
+
 			case 'mod_locate_wp':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Locate_WordPress();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
-
                 break;
-		case 'mod_htaccess':
+
+			case 'mod_search':
+                $mod_obj = new Orbisius_WP_SAK_Controller_Module_Search();
+                $descr = $mod_obj->getInfo();
+                $descr .= $mod_obj->run();
+                break;
+
+            case 'mod_htaccess':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Htaccess();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
-
                 break;
+            
             case 'mod_stats':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Stats();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
-
                 break;
+
             case 'mod_list_page_templates':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_List_Page_Templates();
                 $descr = $mod_obj->getInfo();
                 $descr .= $mod_obj->run();
-
                 break;
 
             case 'mod_unblock':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Limit_Login_Attempts_Unblocker();
 				$descr = $mod_obj->getInfo();
 				$descr .= $mod_obj->run();
-
                 break;
 
             case 'mod_post_meta':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_PostMeta();
 				$descr = $mod_obj->getInfo();
 				$descr .= $mod_obj->run();
-
                 break;
 
             case 'mod_user_meta':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_UserMeta();
 				$descr = $mod_obj->getInfo();
 				$descr .= $mod_obj->run();
-
                 break;
 
             case 'mod_db_dump':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Db_Dump();
 				$descr = $mod_obj->getInfo();
 				$descr .= $mod_obj->run();
-
                 break;
 
             case 'mod_site_packager':
                 $mod_obj = new Orbisius_WP_SAK_Controller_Module_Site_Packager();
 				$descr = $mod_obj->getInfo();
 				$descr .= $mod_obj->run();
-
                 break;
 
             case '':
@@ -3402,7 +3482,6 @@ class Orbisius_WP_SAK_Controller {
    button and the script will attempt to delete itself (if it has the necessary permissions).
                    </p>
 BUFF_EOF;
-
                 break;
 
             case 'help':
@@ -3574,6 +3653,7 @@ BUFF_EOF;
 					<li><a href="$script?page=mod_list_page_templates" title="Lists Page Templates">Page Templates</a></li>
 					<li><a href="$script?page=mod_htaccess" title="Lists Page Templates">.htaccess</a></li>
 					<li><a href="$script?page=mod_locate_wp" title="Searches for WordPress Installations starting for a given folder">Locate WordPress</a></li>
+					<li><a href="$script?page=mod_search" title="Searches for text within the main WordPress folder">Search</a></li>
 					<li><a href="$script?page=mod_plugin_manager" title="Searches and installs plugins">Plugin Manager</a></li>
 					<li><a href="$script?page=mod_user_manager" title="User Manager">User Manager</a></li>
 					<!--<li> <a href="$script?page=mod_self_protect" title="Self Protect">Self Protect</a>	</li>-->
