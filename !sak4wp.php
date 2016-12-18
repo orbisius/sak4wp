@@ -32,7 +32,7 @@ Licensor assume the entire cost of any service and repair.
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
 define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.1.3');
+define('ORBISIUS_WP_SAK_APP_VER', '1.1.5');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
@@ -2206,9 +2206,34 @@ EOF;
 
         $data = array();
         $latest_wp_version = Orbisius_WP_SAK_Util::getLatestWordPressVersion();
-        $data['PHP Version'] = phpversion();
         $wp_version_label = $wp_version;
 
+        $data['WP Base Dir'] = defined('ABSPATH')
+                ? ABSPATH 
+                : 'N/A';
+
+        $data['WP Caching'] = defined('WP_CACHE') && WP_CACHE
+                ? Orbisius_WP_SAK_Util::m( 'Enabled', 1 ) 
+                : Orbisius_WP_SAK_Util::m( 'Not Enaled', 0 );
+
+        $data['WP Cache dir (WPCACHEHOME)'] = defined('WPCACHEHOME')
+                ? WPCACHEHOME 
+                : 'N/A';
+
+        if ( defined('WPCACHEHOME')
+                &&	defined('ABSPATH')
+                && ( stripos( ABSPATH, WPCACHEHOME ) === false ) ) { 
+                $label = Orbisius_WP_SAK_Util::m( "Caching dir resides in another site's doc root!" );
+                $data['WP Cache dir (WPCACHEHOME)'] .= $label;
+        }
+			
+        // Not available on Windows
+        $data['Load Average (1, 5, 15 mins)'] = function_exists('sys_getloadavg')
+            ? var_export( sys_getloadavg(), 1 )
+            : 'N/A';
+                
+        $data['PHP Version'] = phpversion();
+        
         if (version_compare($wp_version, $latest_wp_version, '<')) {
             $upgrade_link = admin_url('update-core.php');
             $wp_version_label .= " (<span class='app-simple-alert-error'><a href='$upgrade_link' target='_blank'>upgrade</a> or download
@@ -2674,9 +2699,10 @@ class Orbisius_WP_SAK_Util {
         return $size . " $size_suff";
     }
 
-	/**
+    /**
      * a simple status message, no formatting except color.
 	 * status is 0, 1 or 2
+         * Orbisius_WP_SAK_Util::msg()
      */
     static function msg($msg, $status = 0, $use_simple_css = 0) {
         $inline_css = '';
@@ -2697,6 +2723,22 @@ class Orbisius_WP_SAK_Util {
         $str = "<div class='$cls' $inline_css>$msg</div>";
 
         return $str;
+    }
+
+    /**
+     * Orbisius_WP_SAK_Util::m()
+     * a simple status message, no formatting except color.
+     * status is 0, 1 or 2
+     */
+    static function m($msg, $status = 0, $use_simple_css = 0) {
+        $msg = self::msg( $msg, $status, 1 );
+        
+        // use a simple CSS e.g. a nice span to alert, not just huge divs
+        if ($use_simple_css) {
+            $msg = str_replace('div', 'span', $msg);
+        }
+
+        return $msg;
     }
 
 	/**
