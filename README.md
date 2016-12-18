@@ -51,6 +51,14 @@ Stats Module
 - Lists top 15 larger files (linux only)
 - Shows phpinfo
 
+Sice v1.1.5 
+- Showing wp base dir.
+- Detect if wp caching is enabled
+- Check if caching is in within WP base dir.
+- Showing load average
+- Using Orbisius_WP_SAK_Util::m() to output some simple error messages
+
+
 List Page Templates
 - This module allows you to see which page templates are use by your pages.
  
