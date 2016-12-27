@@ -2,6 +2,9 @@
 SAK4WP Change Log
 =================
 
+= 1.1.5 (2016-11) =
+* Fix: added a check for WP_CACHE and define it if it wasn't already
+
 = 1.1.4 (2016-11) =
 * Finished the search in the WP files
 * Added try/catch block before calling any of the modules so exceptions don't crash the script.
