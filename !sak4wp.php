@@ -44,14 +44,20 @@ try {
     $ctrl = Orbisius_WP_SAK_Controller::getInstance();
     $ctrl->init();
 
+	// @todo: check for wp-cli and offer quick install via
+	// set ups from orbisius.com account.
     $ctrl->preRun();
-
+	
+	
+	// Do we define quick run without theme loading???
+	
     // This WP load may fail which we'll check()
 	$wp_load_locations = array(
 		dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'wp-load.php',
 		dirname( dirname( __FILE__ ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
 		dirname( dirname( dirname( __FILE__ ) ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
 		dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
+		dirname( dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) ) . DIRECTORY_SEPARATOR . 'wp-load.php',
 	);
 	
 	foreach ( $wp_load_locations as $wp_load_php ) {
@@ -66,7 +72,7 @@ try {
 
 	// This stops WP Super Cache and W3 Total Cache from caching
 	defined( 'WP_CACHE' ) || define( 'WP_CACHE', false );
-	
+		
     $ctrl->check();
     $ctrl->run();
     $ctrl->postRun();
