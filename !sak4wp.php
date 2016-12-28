@@ -37,9 +37,6 @@ define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
-// This stops WP Super Cache and W3 Total Cache from caching
-defined( 'WP_CACHE' ) || define( 'WP_CACHE', false );
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -67,6 +64,9 @@ try {
 		}
 	}
 
+	// This stops WP Super Cache and W3 Total Cache from caching
+	defined( 'WP_CACHE' ) || define( 'WP_CACHE', false );
+	
     $ctrl->check();
     $ctrl->run();
     $ctrl->postRun();
