@@ -2207,7 +2207,7 @@ EOF;
         $ctrl = Orbisius_WP_SAK_Controller::getInstance();
 
         $cfg = $this->read_wp_config();
-        $cfg['db_version'] = $wpdb->get_var("SELECT VERSION()");
+        $cfg['db_version'] = $wpdb ? $wpdb->get_var("SELECT VERSION()") : 'N/A';
         $buff .= $ctrl->renderKeyValueTable('Database Info', $cfg);
 
         $data = array();
@@ -2217,20 +2217,57 @@ EOF;
         $data['WP Base Dir'] = defined('ABSPATH')
                 ? ABSPATH 
                 : 'N/A';
+        
+        $data['display_errors'] = @ini_get('display_errors');
 
         $data['WP Caching'] = defined('WP_CACHE') && WP_CACHE
                 ? Orbisius_WP_SAK_Util::m( 'Enabled', 1 ) 
-                : Orbisius_WP_SAK_Util::m( 'Not Enaled', 0 );
+                : Orbisius_WP_SAK_Util::m( 'Not Enabled', 0 );
 
         $data['WP Cache dir (WPCACHEHOME)'] = defined('WPCACHEHOME')
-                ? WPCACHEHOME 
+                ? WPCACHEHOME
                 : 'N/A';
 
         if ( defined('WPCACHEHOME')
-                &&	defined('ABSPATH')
-                && ( stripos( ABSPATH, WPCACHEHOME ) === false ) ) { 
-                $label = Orbisius_WP_SAK_Util::m( "Caching dir resides in another site's doc root!" );
+                && defined('ABSPATH')
+                && ( stripos( ABSPATH, WPCACHEHOME ) === false ) ) {
+                $label = Orbisius_WP_SAK_Util::m( "Warning: Cache dir resides in another site's doc root!" );
                 $data['WP Cache dir (WPCACHEHOME)'] .= $label;
+        }
+        
+        $consts_we_care_about = array(
+            // https://codex.wordpress.org/Changing_The_Site_URL
+            'WP_HOME',
+            'WP_SITEURL',
+
+            'WP_MEMORY_LIMIT',
+            
+            'WP_DEBUG',
+            'WP_DEBUG_LOG',
+            'WP_DEBUG_DISPLAY',
+            'SCRIPT_DEBUG',
+            
+            'WPLANG',
+            'SAVEQUERIES',
+            'AUTOSAVE_INTERVAL',
+            'WP_POST_REVISIONS',
+        );
+
+		foreach ( $consts_we_care_about as $const ) {
+            if ( ! defined( $const ) ) {
+                continue;
+            }
+
+            $val = constant( $const );
+
+            // We want to visualize these values.
+            if ( $val === false ) {
+                $val = Orbisius_WP_SAK_Util::m( 'false' );
+            } elseif ( $val === true ) {
+                $val = Orbisius_WP_SAK_Util::m( 'true', 1 );
+            }
+
+            $data[ $const ] = $val;
         }
 			
         // Not available on Windows
