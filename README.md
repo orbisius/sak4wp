@@ -160,6 +160,7 @@ Future Ideas / TODO
 - The WP install scanner to show plugin versions and if they are up-to-date (Thanks Seb for the idea)
 - If WP-CLI is available enable commands such as update: core, plugins, themes
 - Mass site and db pkg
+- detect and function to remove wp maintenance file
 
 - Module: File Manager -> upload/download files, zip/unzip, (un)tar, check for large files, color large files with red > 1GB, process line per line
 
