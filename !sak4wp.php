@@ -1743,7 +1743,7 @@ EOF;
             $size = filesize($file);
             $size_fmt = Orbisius_WP_SAK_Util::formatFileSize($size);
             $buff .= "<br/><a href='$delete_link' class='btn btn-sm btn-danger'>[X]</a> ";
-            $buff .= "<a href='$dl_link'>$file_base_name ($size_fmt)</a>";
+            $buff .= "<a href='$dl_link' target='_blank'>$file_base_name ($size_fmt)</a>";
             $buff .= "<br/>";
         }
 
@@ -1933,6 +1933,7 @@ EOF;
 
                      // there is another function to get backups: is_wp_backup_resource
                      'wp-content/uploads/*backup*',
+                     'wp-content/*updraft*',
                      'wp-content/*backup*',
                      'wp-content/uploads/backupbuddy*',
                      'wp-content/backupwordpress*',
@@ -2595,6 +2596,7 @@ class Orbisius_WP_SAK_Util_File {
 
        $exclude_list = array(
            'wp-snapshots', // Duplicator
+           'wp-content/updraft',
            'wp-content/backup',
            'wp-content/uploads/backup',
            '.log',

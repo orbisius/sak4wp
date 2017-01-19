@@ -161,7 +161,7 @@ Future Ideas / TODO
 - If WP-CLI is available enable commands such as update: core, plugins, themes
 - Mass site and db pkg
 - Detect and function to remove wp maintenance file
-
+- Parse wp config...
 - Module: File Manager -> upload/download files, zip/unzip, (un)tar, check for large files, color large files with red > 1GB, process line per line
 
 	<?php
