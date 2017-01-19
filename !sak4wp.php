@@ -2214,6 +2214,10 @@ EOF;
         $latest_wp_version = Orbisius_WP_SAK_Util::getLatestWordPressVersion();
         $wp_version_label = $wp_version;
 
+        $data['function_exists(exec)'] = function_exists( 'exec' ) ? Orbisius_WP_SAK_Util::m('Yes', 1) : Orbisius_WP_SAK_Util::m('No');
+        $data['function_exists(system)'] = function_exists( 'system' ) ? Orbisius_WP_SAK_Util::m('Yes', 1) : Orbisius_WP_SAK_Util::m('No');
+        $data['function_exists(shell_exec)'] = function_exists( 'shell_exec' ) ? Orbisius_WP_SAK_Util::m('Yes', 1) : Orbisius_WP_SAK_Util::m('No');
+
         $data['WP Base Dir'] = defined('ABSPATH')
                 ? ABSPATH 
                 : 'N/A';
