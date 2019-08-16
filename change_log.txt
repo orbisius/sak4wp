@@ -1,6 +1,10 @@
+test
 
 SAK4WP Change Log
 =================
+
+= 1.1.6 (2019-08-16) =
+* Changed/fixed links to use Orbisius links (author's company site) because I let the project domain expire.
 
 = 1.1.5 (2016-11 & 2016-12) =
 * Fix: added a check for WP_CACHE and define it if it wasn't already

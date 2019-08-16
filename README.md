@@ -71,6 +71,8 @@ List Page Templates
 - TODO: Update .htaccess files
 Note: This will stop affect WordPress registrations because WP uses wp-login.php for registrations.
 You can overcome that if you use a plugin that handles the registrations without relying on wp-login.php file.
+- offer zip archive
+- prefill db account on db dump screen
 
 Locate WordPress
 - This module searches for local WordPress installations (linux only). It starts from a specified folder and shows the found WordPress installations and their versions.
@@ -161,8 +163,16 @@ Future Ideas / TODO
 - If WP-CLI is available enable commands such as update: core, plugins, themes
 - Mass site and db pkg
 - Detect and function to remove wp maintenance file
+- Detect wrong db and offer to help or don't start in full mode.
+- In users module -> search and load users by role, user, email etc.
 - Parse wp config...
+- Download and unzip remote files from old hosting.
+- Generate hash of files and check if all were correctly transferred.
 - Module: File Manager -> upload/download files, zip/unzip, (un)tar, check for large files, color large files with red > 1GB, process line per line
+list archive contents
+- do a scan ... wp core checksum -> check if there files other than images, docs in wp-content/ and uploads.
+- show php RC and ini folder for quick inspection.
+- load error if exists -> offer for download (>1mb) or visualize
 
 	<?php
 	set_time_limit(5*60);

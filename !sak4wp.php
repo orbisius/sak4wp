@@ -5,8 +5,8 @@ You must remove it after the work is complete to avoid security issues.
 
 License: GPL (v2 or later)
 Author: Svetoslav Marinov (SLAVI)
-Author Site: http://orbisius.com
-Product Site: http://sak4wp.com
+Author Site: https://orbisius.com
+Product Site: https://orbisius.com/products/tools/swiss-army-knife-for-wordpress
 Copyright: All Rights Reserved.
 
 Disclaimer: By using this tool you take full responsibility to remove it.
@@ -31,8 +31,8 @@ Licensor assume the entire cost of any service and repair.
 
 define('ORBISIUS_WP_SAK_APP_SHORT_NAME', 'SAK4WP');
 define('ORBISIUS_WP_SAK_APP_NAME', 'Swiss Army Knife for WordPress');
-define('ORBISIUS_WP_SAK_APP_URL', 'http://sak4wp.com');
-define('ORBISIUS_WP_SAK_APP_VER', '1.1.5');
+define('ORBISIUS_WP_SAK_APP_URL', 'https://orbisius.com/products/tools/swiss-army-knife-for-wordpress');
+define('ORBISIUS_WP_SAK_APP_VER', '1.1.6');
 define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
@@ -3606,7 +3606,7 @@ BUFF_EOF;
     <br/>
     <h4>Security</h4>
     <p>
-        <strong>If you've found a security bug please <a href="http://orbisius.com/site/contact/" target="_blank">Contact us</a> right away!</strong>
+        <strong>If you've found a security bug please <a href="https://orbisius.com/site/contact/" target="_blank">Contact us</a> right away!</strong>
     </p>
 
 BUFF_EOF;
@@ -3616,7 +3616,7 @@ BUFF_EOF;
                 case 'about':
                     $descr = <<<BUFF_EOF
     <h4>About</h4>
-    <p>$app_name was created by Svetoslav Marinov (SLAVI), <a href="http://orbisius.com" target="_blank">http://orbisius.com</a>.</p>
+    <p>$app_name was created by Svetoslav Marinov (SLAVI), <a href="https://orbisius.com" target="_blank">https://orbisius.com</a>.</p>
 
     <h4>Need Help?</h4>
     <p>Please check <a href="?page=help">Help</a> page for more info.</p>
