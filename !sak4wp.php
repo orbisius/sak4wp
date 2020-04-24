@@ -37,6 +37,7 @@ define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
+//define('WP_DEBUG_DISPLAY', 0);
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -2698,8 +2699,7 @@ class Orbisius_WP_SAK_Util {
      * @return string
      */
     public static function getIP() {
-        $ip = $_SERVER['REMOTE_ADDR'];
-
+	    $ip = empty($_SERVER['REMOTE_ADDR']) ? '' : $_SERVER['REMOTE_ADDR'];
         return $ip;
     }
 
@@ -2708,8 +2708,7 @@ class Orbisius_WP_SAK_Util {
      * @return string
      */
     public static function getServerIP() {
-        $ip = $_SERVER['SERVER_ADDR'];
-
+        $ip = empty($_SERVER['SERVER_ADDR']) ? '' : $_SERVER['SERVER_ADDR'];
         return $ip;
     }
 
