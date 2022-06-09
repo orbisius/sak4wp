@@ -6,7 +6,7 @@
   Description: This plugin overrides current theme's settings. Your site will use one of the default WordPress themes until <strong>Swiss Army Knife for WordPress (SAK4WP)</strong> tool is running.
   Version: 1.0.0
   Author: Orbisius.com
-  Author URI: http://orbisius.com
+  Author URI: https://orbisius.com
  */
 
 /*
