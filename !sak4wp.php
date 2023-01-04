@@ -1934,6 +1934,7 @@ EOF;
                      '.ht-sak4wp*',
                      'Maildir/*',
                      '*.log',
+                     '*.wpress', // ai1wm
                      'logs/*',
                      'tmp/*',
                      'sess_*', // php session files
@@ -1942,7 +1943,9 @@ EOF;
 
                      // there is another function to get backups: is_wp_backup_resource
                      'wp-content/uploads/*backup*',
+                     'wp-content/ai1wm-backups/*',
                      'wp-content/cache/*',
+                     'wp-content/*cache*/*',
                      'wp-content/*updraft*',
                      'wp-content/*backup*',
                      'wp-content/uploads/backupbuddy*',
