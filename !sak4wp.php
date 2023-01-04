@@ -37,6 +37,8 @@ define('ORBISIUS_WP_SAK_APP_SCRIPT', basename(__FILE__));
 define('ORBISIUS_WP_SAK_APP_BASE_DIR', dirname(__FILE__));
 define('ORBISIUS_WP_SAK_HOST', str_replace('www.', '', $_SERVER['HTTP_HOST']));
 
+ob_start();
+
 //define('WP_DEBUG_DISPLAY', 0);
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -48,8 +50,7 @@ try {
 	// @todo: check for wp-cli and offer quick install via
 	// set ups from orbisius.com account.
     $ctrl->preRun();
-	
-	
+
 	// Do we define quick run without theme loading???
 	
     // This WP load may fail which we'll check()
@@ -78,7 +79,10 @@ try {
     $ctrl->run();
     $ctrl->postRun();
 } catch (Exception $e) {
-
+    echo "Error: " . htmlentities($e->getMessage());
+} finally {
+    $dbg_output = ob_get_clean();
+    echo $dbg_output;
 }
 
 /**
