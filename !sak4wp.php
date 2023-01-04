@@ -1931,7 +1931,6 @@ EOF;
                      '.ht-sak4wp*',
                      'Maildir/*',
                      '*.log',
-                     '*/*.log',
                      'logs/*',
                      'tmp/*',
                      'sess_*', // php session files
@@ -1941,13 +1940,11 @@ EOF;
                      // there is another function to get backups: is_wp_backup_resource
                      'wp-content/uploads/*backup*',
                      'wp-content/cache/*',
-                     '*/wp-content/cache/*',
                      'wp-content/*updraft*',
                      'wp-content/*backup*',
                      'wp-content/uploads/backupbuddy*',
                      'wp-content/backupwordpress*',
                      'wp-snapshots/*', // Duplicator
-                     '*/wp-snapshots/*', // Duplicator
 
                      '__MACOSX', // mac
                      '.DS_Store', // mac
