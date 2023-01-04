@@ -1972,7 +1972,6 @@ EOF;
 
                 foreach ($exclude_items as $line) {
                      $cmd_params_arr[] = "--exclude=" . escapeshellarg($line);
-                     $cmd_params_arr[] = "--exclude=" . escapeshellarg($line . '/*');
                      $cmd_params_arr[] = "--exclude=" . escapeshellarg('*/'. $line);
                      $cmd_params_arr[] = "--exclude=" . escapeshellarg('./'. $line);
                 }
