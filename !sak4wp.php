@@ -1600,6 +1600,8 @@ EOF;
             'mysql',
             'mysqldump',
             'gzip',
+            'zip',
+            //'unzip',
         );
 
         foreach ($bin_check as $bin_file) {
@@ -1802,6 +1804,7 @@ EOF;
         $bin_check = array(
             'find',
             'tar',
+            'zip',
             'gzip',
             'du',
         );
