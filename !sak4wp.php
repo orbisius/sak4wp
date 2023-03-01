@@ -1989,7 +1989,8 @@ EOF;
 
                 // Are we creating a tar or tar.gz file
                 $tar_main_cmd_arg = preg_match('#\.(tar\.gz|t?gz)$#si', $output_file) ? 'zcvf' : 'cvf';
-                $cmd = Orbisius_WP_SAK_Util_File::getBinary('tar') . " $tar_main_cmd_arg $output_file_esc $cmd_param_str > $output_log_file_esc 2> $output_error_log_file_esc";
+                $cmd = Orbisius_WP_SAK_Util_File::getBinary('tar')
+                    . " $cmd_param_str $tar_main_cmd_arg $output_file_esc > $output_log_file_esc 2> $output_error_log_file_esc";
 
                 if ( ! empty( $_REQUEST['bg'] ) ) {
                     // @note: for some weird reason I can't fork the process and execute a task after it finishes.
