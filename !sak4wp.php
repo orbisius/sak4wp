@@ -2408,11 +2408,11 @@ EOF;
         $data['Custom Posts'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE "
                 . "(p.post_type != 'page' AND p.post_type != 'post')");
         $data['Attachments'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'attachment'");
-        $data["Options Row(s)  [table:{$wpdb->options}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->options");
-        $data['Link(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->links");
-        $data['Terms(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->terms");
-        $data['Terms Taxonomy Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_taxonomy");
-        $data['Terms Relationship(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_relationships");
+        $data["Options [table:{$wpdb->options}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->options");
+        $data["Link(s) [table:{$wpdb->links}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->links");
+        $data["Terms [table:{$wpdb->terms}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->terms");
+        $data["Terms Taxonomy Row(s) [table:{$wpdb->term_taxonomy}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_taxonomy");
+        $data["Terms Relationship(s) [table:{$wpdb->term_relationships}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_relationships");
         $data["Meta Data Row(s) [table:{$wpdb->postmeta}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->postmeta pm");
         $data['Revisions'] = $wpdb->get_var(
             "SELECT COUNT(*) as rev_cnt FROM $wpdb->posts p
