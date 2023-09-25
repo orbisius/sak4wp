@@ -2325,8 +2325,14 @@ EOF;
 		// Disk space usage
         $dir = dirname(__FILE__); // that's where the sak is installed.
         $du_bin = Orbisius_WP_SAK_Util_File::getBinary('du');
-        $disk_usage = `$du_bin -sh $dir`;
-        $disk_usage = trim($disk_usage);
+
+        $disk_usage = '';
+
+        if (!empty($wp_cli_bin)) {
+            $disk_usage = `$du_bin -sh $dir`;
+            $disk_usage = trim($disk_usage);
+        }
+
         $disk_usage = empty($disk_usage) ? 'N/A' : $disk_usage;
         $data['Site Disk Space Usage (du -sh .)'] = $disk_usage;
 
