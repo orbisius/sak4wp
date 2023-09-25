@@ -2337,15 +2337,27 @@ EOF;
         $data['Site Disk Space Usage (du -sh .)'] = $disk_usage;
 
         $df_bin = Orbisius_WP_SAK_Util_File::getBinary('df');
-        $inode_usage = `$df_bin -i`;
-        $inode_usage = trim($inode_usage);
+
+        $inode_usage = '';
+
+        if (!empty($df_bin)) {
+            $inode_usage = `$df_bin -i`;
+            $inode_usage = trim($inode_usage);
+        }
+
         $inode_usage = empty($inode_usage) ? 'N/A' : "<pre>" . $inode_usage . "</pre>";
         $data['OS inode Usage (du -i .)'] = $inode_usage;
 
 		// Free Disk space
         $df_bin = Orbisius_WP_SAK_Util_File::getBinary('df');
-		$disk_free_space = `$df_bin --human-readable`;
-		$disk_free_space = trim($disk_free_space);
+
+        $disk_free_space = '';
+
+        if (!empty($df_bin)) {
+            $disk_free_space = `$df_bin --human-readable`;
+            $disk_free_space = trim($disk_free_space);
+        }
+
 		$disk_free_space = empty($disk_free_space) ? 'N/A' : '<pre>' .
 		$disk_free_space = preg_replace('#(/dev/[\w/\-]+\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+[bkmgtp]?)(\s+)([\d\.]+\%?)(.*)#im'
 			, '<span class="du_line">$1<span class="du_total">$2</span>$3<span class="du_used">$4</span>$5<span class="du_free">$6</span>$7'
@@ -2354,24 +2366,34 @@ EOF;
 
         $top_bin = Orbisius_WP_SAK_Util_File::getBinary('top');
 
-		// Processes info
-		$cmd_buff = `$top_bin -b -n 1`;
-		$cmd_buff = trim($cmd_buff);
+        if (!empty($top_bin)) { // Processes info
+            $cmd_buff = `$top_bin -b -n 1`;
+            $cmd_buff = trim($cmd_buff);
+        }
+
 		$cmd_buff = empty($cmd_buff) ? 'N/A' : '<textarea rows="4" style="width:100%;" readonly="readonly">' . $cmd_buff . '</textarea>';
 		$data['Processes Info (top -b -n 1)'] = $cmd_buff;
 
 		// Free memory
         $free_bin = Orbisius_WP_SAK_Util_File::getBinary('free');
-		$cmd_buff = `$free_bin -m`;
-		$cmd_buff = trim($cmd_buff);
+
+        if (!empty($free_bin)) { // Processes info
+            $cmd_buff = `$free_bin -m`;
+            $cmd_buff = trim($cmd_buff);
+        }
+
 		$cmd_buff = empty($cmd_buff) ? 'N/A' : '<textarea rows="4" style="width:100%;" readonly="readonly">' . $cmd_buff . '</textarea>';
 		$data['Free Memory (free -m)'] = $cmd_buff;
 
 		// lists 15 files and sorts them by size. e.g. 100K
         $du_bin = Orbisius_WP_SAK_Util_File::getBinary('du');
-		$large_files = `$du_bin -ah $dir | sort -nr | head -n +15`;
-        $large_files = trim($large_files);
-        $large_files = str_replace($dir, '', $large_files);
+
+        if (!empty($du_bin)) { // Processes info
+            $large_files = `$du_bin -ah $dir | sort -nr | head -n +15`;
+            $large_files = trim($large_files);
+            $large_files = str_replace($dir, '', $large_files);
+        }
+
         $data['Large Files'] = empty($large_files) ? 'n/a' : '<textarea rows="4" style="width:100%;" readonly="readonly">' . $large_files . '</textarea>';
 
         $buff .= $ctrl->renderKeyValueTable('System Info', $data);
