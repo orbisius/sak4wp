@@ -2408,7 +2408,7 @@ EOF;
         $data['Custom Posts'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE "
                 . "(p.post_type != 'page' AND p.post_type != 'post')");
         $data['Attachments'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'attachment'");
-        $data['Options Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->options");
+        $data["Options Row(s)  [table:{$wpdb->options}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->options");
         $data['Link(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->links");
         $data['Terms(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->terms");
         $data['Terms Taxonomy Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_taxonomy");
