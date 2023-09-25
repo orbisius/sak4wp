@@ -2418,8 +2418,7 @@ EOF;
             "SELECT COUNT(*) as rev_cnt FROM $wpdb->posts p
 	LEFT JOIN $wpdb->term_relationships r ON (p.ID = r.object_id)
 	LEFT JOIN $wpdb->postmeta pm ON (p.ID = pm.post_id)
-	WHERE p.post_type = 'revision'
-                "
+	WHERE p.post_type = 'revision'"
         );
 
         $buff .= $ctrl->renderKeyValueTable('WordPress Site Stats', $data);
