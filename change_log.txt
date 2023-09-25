@@ -3,6 +3,9 @@ test
 SAK4WP Change Log
 =================
 
+= 1.1.7 (2023-09-25) =
+* Added checks for exec() function in case it's disabled. Do not call external programs if they are not found.
+
 = 1.1.6 (2019-08-16) =
 * Changed/fixed links to use Orbisius links (author's company site) because I let the project domain expire.
 
