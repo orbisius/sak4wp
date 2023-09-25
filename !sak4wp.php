@@ -2328,7 +2328,7 @@ EOF;
 
         $disk_usage = '';
 
-        if (!empty($wp_cli_bin)) {
+        if (!empty($du_bin)) {
             $disk_usage = `$du_bin -sh $dir`;
             $disk_usage = trim($disk_usage);
         }
