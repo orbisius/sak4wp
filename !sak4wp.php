@@ -462,8 +462,8 @@ BUFF_EOF;
     /**
      *
      * @param int $post_id
-     * @param str $meta_key
-     * @param str $meta_value
+     * @param string $meta_key
+     * @param string $meta_value
      * @see https://codex.wordpress.org/Function_Reference/update_post_meta
      */
     public function setPostMeta($post_id, $meta_key, $meta_value) {
@@ -710,8 +710,8 @@ BUFF_EOF;
     /**
      *
      * @param int $user_id
-     * @param str $meta_key
-     * @param str $meta_value
+     * @param string $meta_key
+     * @param string $meta_value
      * @see https://codex.wordpress.org/Function_Reference/update_user_meta
      */
     public function setUserMeta($user_id, $meta_key, $meta_value = null) {
