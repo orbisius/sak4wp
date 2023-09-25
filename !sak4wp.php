@@ -2399,10 +2399,10 @@ EOF;
         $buff .= $ctrl->renderKeyValueTable('System Info', $data);
 
         $data = array();
-        $data['User(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->users");
-        $data['User Meta Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->usermeta");
-        $data['Comment(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->comments");
-        $data['Comment Meta Rows(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->commentmeta");
+        $data["User(s) [table:{$wpdb->users}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->users");
+        $data["User Meta Row(s) [table:{$wpdb->usermeta}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->usermeta");
+        $data["Comment(s) [table:{$wpdb->comments}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->comments");
+        $data["Comment Meta Rows(s) [table:{$wpdb->commentmeta}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->commentmeta");
         $data['Posts'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'post'");
         $data['Pages'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE p.post_type = 'page'");
         $data['Custom Posts'] = $wpdb->get_var("SELECT COUNT(ID) as rev_cnt FROM $wpdb->posts p WHERE "
@@ -2413,7 +2413,7 @@ EOF;
         $data['Terms(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->terms");
         $data['Terms Taxonomy Row(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_taxonomy");
         $data['Terms Relationship(s)'] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->term_relationships");
-        $data['Meta Data Row(s)'] = $posts_cnt = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->postmeta pm");
+        $data["Meta Data Row(s) [table:{$wpdb->postmeta}]"] = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->postmeta pm");
         $data['Revisions'] = $wpdb->get_var(
             "SELECT COUNT(*) as rev_cnt FROM $wpdb->posts p
 	LEFT JOIN $wpdb->term_relationships r ON (p.ID = r.object_id)
