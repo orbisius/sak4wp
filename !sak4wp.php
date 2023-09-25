@@ -2312,8 +2312,13 @@ EOF;
 
         // wp-cli detection.
         $wp_cli_bin = Orbisius_WP_SAK_Util_File::getBinary('wp');
-        $wp_cli_version = `$wp_cli_bin --info`;
-        $wp_cli_version = trim($wp_cli_version);
+        $wp_cli_version = '';
+
+        if (!empty($wp_cli_bin)) {
+            $wp_cli_version = `$wp_cli_bin --info`;
+            $wp_cli_version = trim($wp_cli_version);
+        }
+
         $wp_cli_version = empty($wp_cli_version) ? 'Not Installed/Detected' : "<pre>" . $wp_cli_version . "</pre>";
         $data['wp-cli'] = $wp_cli_version;
 
