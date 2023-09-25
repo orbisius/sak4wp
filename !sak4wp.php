@@ -2502,10 +2502,14 @@ class Orbisius_WP_SAK_Util_File {
      * Attempts to find the path to a binary by iterating over several cases.
      *
      * Usage: Orbisius_WP_SAK_Util_File::getBinary();
-     * @param str $file
+     * @param string $file
      * borrowed from SAK4WP
      */
     public static function getBinary($file) {
+        if (!function_exists('exec')) {
+            return false;
+        }
+
         $file_esc = escapeshellcmd($file);
 
         // hmm, what did we receive? that required escaping?
@@ -2601,7 +2605,7 @@ class Orbisius_WP_SAK_Util_File {
 
     /**
      *
-     * @param str $file
+     * @param string $file
      * @return int
      */
     public static function is_wp_backup_resource($file) {
@@ -2631,8 +2635,8 @@ class Orbisius_WP_SAK_Util_File {
     * the result is either returned as an array OR saved in txt file
     * which can later be used when using tar --files-from=files.txt
      * Usage: Orbisius_WP_SAK_Util_File::get_wp_files();
-    * @param str $start_folder
-    * @param str $target_file
+    * @param string $start_folder
+    * @param string $target_file
     * @return array or bool when file is saved.
     */
    public static function get_wp_files($start_folder = '.', $target_file = '') {
@@ -3819,7 +3823,7 @@ BUFF_EOF;
 
     /**
      *
-     * @param str $buffer
+     * @param string $buffer
      * @param bool $render_in_footer
      */
     public function enqeueOnDocumentReady($buffer) {
