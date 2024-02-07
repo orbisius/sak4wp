@@ -3465,7 +3465,7 @@ class Orbisius_WP_SAK_Controller {
      * Executes tasks that require WP to loaded
      */
 	public function redirect($url, $status = 302) {
-        header('Location: ' . $url);
+        header('Location: ' . $url, true, $status);
         $this->doExit();
     }
 
