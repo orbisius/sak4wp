@@ -3380,6 +3380,7 @@ class Orbisius_WP_SAK_Controller {
 		$mod_obj->run();
     }
 
+    private $params = [];
     static private $_instance = null;
 
     public static function getInstance() {
